@@ -1,0 +1,66 @@
+# Unity generated folders
+/[Ll]ibrary/
+/[Tt]emp/
+/[Oo]bj/
+/[Bb]uild/
+/[Bb]uilds/
+/[Ll]ogs/
+/[Uu]ser[Ss]ettings/
+/[Mm]emoryCaptures/
+/[Rr]ecordings/
+
+# Unity generated files
+*.pidb.meta
+*.pdb.meta
+*.mdb.meta
+sysinfo.txt
+*.opendb
+*.VC.db
+
+# IDE / editor files
+.vs/
+.idea/
+.vscode/
+*.csproj
+*.sln
+*.suo
+*.user
+*.userprefs
+*.unityproj
+*.booproj
+*.tmp
+*.temp
+*.swp
+*~
+
+# Rider
+*.sln.iml
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Crash reports and logs
+crashlytics-build.properties
+*.log
+
+# Unity packages exported locally
+*.unitypackage
+
+# Local/private avatar assets
+# Remove these rules only after checking the model's redistribution terms.
+/Assets/_Project/Models/*.vrm
+/Assets/_Project/Models/*.vrm.meta
+/Assets/_Project/Models/**/*.vrm
+/Assets/_Project/Models/**/*.vrm.meta
+
+# Optional local secrets/configuration
+.env
+.env.*
+!.env.example
+/Assets/StreamingAssets/Secrets/
+/Assets/StreamingAssets/Secrets.meta
+
+# Keep placeholder folder
+!/Assets/_Project/Models/.gitkeep
