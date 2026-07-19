@@ -367,6 +367,9 @@ PrefabInstance:
       addedObject: {fileID: 1141355520}
     - targetCorrespondingSourceObject: {fileID: -1728013695380148634, guid: b2c4fdc826a0d7e4aa1efd906ba4780d, type: 3}
       insertIndex: -1
+      addedObject: {fileID: 1141355521}
+    - targetCorrespondingSourceObject: {fileID: -1728013695380148634, guid: b2c4fdc826a0d7e4aa1efd906ba4780d, type: 3}
+      insertIndex: -1
       addedObject: {fileID: 1141355519}
   m_SourcePrefab: {fileID: -3956505258223990651, guid: b2c4fdc826a0d7e4aa1efd906ba4780d, type: 3}
 --- !u!1 &1141355512 stripped
@@ -438,11 +441,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DesktopMascot.Interaction.MascotInteractionController
   character: {fileID: 1141355515}
   expressionController: {fileID: 1141355518}
+  dragController: {fileID: 1141355521}
   targetCamera: {fileID: 1330143043}
   clickableLayers:
     serializedVersion: 2
     m_Bits: 4294967295
   maximumRayDistance: 100
+  dragThresholdPixels: 8
   happyDuration: 1.5
   outputDebugLog: 1
 --- !u!65 &1141355520
@@ -466,6 +471,27 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.61013603, y: 1.6731776, z: 0.5332992}
   m_Center: {x: 0.0068149567, y: 0.8365888, z: 0.016649723}
+--- !u!114 &1141355521
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1141355512}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: eb07e5d3639e0844fbaa509bc235dc3b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DesktopMascot.Interaction.MascotDragController
+  character: {fileID: 1141355515}
+  targetCamera: {fileID: 1330143043}
+  allowHorizontalMovement: 1
+  allowVerticalMovement: 1
+  allowDepthMovement: 0
+  movementSmoothTime: 0.02
+  limitPosition: 0
+  horizontalLimits: {x: -5, y: 5}
+  verticalLimits: {x: -1, y: 5}
 --- !u!1 &1330143041
 GameObject:
   m_ObjectHideFlags: 0

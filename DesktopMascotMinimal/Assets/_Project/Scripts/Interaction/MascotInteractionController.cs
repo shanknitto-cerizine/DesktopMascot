@@ -5,12 +5,15 @@ using UnityEngine;
 namespace DesktopMascot.Interaction
 {
     /// <summary>
-    /// マスコットに対するマウス操作を検出します。
-    /// 現在はクリック時の表情リアクションを担当します。
+    /// マスコットに対するマウス入力を一元管理します。
+    ///
+    /// 短い操作はクリック、
+    /// 一定距離以上の移動はドラッグとして判定します。
     /// </summary>
     [DisallowMultipleComponent]
     [RequireComponent(typeof(MascotCharacter))]
     [RequireComponent(typeof(MascotExpressionController))]
+    [RequireComponent(typeof(MascotDragController))]
     public sealed class MascotInteractionController : MonoBehaviour
     {
         [Header("References")]
@@ -22,9 +25,12 @@ namespace DesktopMascot.Interaction
         private MascotExpressionController expressionController;
 
         [SerializeField]
+        private MascotDragController dragController;
+
+        [SerializeField]
         private Camera targetCamera;
 
-        [Header("Click Detection")]
+        [Header("Pointer Detection")]
 
         [SerializeField]
         private LayerMask clickableLayers = ~0;
@@ -32,6 +38,11 @@ namespace DesktopMascot.Interaction
         [SerializeField]
         [Min(0.1f)]
         private float maximumRayDistance = 100.0f;
+
+        [Tooltip("このピクセル数以上動いた場合、クリックではなくドラッグになります。")]
+        [SerializeField]
+        [Min(0.0f)]
+        private float dragThresholdPixels = 8.0f;
 
         [Header("Click Reaction")]
 
@@ -41,6 +52,11 @@ namespace DesktopMascot.Interaction
 
         [SerializeField]
         private bool outputDebugLog = true;
+
+        private bool pointerPressedOnMascot;
+        private bool dragStarted;
+
+        private Vector2 pointerDownPosition;
 
         private Coroutine reactionCoroutine;
 
@@ -61,17 +77,25 @@ namespace DesktopMascot.Interaction
 
         private void Update()
         {
-            if (!Input.GetMouseButtonDown(0))
-            {
-                return;
-            }
-
-            DetectClick();
+            HandlePointerInput();
         }
 
-        /// <summary>
-        /// 必要な参照を自動取得します。
-        /// </summary>
+        private void OnDisable()
+        {
+            ResetPointerState();
+
+            if (reactionCoroutine != null)
+            {
+                StopCoroutine(reactionCoroutine);
+                reactionCoroutine = null;
+            }
+
+            if (expressionController != null)
+            {
+                expressionController.SetNeutral();
+            }
+        }
+
         [ContextMenu("Find Interaction Components")]
         public void FindComponents()
         {
@@ -84,6 +108,12 @@ namespace DesktopMascot.Interaction
             {
                 expressionController =
                     GetComponent<MascotExpressionController>();
+            }
+
+            if (dragController == null)
+            {
+                dragController =
+                    GetComponent<MascotDragController>();
             }
 
             if (targetCamera == null)
@@ -116,11 +146,21 @@ namespace DesktopMascot.Interaction
                 isValid = false;
             }
 
+            if (dragController == null)
+            {
+                Debug.LogError(
+                    $"{nameof(MascotInteractionController)}: " +
+                    "MascotDragControllerが見つかりません。",
+                    this);
+
+                isValid = false;
+            }
+
             if (targetCamera == null)
             {
                 Debug.LogError(
                     $"{nameof(MascotInteractionController)}: " +
-                    "クリック判定に使用するCameraが見つかりません。",
+                    "入力判定に使用するCameraが見つかりません。",
                     this);
 
                 isValid = false;
@@ -129,8 +169,112 @@ namespace DesktopMascot.Interaction
             return isValid;
         }
 
-        private void DetectClick()
+        private void HandlePointerInput()
         {
+            if (Input.GetMouseButtonDown(0))
+            {
+                HandlePointerDown();
+            }
+
+            if (Input.GetMouseButton(0))
+            {
+                HandlePointerHeld();
+            }
+
+            if (Input.GetMouseButtonUp(0))
+            {
+                HandlePointerUp();
+            }
+        }
+
+        private void HandlePointerDown()
+        {
+            ResetPointerState();
+
+            if (!TryRaycastMascot(out RaycastHit hit))
+            {
+                return;
+            }
+
+            pointerPressedOnMascot = true;
+            pointerDownPosition = Input.mousePosition;
+
+            if (outputDebugLog)
+            {
+                Debug.Log(
+                    $"Mascot pointer down: {hit.collider.name}",
+                    hit.collider);
+            }
+        }
+
+        private void HandlePointerHeld()
+        {
+            if (!pointerPressedOnMascot)
+            {
+                return;
+            }
+
+            Vector2 currentPosition = Input.mousePosition;
+
+            if (!dragStarted)
+            {
+                float movedDistance = Vector2.Distance(
+                    pointerDownPosition,
+                    currentPosition);
+
+                if (movedDistance >= dragThresholdPixels)
+                {
+                    dragStarted = dragController.BeginDrag(
+                        pointerDownPosition);
+
+                    if (dragStarted && outputDebugLog)
+                    {
+                        Debug.Log(
+                            "Mascot drag started.",
+                            this);
+                    }
+                }
+            }
+
+            if (dragStarted)
+            {
+                dragController.UpdateDrag(currentPosition);
+            }
+        }
+
+        private void HandlePointerUp()
+        {
+            if (!pointerPressedOnMascot)
+            {
+                ResetPointerState();
+                return;
+            }
+
+            if (dragStarted)
+            {
+                dragController.UpdateDrag(Input.mousePosition);
+                dragController.EndDrag();
+
+                if (outputDebugLog)
+                {
+                    Debug.Log(
+                        "Mascot drag ended.",
+                        this);
+                }
+            }
+            else
+            {
+                PlayClickReaction();
+            }
+
+            ResetPointerState();
+        }
+
+        private bool TryRaycastMascot(
+            out RaycastHit mascotHit)
+        {
+            mascotHit = default;
+
             Ray ray = targetCamera.ScreenPointToRay(
                 Input.mousePosition);
 
@@ -142,31 +286,28 @@ namespace DesktopMascot.Interaction
 
             if (!hitSomething)
             {
-                return;
+                return false;
             }
 
-            /*
-             * Rayが別のColliderに当たる可能性があるため、
-             * 命中したColliderがこのキャラクターに属するか確認します。
-             */
             MascotCharacter clickedCharacter =
                 hit.collider.GetComponentInParent<MascotCharacter>();
 
             if (clickedCharacter != character)
             {
-                return;
+                return false;
             }
 
-            OnMascotClicked(hit);
+            mascotHit = hit;
+            return true;
         }
 
-        private void OnMascotClicked(RaycastHit hit)
+        private void PlayClickReaction()
         {
             if (outputDebugLog)
             {
                 Debug.Log(
-                    $"Mascot clicked: {hit.collider.name}",
-                    hit.collider);
+                    "Mascot clicked.",
+                    this);
             }
 
             if (reactionCoroutine != null)
@@ -175,10 +316,10 @@ namespace DesktopMascot.Interaction
             }
 
             reactionCoroutine =
-                StartCoroutine(PlayClickReaction());
+                StartCoroutine(PlayClickReactionCoroutine());
         }
 
-        private IEnumerator PlayClickReaction()
+        private IEnumerator PlayClickReactionCoroutine()
         {
             expressionController.SetHappy();
 
@@ -191,18 +332,17 @@ namespace DesktopMascot.Interaction
             reactionCoroutine = null;
         }
 
-        private void OnDisable()
+        private void ResetPointerState()
         {
-            if (reactionCoroutine != null)
+            if (dragController != null &&
+                dragController.IsDragging)
             {
-                StopCoroutine(reactionCoroutine);
-                reactionCoroutine = null;
+                dragController.CancelDrag();
             }
 
-            if (expressionController != null)
-            {
-                expressionController.SetNeutral();
-            }
+            pointerPressedOnMascot = false;
+            dragStarted = false;
+            pointerDownPosition = Vector2.zero;
         }
     }
 }
