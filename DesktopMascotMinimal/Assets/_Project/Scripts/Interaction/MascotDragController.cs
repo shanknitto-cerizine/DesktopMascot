@@ -5,6 +5,9 @@ namespace DesktopMascot.Interaction
 {
     /// <summary>
     /// マスコットのドラッグ移動を担当します。
+    ///
+    /// 現在はUnity内でモデルのルート位置を移動します。
+    /// 将来的にはWindowsウィンドウの移動処理へ差し替えます。
     /// </summary>
     [DisallowMultipleComponent]
     [RequireComponent(typeof(MascotCharacter))]
@@ -27,14 +30,12 @@ namespace DesktopMascot.Interaction
         private bool allowVerticalMovement = true;
 
         [SerializeField]
-        private bool allowDepthMovement;
-
-        [SerializeField]
         [Min(0.0f)]
         private float movementSmoothTime = 0.02f;
 
         [Header("Screen Limits")]
 
+        [Tooltip("モデルのルート位置を画面内へ制限します。")]
         [SerializeField]
         private bool keepInsideScreen = true;
 
@@ -74,24 +75,8 @@ namespace DesktopMascot.Interaction
         {
             FindComponents();
 
-            if (character == null)
+            if (!ValidateComponents())
             {
-                Debug.LogError(
-                    $"{nameof(MascotDragController)}: " +
-                    "MascotCharacterが見つかりません。",
-                    this);
-
-                enabled = false;
-                return;
-            }
-
-            if (targetCamera == null)
-            {
-                Debug.LogError(
-                    $"{nameof(MascotDragController)}: " +
-                    "ドラッグに使用するCameraが見つかりません。",
-                    this);
-
                 enabled = false;
             }
         }
@@ -123,6 +108,33 @@ namespace DesktopMascot.Interaction
             {
                 targetCamera = Camera.main;
             }
+        }
+
+        private bool ValidateComponents()
+        {
+            bool isValid = true;
+
+            if (character == null)
+            {
+                Debug.LogError(
+                    $"{nameof(MascotDragController)}: " +
+                    "MascotCharacterが見つかりません。",
+                    this);
+
+                isValid = false;
+            }
+
+            if (targetCamera == null)
+            {
+                Debug.LogError(
+                    $"{nameof(MascotDragController)}: " +
+                    "ドラッグに使用するCameraが見つかりません。",
+                    this);
+
+                isValid = false;
+            }
+
+            return isValid;
         }
 
         public bool BeginDrag(Vector2 screenPosition)
@@ -240,14 +252,14 @@ namespace DesktopMascot.Interaction
                 result.y = currentPosition.y;
             }
 
-            if (!allowDepthMovement)
-            {
-                result.z = currentPosition.z;
-            }
+            /*
+             * ドラッグ平面上で移動しているため、
+             * カメラ方向の奥行きは基本的に変化しません。
+             */
 
             if (keepInsideScreen)
             {
-                result = ClampPositionInsideScreen(result);
+                result = ClampOriginInsideScreen(result);
             }
 
             if (limitWorldPosition)
@@ -266,37 +278,45 @@ namespace DesktopMascot.Interaction
             return result;
         }
 
-        private Vector3 ClampPositionInsideScreen(
+        /// <summary>
+        /// モデルのルート座標を画面内へ収めます。
+        ///
+        /// これはUnity内での暫定処理です。
+        /// 将来はWindowsウィンドウ座標による制限へ移行します。
+        /// </summary>
+        private Vector3 ClampOriginInsideScreen(
             Vector3 worldPosition)
         {
             Vector3 screenPosition =
                 targetCamera.WorldToScreenPoint(worldPosition);
 
-            /*
-             * カメラの背面にある場合は補正を行いません。
-             */
             if (screenPosition.z <= 0.0f)
             {
                 return worldPosition;
             }
 
-            float maximumX =
-                Mathf.Max(screenPadding, Screen.width - screenPadding);
+            Rect cameraRect = targetCamera.pixelRect;
 
-            float maximumY =
-                Mathf.Max(screenPadding, Screen.height - screenPadding);
+            float paddingX = Mathf.Min(
+                screenPadding,
+                cameraRect.width * 0.5f);
+
+            float paddingY = Mathf.Min(
+                screenPadding,
+                cameraRect.height * 0.5f);
 
             screenPosition.x = Mathf.Clamp(
                 screenPosition.x,
-                screenPadding,
-                maximumX);
+                cameraRect.xMin + paddingX,
+                cameraRect.xMax - paddingX);
 
             screenPosition.y = Mathf.Clamp(
                 screenPosition.y,
-                screenPadding,
-                maximumY);
+                cameraRect.yMin + paddingY,
+                cameraRect.yMax - paddingY);
 
-            return targetCamera.ScreenToWorldPoint(screenPosition);
+            return targetCamera.ScreenToWorldPoint(
+                screenPosition);
         }
     }
 }
