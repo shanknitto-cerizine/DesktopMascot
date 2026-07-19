@@ -1,18 +1,11 @@
 {
   "dependencies": {
-    "com.unity.ide.visualstudio": "2.0.23",
-    "com.unity.test-framework": "1.4.6",
-    "com.unity.timeline": "1.8.8",
-    "com.unity.ugui": "2.0.0",
-    "com.unity.modules.animation": "1.0.0",
-    "com.unity.modules.audio": "1.0.0",
-    "com.unity.modules.imageconversion": "1.0.0",
-    "com.unity.modules.imgui": "1.0.0",
-    "com.unity.modules.jsonserialize": "1.0.0",
-    "com.unity.modules.physics": "1.0.0",
-    "com.unity.modules.ui": "1.0.0",
+<<<<<<< HEAD
     "com.unity.modules.uielements": "1.0.0",
     "com.vrmc.gltf": "https://github.com/vrm-c/UniVRM.git?path=/Packages/UniGLTF#v0.131.0",
     "com.vrmc.vrm": "https://github.com/vrm-c/UniVRM.git?path=/Packages/VRM10#v0.131.0"
+=======
+    "com.unity.modules.uielements": "1.0.0"
+>>>>>>> 896a9ac (Add humanoid idle animation)
   }
 }
