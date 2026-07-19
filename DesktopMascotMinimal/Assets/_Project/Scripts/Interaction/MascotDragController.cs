@@ -5,9 +5,6 @@ namespace DesktopMascot.Interaction
 {
     /// <summary>
     /// マスコットのドラッグ移動を担当します。
-    ///
-    /// マウス入力の判定自体はMascotInteractionControllerが担当し、
-    /// このクラスは移動処理だけを受け持ちます。
     /// </summary>
     [DisallowMultipleComponent]
     [RequireComponent(typeof(MascotCharacter))]
@@ -23,33 +20,41 @@ namespace DesktopMascot.Interaction
 
         [Header("Movement")]
 
-        [Tooltip("横方向への移動を許可します。")]
         [SerializeField]
         private bool allowHorizontalMovement = true;
 
-        [Tooltip("縦方向への移動を許可します。")]
         [SerializeField]
         private bool allowVerticalMovement = true;
 
-        [Tooltip("奥行き方向への移動を許可します。")]
         [SerializeField]
         private bool allowDepthMovement;
 
-        [Tooltip("ドラッグ位置へ追従する速さです。0なら即座に追従します。")]
         [SerializeField]
         [Min(0.0f)]
         private float movementSmoothTime = 0.02f;
 
-        [Header("Optional Position Limits")]
+        [Header("Screen Limits")]
 
         [SerializeField]
-        private bool limitPosition;
+        private bool keepInsideScreen = true;
+
+        [Tooltip("画面端から確保する余白です。ピクセル単位です。")]
+        [SerializeField]
+        [Min(0.0f)]
+        private float screenPadding = 40.0f;
+
+        [Header("Optional World Position Limits")]
 
         [SerializeField]
-        private Vector2 horizontalLimits = new Vector2(-5.0f, 5.0f);
+        private bool limitWorldPosition;
 
         [SerializeField]
-        private Vector2 verticalLimits = new Vector2(-1.0f, 5.0f);
+        private Vector2 horizontalLimits =
+            new Vector2(-5.0f, 5.0f);
+
+        [SerializeField]
+        private Vector2 verticalLimits =
+            new Vector2(-1.0f, 5.0f);
 
         private Plane dragPlane;
         private Vector3 dragOffset;
@@ -58,9 +63,6 @@ namespace DesktopMascot.Interaction
 
         private bool isDragging;
 
-        /// <summary>
-        /// 現在ドラッグ中かどうかを返します。
-        /// </summary>
         public bool IsDragging => isDragging;
 
         private void Reset()
@@ -123,9 +125,6 @@ namespace DesktopMascot.Interaction
             }
         }
 
-        /// <summary>
-        /// 指定された画面座標からドラッグを開始します。
-        /// </summary>
         public bool BeginDrag(Vector2 screenPosition)
         {
             if (!enabled || targetCamera == null)
@@ -133,13 +132,6 @@ namespace DesktopMascot.Interaction
                 return false;
             }
 
-            /*
-             * カメラの正面方向を法線とする平面を、
-             * キャラクターの現在位置に作ります。
-             *
-             * この平面上をマウスで移動することで、
-             * カメラから見た左右・上下方向へ自然に動かせます。
-             */
             dragPlane = new Plane(
                 -targetCamera.transform.forward,
                 transform.position);
@@ -151,12 +143,9 @@ namespace DesktopMascot.Interaction
                 return false;
             }
 
-            /*
-             * 掴んだ位置とオブジェクト中心との差を保存します。
-             * これにより、ドラッグ開始時にモデルの中心へ
-             * 突然移動することを防ぎます。
-             */
-            dragOffset = transform.position - pointerWorldPosition;
+            dragOffset =
+                transform.position - pointerWorldPosition;
+
             dragTargetPosition = transform.position;
             movementVelocity = Vector3.zero;
             isDragging = true;
@@ -164,9 +153,6 @@ namespace DesktopMascot.Interaction
             return true;
         }
 
-        /// <summary>
-        /// ドラッグ中の目標位置を更新します。
-        /// </summary>
         public void UpdateDrag(Vector2 screenPosition)
         {
             if (!isDragging)
@@ -188,9 +174,6 @@ namespace DesktopMascot.Interaction
                 ApplyMovementRestrictions(requestedPosition);
         }
 
-        /// <summary>
-        /// ドラッグを終了します。
-        /// </summary>
         public void EndDrag()
         {
             if (!isDragging)
@@ -198,17 +181,11 @@ namespace DesktopMascot.Interaction
                 return;
             }
 
-            /*
-             * 終了時は最終目標位置へ正確に合わせます。
-             */
             transform.position = dragTargetPosition;
             movementVelocity = Vector3.zero;
             isDragging = false;
         }
 
-        /// <summary>
-        /// ドラッグ状態を即座に解除します。
-        /// </summary>
         public void CancelDrag()
         {
             isDragging = false;
@@ -219,7 +196,8 @@ namespace DesktopMascot.Interaction
             Vector2 screenPosition,
             out Vector3 worldPosition)
         {
-            Ray ray = targetCamera.ScreenPointToRay(screenPosition);
+            Ray ray =
+                targetCamera.ScreenPointToRay(screenPosition);
 
             if (dragPlane.Raycast(ray, out float distance))
             {
@@ -267,7 +245,12 @@ namespace DesktopMascot.Interaction
                 result.z = currentPosition.z;
             }
 
-            if (limitPosition)
+            if (keepInsideScreen)
+            {
+                result = ClampPositionInsideScreen(result);
+            }
+
+            if (limitWorldPosition)
             {
                 result.x = Mathf.Clamp(
                     result.x,
@@ -281,6 +264,39 @@ namespace DesktopMascot.Interaction
             }
 
             return result;
+        }
+
+        private Vector3 ClampPositionInsideScreen(
+            Vector3 worldPosition)
+        {
+            Vector3 screenPosition =
+                targetCamera.WorldToScreenPoint(worldPosition);
+
+            /*
+             * カメラの背面にある場合は補正を行いません。
+             */
+            if (screenPosition.z <= 0.0f)
+            {
+                return worldPosition;
+            }
+
+            float maximumX =
+                Mathf.Max(screenPadding, Screen.width - screenPadding);
+
+            float maximumY =
+                Mathf.Max(screenPadding, Screen.height - screenPadding);
+
+            screenPosition.x = Mathf.Clamp(
+                screenPosition.x,
+                screenPadding,
+                maximumX);
+
+            screenPosition.y = Mathf.Clamp(
+                screenPosition.y,
+                screenPadding,
+                maximumY);
+
+            return targetCamera.ScreenToWorldPoint(screenPosition);
         }
     }
 }
