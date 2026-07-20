@@ -1,0 +1,3 @@
+C:/Users/shank/Documents/deverop/DesktopMascotMinimal_Unity6_5_GitHubPrivate/DesktopMascotMinimal/NativePlugin/out/build/windows-relwithdebinfo/CMakeFiles/DesktopMascotNative.dir
+C:/Users/shank/Documents/deverop/DesktopMascotMinimal_Unity6_5_GitHubPrivate/DesktopMascotMinimal/NativePlugin/out/build/windows-relwithdebinfo/CMakeFiles/edit_cache.dir
+C:/Users/shank/Documents/deverop/DesktopMascotMinimal_Unity6_5_GitHubPrivate/DesktopMascotMinimal/NativePlugin/out/build/windows-relwithdebinfo/CMakeFiles/rebuild_cache.dir

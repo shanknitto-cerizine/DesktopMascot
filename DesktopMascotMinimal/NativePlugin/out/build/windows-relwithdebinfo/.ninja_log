@@ -1,0 +1,21 @@
+# ninja log v5
+6	362	8062663534366045	CMakeFiles/DesktopMascotNative.dir/src/Plugin.cpp.obj	afe72bf4731aaf41
+9	979	8062629849357355	CMakeFiles/DesktopMascotNative.dir/src/ContinuousCompositionDiagnostics.cpp.obj	166c3e0f14ebd180
+14	941	8062629848949026	CMakeFiles/DesktopMascotNative.dir/src/DestinationTexture.cpp.obj	8a52f2562671903c
+641	822	8062663538636112	C:/Users/shank/Documents/deverop/DesktopMascotMinimal_Unity6_5_GitHubPrivate/DesktopMascotMinimal/Assets/Plugins/x86_64/DesktopMascotNative.dll	11bec5cd36cdfdd2
+641	822	8062663538636112	DesktopMascotNative.lib	11bec5cd36cdfdd2
+0	345	8062251075370371	CMakeFiles/DesktopMascotNative.dir/src/CopyResourceDiagnostics.cpp.obj	a2d869fc0dd200c1
+5	1057	8062629850125179	CMakeFiles/DesktopMascotNative.dir/src/CompositionDiagnostics.cpp.obj	f3583c3d1e849757
+0	852	8062272737485599	CMakeFiles/DesktopMascotNative.dir/src/ReadbackDiagnostics.cpp.obj	b30bb2c00cb7bb9
+5	891	8062319838556378	CMakeFiles/DesktopMascotNative.dir/src/CompositionPresentDiagnostics.cpp.obj	31ad418d8bf76b4a
+4	695	8062401221983436	CMakeFiles/DesktopMascotNative.dir/src/CompositionWindowPositionDiagnostics.cpp.obj	d65567fb1bb075ae
+1	705	8062454916213957	CMakeFiles/DesktopMascotNative.dir/src/CompositionClickThroughDiagnostics.cpp.obj	483aaceae37cd3e2
+0	971	8062629849282246	CMakeFiles/DesktopMascotNative.dir/src/CompositionAlphaMaskDiagnostics.cpp.obj	f349369fde5ce040
+5	742	8062498542612193	CMakeFiles/DesktopMascotNative.dir/src/CompositionPixelHitTestDiagnostics.cpp.obj	92669e08dad9db0b
+10	769	8062515055908550	CMakeFiles/DesktopMascotNative.dir/src/CompositionWindowRegionDiagnostics.cpp.obj	1939337f558e16ca
+1	641	8062663537136297	CMakeFiles/DesktopMascotNative.dir/src/AnimatedWindowRegionDiagnostics.cpp.obj	8d28797a6280b4f
+0	664	8062632888000751	CMakeFiles/DesktopMascotNative.dir/src/StaticComplexSilhouetteDiagnostics.cpp.obj	838f8902a7c96617
+5	369	8062665596415111	CMakeFiles/DesktopMascotNative.dir/src/Plugin.cpp.obj	afe72bf4731aaf41
+0	619	8062665598898834	CMakeFiles/DesktopMascotNative.dir/src/AnimatedWindowRegionDiagnostics.cpp.obj	8d28797a6280b4f
+619	743	8062665598898834	C:/Users/shank/Documents/deverop/DesktopMascotMinimal_Unity6_5_GitHubPrivate/DesktopMascotMinimal/Assets/Plugins/x86_64/DesktopMascotNative.dll	11bec5cd36cdfdd2
+619	743	8062665598898834	DesktopMascotNative.lib	11bec5cd36cdfdd2

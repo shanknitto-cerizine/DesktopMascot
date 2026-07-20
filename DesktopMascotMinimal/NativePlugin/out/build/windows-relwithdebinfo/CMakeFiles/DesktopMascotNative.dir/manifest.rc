@@ -1,0 +1,2 @@
+#pragma code_page(65001)
+2 /* CREATEPROCESS_MANIFEST_RESOURCE_ID */ 24 /* RT_MANIFEST */ "C:/Users/shank/Documents/deverop/DesktopMascotMinimal_Unity6_5_GitHubPrivate/DesktopMascotMinimal/NativePlugin/out/build/windows-relwithdebinfo/CMakeFiles/DesktopMascotNative.dir/embed.manifest"

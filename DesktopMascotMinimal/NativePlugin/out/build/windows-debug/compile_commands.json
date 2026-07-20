@@ -1,0 +1,7 @@
+[
+{
+  "directory": "C:/Users/shank/Documents/deverop/DesktopMascotMinimal_Unity6_5_GitHubPrivate/DesktopMascotMinimal/NativePlugin/out/build/windows-debug",
+  "command": "C:\\PROGRA~1\\MICROS~1\\18\\COMMUN~1\\VC\\Tools\\MSVC\\1451~1.362\\bin\\Hostx64\\x64\\cl.exe  /nologo /TP -DDesktopMascotNative_EXPORTS -DNOMINMAX -DWIN32_LEAN_AND_MEAN -IC:\\Users\\shank\\Documents\\deverop\\DesktopMascotMinimal_Unity6_5_GitHubPrivate\\DesktopMascotMinimal\\NativePlugin\\include -IC:\\Users\\shank\\Documents\\deverop\\DesktopMascotMinimal_Unity6_5_GitHubPrivate\\DesktopMascotMinimal\\NativePlugin\\unity -MDd /W4 /permissive- /Zc:__cplusplus /utf-8 -std:c++20 /FoCMakeFiles\\DesktopMascotNative.dir\\src\\Plugin.cpp.obj /FdTARGET_COMPILE_PDB /FS -c C:\\Users\\shank\\Documents\\deverop\\DesktopMascotMinimal_Unity6_5_GitHubPrivate\\DesktopMascotMinimal\\NativePlugin\\src\\Plugin.cpp",
+  "file": "C:\\Users\\shank\\Documents\\deverop\\DesktopMascotMinimal_Unity6_5_GitHubPrivate\\DesktopMascotMinimal\\NativePlugin\\src\\Plugin.cpp"
+}
+]

@@ -487,9 +487,10 @@ MonoBehaviour:
   targetCamera: {fileID: 1330143043}
   allowHorizontalMovement: 1
   allowVerticalMovement: 1
-  allowDepthMovement: 0
   movementSmoothTime: 0.02
-  limitPosition: 0
+  keepInsideScreen: 1
+  screenPadding: 40
+  limitWorldPosition: 0
   horizontalLimits: {x: -5, y: 5}
   verticalLimits: {x: -1, y: 5}
 --- !u!1 &1330143041
@@ -528,7 +529,7 @@ Camera:
   m_Enabled: 1
   serializedVersion: 2
   m_ClearFlags: 2
-  m_BackGroundColor: {r: 0.7, g: 0.7, b: 0.7, a: 1}
+  m_BackGroundColor: {r: 1, g: 0, b: 1, a: 0}
   m_projectionMatrixMode: 1
   m_GateFitMode: 2
   m_FOVAxisMode: 0
@@ -562,7 +563,7 @@ Camera:
   m_TargetTexture: {fileID: 0}
   m_TargetDisplay: 0
   m_TargetEye: 3
-  m_HDR: 1
+  m_HDR: 0
   m_AllowMSAA: 1
   m_AllowDynamicResolution: 0
   m_ForceIntoRT: 0
@@ -584,6 +585,85 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 180, z: 0}
+--- !u!1 &1733037240
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1733037242}
+  - component: {fileID: 1733037241}
+  - component: {fileID: 1733037243}
+  - component: {fileID: 1733037244}
+  m_Layer: 0
+  m_Name: DesktopManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1733037241
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1733037240}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 674f8ed0344135745b7b436baf947997, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DesktopMascot.Desktop.NativeWindowController
+  initializationDelayFrames: 1
+  maximumAttempts: 10
+--- !u!4 &1733037242
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1733037240}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0.05761, y: 0.83455, z: 0.2833}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1733037243
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1733037240}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 611c846b688fa0041b3f772854fccd4c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DesktopMascot.Desktop.TopMostWindowController
+  nativeWindowController: {fileID: 1733037241}
+  topMostOnStart: 1
+--- !u!114 &1733037244
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1733037240}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e114f033772794944add966ab6f4fee2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DesktopMascot.Desktop.TransparentWindowController
+  nativeWindowController: {fileID: 1733037241}
+  targetCamera: {fileID: 1330143043}
+  transparentOnStart: 1
+  borderless: 1
+  configureCamera: 1
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
@@ -591,3 +671,4 @@ SceneRoots:
   - {fileID: 1330143044}
   - {fileID: 996215613}
   - {fileID: 1141355511}
+  - {fileID: 1733037242}
