@@ -60,6 +60,7 @@ namespace DesktopMascotNative
 
     void ResetAnimatedWindowRegionDiagnostics();
     void SetAnimatedWindowRegionUiWindow(void* window);
+    void NotifyAnimatedWindowRegionShutdownRequested();
     void HandleAnimatedWindowRegionApplyMessage();
     void HandleAnimatedWindowRegionRestoreMessage();
     void StopAnimatedWindowRegionDiagnosticsOnUiThread();
@@ -68,6 +69,17 @@ namespace DesktopMascotNative
     std::int32_t StartAnimatedWindowRegionDiagnostics(
         std::int32_t alphaThreshold,
         std::int32_t minimumUpdateIntervalMilliseconds);
+    std::int32_t StartRealMascotStaticAlphaDiagnostics(
+        std::int32_t alphaThreshold);
+    std::int32_t StartRealMascotAnimatedAlphaDiagnostics(
+        std::int32_t alphaThreshold,
+        std::int32_t minimumUpdateIntervalMilliseconds);
+    std::int32_t StartRuntimeAlphaRegion(
+        std::int32_t alphaThreshold,
+        std::int32_t minimumUpdateIntervalMilliseconds);
+    std::int32_t SetRealMascotAnimatedPhaseForGeneration(
+        std::int32_t phase,
+        std::uint64_t generation);
     std::int32_t PollAnimatedWindowRegionDiagnostics();
     std::int32_t CompleteAnimatedWindowRegionDiagnostics();
     std::int32_t StopAnimatedWindowRegionDiagnostics();
@@ -130,6 +142,7 @@ namespace DesktopMascotNative
     std::uint32_t GetAnimatedWindowRegionPhaseMerged(std::int32_t phase);
     std::uint32_t GetAnimatedWindowRegionPhaseFinal(std::int32_t phase);
     std::uint32_t GetAnimatedWindowRegionPhaseCovered(std::int32_t phase);
+    std::uint64_t GetAnimatedWindowRegionPhaseHash(std::int32_t phase);
     std::uint64_t GetAnimatedWindowRegionLastBuildMicroseconds();
     std::uint64_t GetAnimatedWindowRegionMinimumBuildMicroseconds();
     std::uint64_t GetAnimatedWindowRegionMaximumBuildMicroseconds();

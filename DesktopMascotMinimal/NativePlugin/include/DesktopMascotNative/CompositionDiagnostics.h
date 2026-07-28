@@ -52,6 +52,9 @@ namespace DesktopMascotNative
     };
 
     void ResetCompositionDiagnostics();
+    bool ConfigureCompositionInitialPosition(
+        std::int32_t x,
+        std::int32_t y);
     std::int32_t StartCompositionDiagnostics(ID3D12CommandQueue* commandQueue);
     bool RequestCompositionDiagnosticsShutdown();
     bool StopCompositionDiagnosticsForUnload(std::uint32_t timeoutMilliseconds);

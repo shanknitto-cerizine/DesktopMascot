@@ -4,11 +4,13 @@ param()
 Set-StrictMode -Version 2.0
 $ErrorActionPreference = 'Stop'
 
+. (Join-Path $PSScriptRoot 'ProductIdentity.ps1')
+
 $projectRoot = [System.IO.Path]::GetFullPath(
     (Join-Path $PSScriptRoot '..\..'))
 $player = [System.IO.Path]::GetFullPath(
     (Join-Path $projectRoot (
-        'Build\DevelopmentCurrent\DesktopMascotMinimal.exe')))
+        "Build\DevelopmentCurrent\$DesktopMascotDevelopmentPlayerFileName")))
 $processName = [System.IO.Path]::GetFileNameWithoutExtension($player)
 
 $players = @(

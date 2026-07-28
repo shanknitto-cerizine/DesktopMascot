@@ -4,14 +4,16 @@ param()
 Set-StrictMode -Version 2.0
 $ErrorActionPreference = 'Stop'
 
+. (Join-Path $PSScriptRoot 'ProductIdentity.ps1')
+
 $projectRoot = [System.IO.Path]::GetFullPath(
     (Join-Path $PSScriptRoot '..\..'))
 $sourceDll = Join-Path $projectRoot (
     'Assets\Plugins\x86_64\DesktopMascotNative.dll')
 $player = Join-Path $projectRoot (
-    'Build\DevelopmentCurrent\DesktopMascotMinimal.exe')
+    "Build\DevelopmentCurrent\$DesktopMascotDevelopmentPlayerFileName")
 $destinationDll = Join-Path $projectRoot (
-    'Build\DevelopmentCurrent\DesktopMascotMinimal_Data\Plugins\x86_64\DesktopMascotNative.dll')
+    "Build\DevelopmentCurrent\$DesktopMascotDevelopmentPlayerDataDirectoryName\Plugins\x86_64\DesktopMascotNative.dll")
 
 if (-not (Test-Path -LiteralPath $sourceDll)) {
     throw "Source DLL was not found: $sourceDll"
@@ -20,10 +22,23 @@ if (-not (Test-Path -LiteralPath $player)) {
     throw "DevelopmentCurrent Player was not found: $player"
 }
 
-$runningPlayers = @(Get-Process -Name 'DesktopMascotMinimal' -ErrorAction SilentlyContinue)
+$processName = [System.IO.Path]::GetFileNameWithoutExtension($player)
+$runningPlayers = @(
+    Get-Process -Name $processName -ErrorAction SilentlyContinue |
+        Where-Object {
+            try {
+                [System.IO.Path]::GetFullPath($_.Path) -eq
+                    [System.IO.Path]::GetFullPath($player)
+            }
+            catch {
+                $false
+            }
+        })
 if ($runningPlayers.Count -ne 0) {
     $ids = ($runningPlayers | ForEach-Object { $_.Id }) -join ', '
-    throw "DesktopMascotMinimal is running (PID: $ids). Close it before deployment."
+    throw (
+        "Development Player is running (PID: $ids). " +
+        'Close it before deployment.')
 }
 
 $destinationDirectory = Split-Path -Parent $destinationDll

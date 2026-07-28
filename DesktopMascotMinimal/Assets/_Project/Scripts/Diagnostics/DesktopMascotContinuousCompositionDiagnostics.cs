@@ -33,6 +33,8 @@ namespace DesktopMascot.Diagnostics
         private bool useAnimatedAlphaPattern;
         private bool useStaticComplexSilhouettePattern;
         private bool useProductionAnimatedSilhouettePattern;
+        private bool useExternalSourceTexture;
+        private bool ownsSourceTexture;
         private float animatedPatternStartedAt;
         private bool externalShutdownOwner;
         internal static int TargetFpsForNextRun { get; set; } =
@@ -47,6 +49,8 @@ namespace DesktopMascot.Diagnostics
         internal static float AnimatedAlphaPhaseDurationForNextRun
             { get; set; } = 2.0f;
         internal static bool ExternalShutdownOwnerForNextRun { get; set; }
+        internal static RenderTexture ExternalSourceTextureForNextRun
+            { get; set; }
         internal static RenderTexture ActiveSourceTexture { get; private set; }
         internal static int CurrentAnimatedAlphaPhase { get; private set; }
         internal static float AnimatedAlphaPatternStartedAt
@@ -122,6 +126,9 @@ namespace DesktopMascot.Diagnostics
             useProductionAnimatedSilhouettePattern =
                 ProductionAnimatedSilhouettePatternForNextRun;
             ProductionAnimatedSilhouettePatternForNextRun = false;
+            sourceTexture = ExternalSourceTextureForNextRun;
+            ExternalSourceTextureForNextRun = null;
+            useExternalSourceTexture = sourceTexture != null;
             animatedPatternStartedAt = Time.realtimeSinceStartup;
             AnimatedAlphaPatternStartedAt = animatedPatternStartedAt;
             CurrentAnimatedAlphaPhaseDuration = Math.Max(
@@ -313,6 +320,19 @@ namespace DesktopMascot.Diagnostics
         {
             callback = IntPtr.Zero;
             sourcePointer = IntPtr.Zero;
+            if (useExternalSourceTexture)
+            {
+                ActiveSourceTexture = sourceTexture;
+                callback = DMN_GetRenderEventAndDataFunc();
+                sourcePointer = sourceTexture.GetNativeTexturePtr();
+                return sourceTexture.IsCreated()
+                    && sourceTexture.width == TextureSize
+                    && sourceTexture.height == TextureSize
+                    && sourceTexture.graphicsFormat
+                        == GraphicsFormat.B8G8R8A8_SRGB
+                    && callback != IntPtr.Zero
+                    && sourcePointer != IntPtr.Zero;
+            }
             const GraphicsFormat format = GraphicsFormat.B8G8R8A8_SRGB;
             if (!SystemInfo.IsFormatSupported(format, GraphicsFormatUsage.Render))
             {
@@ -363,6 +383,7 @@ namespace DesktopMascot.Diagnostics
             };
             sourceTexture = new RenderTexture(descriptor);
             sourceTexture.Create();
+            ownsSourceTexture = true;
             ActiveSourceTexture = sourceTexture;
             callback = DMN_GetRenderEventAndDataFunc();
             sourcePointer = sourceTexture.GetNativeTexturePtr();
@@ -373,6 +394,10 @@ namespace DesktopMascot.Diagnostics
 
         private void UpdatePattern(int frameIndex)
         {
+            if (useExternalSourceTexture)
+            {
+                return;
+            }
             if (useAnimatedAlphaPattern
                 || useProductionAnimatedSilhouettePattern)
             {
@@ -445,7 +470,11 @@ namespace DesktopMascot.Diagnostics
                 {
                     name = "Desktop Mascot Continuous Composition Frame"
                 };
-                if (useAlphaMaskPattern || useAnimatedAlphaPattern
+                if (useExternalSourceTexture)
+                {
+                    // The scene camera already rendered the real mascot.
+                }
+                else if (useAlphaMaskPattern || useAnimatedAlphaPattern
                     || useStaticComplexSilhouettePattern
                     || useProductionAnimatedSilhouettePattern)
                 {
@@ -613,12 +642,12 @@ namespace DesktopMascot.Diagnostics
             {
                 ActiveSourceTexture = null;
             }
-            if (sourceTexture != null)
+            if (sourceTexture != null && ownsSourceTexture)
             {
                 sourceTexture.Release();
                 Destroy(sourceTexture);
-                sourceTexture = null;
             }
+            sourceTexture = null;
             if (patternTexture != null)
             {
                 Destroy(patternTexture);

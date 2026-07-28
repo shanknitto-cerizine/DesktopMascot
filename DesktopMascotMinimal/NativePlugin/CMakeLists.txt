@@ -14,8 +14,12 @@ add_library(DesktopMascotNative SHARED
     src/ContinuousCompositionDiagnostics.cpp
     src/CopyResourceDiagnostics.cpp
     src/DestinationTexture.cpp
+    src/NativeMascotContextMenu.cpp
+    src/NativeTrayIcon.cpp
+    src/NativeMascotWindowDrag.cpp
     src/Plugin.cpp
     src/ReadbackDiagnostics.cpp
+    src/SingleInstanceCoordinator.cpp
     src/StaticComplexSilhouetteDiagnostics.cpp
 )
 
@@ -25,6 +29,7 @@ target_link_libraries(DesktopMascotNative
         dxgi
         gdi32
         ole32
+        shell32
         user32
 )
 

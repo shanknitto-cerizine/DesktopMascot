@@ -6,6 +6,8 @@
 #include "DesktopMascotNative/CompositionPresentDiagnostics.h"
 #include "DesktopMascotNative/CompositionWindowPositionDiagnostics.h"
 #include "DesktopMascotNative/ContinuousCompositionDiagnostics.h"
+#include "DesktopMascotNative/NativeMascotContextMenu.h"
+#include "DesktopMascotNative/NativeMascotWindowDrag.h"
 #include "DesktopMascotNative/StaticComplexSilhouetteDiagnostics.h"
 
 #include <Windows.h>
@@ -41,6 +43,8 @@ namespace
     HANDLE g_shutdownEvent = nullptr;
     HANDLE g_stoppedEvent = nullptr;
     ID3D12CommandQueue* g_borrowedCommandQueue = nullptr;
+    std::atomic<std::int32_t> g_initialWindowX{kWindowX};
+    std::atomic<std::int32_t> g_initialWindowY{kWindowY};
 
 #define DMN_ATOMIC_BOOL(name) std::atomic<bool> name{false}
 #define DMN_ATOMIC_I32(name, value) std::atomic<std::int32_t> name{value}
@@ -102,6 +106,10 @@ namespace
 
     void Fail(CompositionFailureStage stage)
     {
+        DesktopMascotNative::
+            NotifyNativeMascotWindowDragShutdownRequested();
+        DesktopMascotNative::
+            NotifyNativeMascotContextMenuShutdownRequested();
         g_failureStage.store(
             static_cast<std::int32_t>(stage),
             std::memory_order_release);
@@ -120,6 +128,25 @@ namespace
         WPARAM wParam,
         LPARAM lParam)
     {
+        std::intptr_t dragResult = 0;
+        if (DesktopMascotNative::HandleNativeMascotWindowDragMessage(
+                window,
+                message,
+                static_cast<std::uintptr_t>(wParam),
+                static_cast<std::intptr_t>(lParam),
+                dragResult))
+        {
+            return static_cast<LRESULT>(dragResult);
+        }
+        std::intptr_t menuResult = 0;
+        if (DesktopMascotNative::HandleNativeMascotContextMenuMessage(
+                window,
+                message,
+                static_cast<std::intptr_t>(lParam),
+                menuResult))
+        {
+            return static_cast<LRESULT>(menuResult);
+        }
         switch (message)
         {
             case WM_NCHITTEST:
@@ -220,6 +247,10 @@ namespace
                 ::DestroyWindow(window);
                 return 0;
             case WM_DESTROY:
+                DesktopMascotNative::
+                    StopNativeMascotWindowDragOnUiThread();
+                DesktopMascotNative::
+                    StopNativeMascotContextMenuOnUiThread();
                 ::PostQuitMessage(0);
                 return 0;
             case WM_NCDESTROY:
@@ -327,8 +358,8 @@ namespace
             kWindowClassName,
             L"",
             kWindowStyle,
-            kWindowX,
-            kWindowY,
+            g_initialWindowX.load(std::memory_order_acquire),
+            g_initialWindowY.load(std::memory_order_acquire),
             windowRectangle.right - windowRectangle.left,
             windowRectangle.bottom - windowRectangle.top,
             nullptr,
@@ -455,6 +486,8 @@ namespace
         DesktopMascotNative::SetCompositionWindowRegionUiWindow(window);
         DesktopMascotNative::SetAnimatedWindowRegionUiWindow(window);
         DesktopMascotNative::SetStaticComplexSilhouetteUiWindow(window);
+        DesktopMascotNative::SetNativeMascotWindowDragUiWindow(window);
+        DesktopMascotNative::SetNativeMascotContextMenuUiWindow(window);
         StoreState(CompositionInitializationState::SwapChainCreated);
 
         g_setContentAttempted.store(true, std::memory_order_relaxed);
@@ -567,6 +600,8 @@ namespace
             StopAnimatedWindowRegionDiagnosticsOnUiThread();
         DesktopMascotNative::
             StopStaticComplexSilhouetteDiagnosticsOnUiThread();
+        DesktopMascotNative::StopNativeMascotWindowDragOnUiThread();
+        DesktopMascotNative::StopNativeMascotContextMenuOnUiThread();
         if (window != nullptr && ::IsWindow(window))
         {
             ::DestroyWindow(window);
@@ -616,6 +651,20 @@ namespace
 
 namespace DesktopMascotNative
 {
+    bool ConfigureCompositionInitialPosition(
+        std::int32_t x,
+        std::int32_t y)
+    {
+        std::lock_guard lock(g_threadMutex);
+        if (g_uiThread.joinable())
+        {
+            return false;
+        }
+        g_initialWindowX.store(x, std::memory_order_release);
+        g_initialWindowY.store(y, std::memory_order_release);
+        return true;
+    }
+
     void ResetCompositionDiagnostics()
     {
         g_state.store(0);
@@ -661,6 +710,8 @@ namespace DesktopMascotNative
         ResetCompositionWindowRegionDiagnostics();
         ResetAnimatedWindowRegionDiagnostics();
         ResetStaticComplexSilhouetteDiagnostics();
+        ResetNativeMascotWindowDrag();
+        ResetNativeMascotContextMenu();
         g_shutdownEvent = ::CreateEventW(nullptr, TRUE, FALSE, nullptr);
         g_stoppedEvent = ::CreateEventW(nullptr, TRUE, FALSE, nullptr);
         if (g_shutdownEvent == nullptr || g_stoppedEvent == nullptr)
@@ -706,6 +757,9 @@ namespace DesktopMascotNative
         NotifyContinuousCompositionShutdownRequested();
         NotifyCompositionWindowPositionShutdownRequested();
         NotifyCompositionClickThroughShutdownRequested();
+        NotifyAnimatedWindowRegionShutdownRequested();
+        NotifyNativeMascotWindowDragShutdownRequested();
+        NotifyNativeMascotContextMenuShutdownRequested();
         if (g_state.load(std::memory_order_acquire)
             != static_cast<std::int32_t>(
                 CompositionInitializationState::Stopped))

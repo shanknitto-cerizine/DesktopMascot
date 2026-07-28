@@ -4,6 +4,8 @@ param()
 Set-StrictMode -Version 2.0
 $ErrorActionPreference = 'Stop'
 
+. (Join-Path $PSScriptRoot 'ProductIdentity.ps1')
+
 $projectRoot = [System.IO.Path]::GetFullPath(
     (Join-Path $PSScriptRoot '..\..'))
 $unity = 'C:\Program Files\Unity\Hub\Editor\6000.3.20f1\Editor\Unity.exe'
@@ -16,9 +18,9 @@ $nativeBuild = Join-Path $nativeSource (
 $sourceDll = Join-Path $projectRoot (
     'Assets\Plugins\x86_64\DesktopMascotNative.dll')
 $player = Join-Path $projectRoot (
-    'Build\DevelopmentCurrent\DesktopMascotMinimal.exe')
+    "Build\DevelopmentCurrent\$DesktopMascotDevelopmentPlayerFileName")
 $playerPluginDirectory = Join-Path $projectRoot (
-    'Build\DevelopmentCurrent\DesktopMascotMinimal_Data\Plugins\x86_64')
+    "Build\DevelopmentCurrent\$DesktopMascotDevelopmentPlayerDataDirectoryName\Plugins\x86_64")
 
 $checks = New-Object System.Collections.Generic.List[object]
 function Add-PathCheck([string]$name, [string]$path) {

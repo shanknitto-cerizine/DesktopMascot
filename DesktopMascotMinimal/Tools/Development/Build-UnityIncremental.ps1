@@ -4,11 +4,13 @@ param()
 Set-StrictMode -Version 2.0
 $ErrorActionPreference = 'Stop'
 
+. (Join-Path $PSScriptRoot 'ProductIdentity.ps1')
+
 $projectRoot = [System.IO.Path]::GetFullPath(
     (Join-Path $PSScriptRoot '..\..'))
 $unity = 'C:\Program Files\Unity\Hub\Editor\6000.3.20f1\Editor\Unity.exe'
 $player = Join-Path $projectRoot (
-    'Build\DevelopmentCurrent\DesktopMascotMinimal.exe')
+    "Build\DevelopmentCurrent\$DesktopMascotDevelopmentPlayerFileName")
 $logDirectory = Join-Path $projectRoot 'NativePlugin\out'
 $log = Join-Path $logDirectory 'unity-development-incremental-build.log'
 $tempDirectory = Join-Path $projectRoot 'Temp'

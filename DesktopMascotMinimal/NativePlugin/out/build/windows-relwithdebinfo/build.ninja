@@ -148,6 +148,33 @@ build CMakeFiles\DesktopMascotNative.dir\src\DestinationTexture.cpp.obj: CXX_COM
   TARGET_COMPILE_PDB = CMakeFiles\DesktopMascotNative.dir\
   TARGET_PDB = C:\Users\shank\Documents\deverop\DesktopMascotMinimal_Unity6_5_GitHubPrivate\DesktopMascotMinimal\Assets\Plugins\x86_64\DesktopMascotNative.pdb
 
+build CMakeFiles\DesktopMascotNative.dir\src\NativeMascotContextMenu.cpp.obj: CXX_COMPILER__DesktopMascotNative_RelWithDebInfo C$:\Users\shank\Documents\deverop\DesktopMascotMinimal_Unity6_5_GitHubPrivate\DesktopMascotMinimal\NativePlugin\src\NativeMascotContextMenu.cpp || cmake_object_order_depends_target_DesktopMascotNative
+  DEFINES = -DDesktopMascotNative_EXPORTS -DNOMINMAX -DWIN32_LEAN_AND_MEAN
+  FLAGS = /DWIN32 /D_WINDOWS /EHsc /Zi /O2 /Ob1 /DNDEBUG -MD /W4 /permissive- /Zc:__cplusplus /utf-8 -std:c++20
+  INCLUDES = -IC:\Users\shank\Documents\deverop\DesktopMascotMinimal_Unity6_5_GitHubPrivate\DesktopMascotMinimal\NativePlugin\include -IC:\Users\shank\Documents\deverop\DesktopMascotMinimal_Unity6_5_GitHubPrivate\DesktopMascotMinimal\NativePlugin\unity
+  OBJECT_DIR = CMakeFiles\DesktopMascotNative.dir
+  OBJECT_FILE_DIR = CMakeFiles\DesktopMascotNative.dir\src
+  TARGET_COMPILE_PDB = CMakeFiles\DesktopMascotNative.dir\
+  TARGET_PDB = C:\Users\shank\Documents\deverop\DesktopMascotMinimal_Unity6_5_GitHubPrivate\DesktopMascotMinimal\Assets\Plugins\x86_64\DesktopMascotNative.pdb
+
+build CMakeFiles\DesktopMascotNative.dir\src\NativeTrayIcon.cpp.obj: CXX_COMPILER__DesktopMascotNative_RelWithDebInfo C$:\Users\shank\Documents\deverop\DesktopMascotMinimal_Unity6_5_GitHubPrivate\DesktopMascotMinimal\NativePlugin\src\NativeTrayIcon.cpp || cmake_object_order_depends_target_DesktopMascotNative
+  DEFINES = -DDesktopMascotNative_EXPORTS -DNOMINMAX -DWIN32_LEAN_AND_MEAN
+  FLAGS = /DWIN32 /D_WINDOWS /EHsc /Zi /O2 /Ob1 /DNDEBUG -MD /W4 /permissive- /Zc:__cplusplus /utf-8 -std:c++20
+  INCLUDES = -IC:\Users\shank\Documents\deverop\DesktopMascotMinimal_Unity6_5_GitHubPrivate\DesktopMascotMinimal\NativePlugin\include -IC:\Users\shank\Documents\deverop\DesktopMascotMinimal_Unity6_5_GitHubPrivate\DesktopMascotMinimal\NativePlugin\unity
+  OBJECT_DIR = CMakeFiles\DesktopMascotNative.dir
+  OBJECT_FILE_DIR = CMakeFiles\DesktopMascotNative.dir\src
+  TARGET_COMPILE_PDB = CMakeFiles\DesktopMascotNative.dir\
+  TARGET_PDB = C:\Users\shank\Documents\deverop\DesktopMascotMinimal_Unity6_5_GitHubPrivate\DesktopMascotMinimal\Assets\Plugins\x86_64\DesktopMascotNative.pdb
+
+build CMakeFiles\DesktopMascotNative.dir\src\NativeMascotWindowDrag.cpp.obj: CXX_COMPILER__DesktopMascotNative_RelWithDebInfo C$:\Users\shank\Documents\deverop\DesktopMascotMinimal_Unity6_5_GitHubPrivate\DesktopMascotMinimal\NativePlugin\src\NativeMascotWindowDrag.cpp || cmake_object_order_depends_target_DesktopMascotNative
+  DEFINES = -DDesktopMascotNative_EXPORTS -DNOMINMAX -DWIN32_LEAN_AND_MEAN
+  FLAGS = /DWIN32 /D_WINDOWS /EHsc /Zi /O2 /Ob1 /DNDEBUG -MD /W4 /permissive- /Zc:__cplusplus /utf-8 -std:c++20
+  INCLUDES = -IC:\Users\shank\Documents\deverop\DesktopMascotMinimal_Unity6_5_GitHubPrivate\DesktopMascotMinimal\NativePlugin\include -IC:\Users\shank\Documents\deverop\DesktopMascotMinimal_Unity6_5_GitHubPrivate\DesktopMascotMinimal\NativePlugin\unity
+  OBJECT_DIR = CMakeFiles\DesktopMascotNative.dir
+  OBJECT_FILE_DIR = CMakeFiles\DesktopMascotNative.dir\src
+  TARGET_COMPILE_PDB = CMakeFiles\DesktopMascotNative.dir\
+  TARGET_PDB = C:\Users\shank\Documents\deverop\DesktopMascotMinimal_Unity6_5_GitHubPrivate\DesktopMascotMinimal\Assets\Plugins\x86_64\DesktopMascotNative.pdb
+
 build CMakeFiles\DesktopMascotNative.dir\src\Plugin.cpp.obj: CXX_COMPILER__DesktopMascotNative_RelWithDebInfo C$:\Users\shank\Documents\deverop\DesktopMascotMinimal_Unity6_5_GitHubPrivate\DesktopMascotMinimal\NativePlugin\src\Plugin.cpp || cmake_object_order_depends_target_DesktopMascotNative
   DEFINES = -DDesktopMascotNative_EXPORTS -DNOMINMAX -DWIN32_LEAN_AND_MEAN
   FLAGS = /DWIN32 /D_WINDOWS /EHsc /Zi /O2 /Ob1 /DNDEBUG -MD /W4 /permissive- /Zc:__cplusplus /utf-8 -std:c++20
@@ -158,6 +185,15 @@ build CMakeFiles\DesktopMascotNative.dir\src\Plugin.cpp.obj: CXX_COMPILER__Deskt
   TARGET_PDB = C:\Users\shank\Documents\deverop\DesktopMascotMinimal_Unity6_5_GitHubPrivate\DesktopMascotMinimal\Assets\Plugins\x86_64\DesktopMascotNative.pdb
 
 build CMakeFiles\DesktopMascotNative.dir\src\ReadbackDiagnostics.cpp.obj: CXX_COMPILER__DesktopMascotNative_RelWithDebInfo C$:\Users\shank\Documents\deverop\DesktopMascotMinimal_Unity6_5_GitHubPrivate\DesktopMascotMinimal\NativePlugin\src\ReadbackDiagnostics.cpp || cmake_object_order_depends_target_DesktopMascotNative
+  DEFINES = -DDesktopMascotNative_EXPORTS -DNOMINMAX -DWIN32_LEAN_AND_MEAN
+  FLAGS = /DWIN32 /D_WINDOWS /EHsc /Zi /O2 /Ob1 /DNDEBUG -MD /W4 /permissive- /Zc:__cplusplus /utf-8 -std:c++20
+  INCLUDES = -IC:\Users\shank\Documents\deverop\DesktopMascotMinimal_Unity6_5_GitHubPrivate\DesktopMascotMinimal\NativePlugin\include -IC:\Users\shank\Documents\deverop\DesktopMascotMinimal_Unity6_5_GitHubPrivate\DesktopMascotMinimal\NativePlugin\unity
+  OBJECT_DIR = CMakeFiles\DesktopMascotNative.dir
+  OBJECT_FILE_DIR = CMakeFiles\DesktopMascotNative.dir\src
+  TARGET_COMPILE_PDB = CMakeFiles\DesktopMascotNative.dir\
+  TARGET_PDB = C:\Users\shank\Documents\deverop\DesktopMascotMinimal_Unity6_5_GitHubPrivate\DesktopMascotMinimal\Assets\Plugins\x86_64\DesktopMascotNative.pdb
+
+build CMakeFiles\DesktopMascotNative.dir\src\SingleInstanceCoordinator.cpp.obj: CXX_COMPILER__DesktopMascotNative_RelWithDebInfo C$:\Users\shank\Documents\deverop\DesktopMascotMinimal_Unity6_5_GitHubPrivate\DesktopMascotMinimal\NativePlugin\src\SingleInstanceCoordinator.cpp || cmake_object_order_depends_target_DesktopMascotNative
   DEFINES = -DDesktopMascotNative_EXPORTS -DNOMINMAX -DWIN32_LEAN_AND_MEAN
   FLAGS = /DWIN32 /D_WINDOWS /EHsc /Zi /O2 /Ob1 /DNDEBUG -MD /W4 /permissive- /Zc:__cplusplus /utf-8 -std:c++20
   INCLUDES = -IC:\Users\shank\Documents\deverop\DesktopMascotMinimal_Unity6_5_GitHubPrivate\DesktopMascotMinimal\NativePlugin\include -IC:\Users\shank\Documents\deverop\DesktopMascotMinimal_Unity6_5_GitHubPrivate\DesktopMascotMinimal\NativePlugin\unity
@@ -183,10 +219,10 @@ build CMakeFiles\DesktopMascotNative.dir\src\StaticComplexSilhouetteDiagnostics.
 #############################################
 # Link the shared library C:\Users\shank\Documents\deverop\DesktopMascotMinimal_Unity6_5_GitHubPrivate\DesktopMascotMinimal\Assets\Plugins\x86_64\DesktopMascotNative.dll
 
-build C$:\Users\shank\Documents\deverop\DesktopMascotMinimal_Unity6_5_GitHubPrivate\DesktopMascotMinimal\Assets\Plugins\x86_64\DesktopMascotNative.dll DesktopMascotNative.lib: CXX_SHARED_LIBRARY_LINKER__DesktopMascotNative_RelWithDebInfo CMakeFiles\DesktopMascotNative.dir\src\AnimatedWindowRegionDiagnostics.cpp.obj CMakeFiles\DesktopMascotNative.dir\src\CompositionAlphaMaskDiagnostics.cpp.obj CMakeFiles\DesktopMascotNative.dir\src\CompositionClickThroughDiagnostics.cpp.obj CMakeFiles\DesktopMascotNative.dir\src\CompositionDiagnostics.cpp.obj CMakeFiles\DesktopMascotNative.dir\src\CompositionPixelHitTestDiagnostics.cpp.obj CMakeFiles\DesktopMascotNative.dir\src\CompositionWindowRegionDiagnostics.cpp.obj CMakeFiles\DesktopMascotNative.dir\src\CompositionPresentDiagnostics.cpp.obj CMakeFiles\DesktopMascotNative.dir\src\CompositionWindowPositionDiagnostics.cpp.obj CMakeFiles\DesktopMascotNative.dir\src\ContinuousCompositionDiagnostics.cpp.obj CMakeFiles\DesktopMascotNative.dir\src\CopyResourceDiagnostics.cpp.obj CMakeFiles\DesktopMascotNative.dir\src\DestinationTexture.cpp.obj CMakeFiles\DesktopMascotNative.dir\src\Plugin.cpp.obj CMakeFiles\DesktopMascotNative.dir\src\ReadbackDiagnostics.cpp.obj CMakeFiles\DesktopMascotNative.dir\src\StaticComplexSilhouetteDiagnostics.cpp.obj
+build C$:\Users\shank\Documents\deverop\DesktopMascotMinimal_Unity6_5_GitHubPrivate\DesktopMascotMinimal\Assets\Plugins\x86_64\DesktopMascotNative.dll DesktopMascotNative.lib: CXX_SHARED_LIBRARY_LINKER__DesktopMascotNative_RelWithDebInfo CMakeFiles\DesktopMascotNative.dir\src\AnimatedWindowRegionDiagnostics.cpp.obj CMakeFiles\DesktopMascotNative.dir\src\CompositionAlphaMaskDiagnostics.cpp.obj CMakeFiles\DesktopMascotNative.dir\src\CompositionClickThroughDiagnostics.cpp.obj CMakeFiles\DesktopMascotNative.dir\src\CompositionDiagnostics.cpp.obj CMakeFiles\DesktopMascotNative.dir\src\CompositionPixelHitTestDiagnostics.cpp.obj CMakeFiles\DesktopMascotNative.dir\src\CompositionWindowRegionDiagnostics.cpp.obj CMakeFiles\DesktopMascotNative.dir\src\CompositionPresentDiagnostics.cpp.obj CMakeFiles\DesktopMascotNative.dir\src\CompositionWindowPositionDiagnostics.cpp.obj CMakeFiles\DesktopMascotNative.dir\src\ContinuousCompositionDiagnostics.cpp.obj CMakeFiles\DesktopMascotNative.dir\src\CopyResourceDiagnostics.cpp.obj CMakeFiles\DesktopMascotNative.dir\src\DestinationTexture.cpp.obj CMakeFiles\DesktopMascotNative.dir\src\NativeMascotContextMenu.cpp.obj CMakeFiles\DesktopMascotNative.dir\src\NativeTrayIcon.cpp.obj CMakeFiles\DesktopMascotNative.dir\src\NativeMascotWindowDrag.cpp.obj CMakeFiles\DesktopMascotNative.dir\src\Plugin.cpp.obj CMakeFiles\DesktopMascotNative.dir\src\ReadbackDiagnostics.cpp.obj CMakeFiles\DesktopMascotNative.dir\src\SingleInstanceCoordinator.cpp.obj CMakeFiles\DesktopMascotNative.dir\src\StaticComplexSilhouetteDiagnostics.cpp.obj
   LANGUAGE_COMPILE_FLAGS = /DWIN32 /D_WINDOWS /EHsc /Zi /O2 /Ob1 /DNDEBUG -MD
   LINK_FLAGS = /machine:x64 /debug /INCREMENTAL
-  LINK_LIBRARIES = dcomp.lib  dxgi.lib  gdi32.lib  ole32.lib  user32.lib  kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib
+  LINK_LIBRARIES = dcomp.lib  dxgi.lib  gdi32.lib  ole32.lib  shell32.lib  user32.lib  kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib
   OBJECT_DIR = CMakeFiles\DesktopMascotNative.dir
   POST_BUILD = cd .
   PRE_LINK = cd .

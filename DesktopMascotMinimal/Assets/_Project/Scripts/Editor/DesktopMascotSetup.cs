@@ -7,6 +7,7 @@ using UnityEngine;
 public static class DesktopMascotSetup
 {
     private const string ScenePath = "Assets/_Project/Scenes/DesktopMascot.unity";
+    private const string ProductDisplayName = "あなたといつも";
 
     [MenuItem("Tools/Desktop Mascot/Create or Rebuild Sample Scene")]
     public static void CreateScene()
@@ -63,8 +64,7 @@ public static class DesktopMascotSetup
         PlayerSettings.defaultScreenHeight = 700;
         PlayerSettings.runInBackground = true;
         PlayerSettings.resizableWindow = false;
-        PlayerSettings.companyName = "DesktopMascotSample";
-        PlayerSettings.productName = "DesktopMascot";
+        PlayerSettings.productName = ProductDisplayName;
 
         EditorSceneManager.SaveScene(scene, ScenePath);
         EditorBuildSettings.scenes = new[] { new EditorBuildSettingsScene(ScenePath, true) };
@@ -96,7 +96,8 @@ public static class DesktopMascotSetup
         var options = new BuildPlayerOptions
         {
             scenes = new[] { ScenePath },
-            locationPathName = "Build/DesktopMascot/DesktopMascot.exe",
+            locationPathName =
+                $"Build/DesktopMascot/{ProductDisplayName}.exe",
             target = BuildTarget.StandaloneWindows64,
             options = BuildOptions.None
         };

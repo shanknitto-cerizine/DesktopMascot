@@ -69,6 +69,7 @@ namespace DesktopMascotNative
     void ResetContinuousCompositionDiagnostics();
     bool SetContinuousCompositionTargetFrameCountForNextRun(
         std::uint32_t targetFrameCount);
+    bool EnableContinuousCompositionRuntimeModeForNextRun();
     void SetContinuousCompositionUiObjects(
         void* window,
         IDXGISwapChain1* swapChain);

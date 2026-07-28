@@ -67,6 +67,7 @@ namespace
     std::array<std::atomic<std::uint32_t>, 4> g_phaseMerged{};
     std::array<std::atomic<std::uint32_t>, 4> g_phaseFinal{};
     std::array<std::atomic<std::uint32_t>, 4> g_phaseCovered{};
+    std::array<std::atomic<std::uint64_t>, 4> g_phaseHash{};
     std::atomic<std::uint64_t> g_lastBuildUs{0};
     std::atomic<std::uint64_t> g_minBuildUs{UINT64_MAX};
     std::atomic<std::uint64_t> g_maxBuildUs{0};
@@ -102,6 +103,13 @@ namespace
     std::atomic<bool> g_bottomRight{false};
     std::atomic<bool> g_bottomLeft{false};
     std::atomic<bool> g_center{false};
+    std::atomic<bool> g_realMascotMode{false};
+    std::atomic<bool> g_realMascotAnimatedMode{false};
+    std::atomic<bool> g_runtimeMode{false};
+    std::atomic<bool> g_stopRequested{false};
+    std::atomic<bool> g_shutdownAuditLogged{false};
+    std::atomic<std::int32_t> g_externalPhase{-1};
+    std::atomic<std::uint64_t> g_externalPhaseGeneration{0};
 
     // Composition UI thread only.
     HRGN g_savedInitialRegion = nullptr;
@@ -184,6 +192,66 @@ namespace
                && !g_peakGdiCount.compare_exchange_weak(peak, count))
         {
         }
+    }
+
+    const wchar_t* FailureStageName(
+        AnimatedWindowRegionFailureStage stage)
+    {
+        switch (stage)
+        {
+            case AnimatedWindowRegionFailureStage::GdiObjectLeakDetected:
+                return L"GdiObjectLeakDetected";
+            default:
+                return L"Other";
+        }
+    }
+
+    void LogShutdownAuditOnce(
+        AnimatedWindowRegionFailureStage candidate,
+        const wchar_t* operation,
+        bool treatedAsFailure,
+        DWORD error)
+    {
+        if (g_shutdownAuditLogged.exchange(true))
+            return;
+        const HWND window = g_window.load(std::memory_order_acquire);
+        const bool windowAvailable =
+            window != nullptr && ::IsWindow(window) != FALSE;
+        const bool messageLoopRunning =
+            DesktopMascotNative::IsCompositionMessageLoopRunning();
+        const auto compositionState =
+            DesktopMascotNative::GetCompositionInitializationState();
+        const bool compositionStopping =
+            compositionState
+                >= static_cast<std::int32_t>(
+                    DesktopMascotNative::
+                        CompositionInitializationState::ShutdownRequested);
+        wchar_t message[640]{};
+        swprintf_s(
+            message,
+            L"[DesktopMascotNative] Region shutdown audit: "
+            L"candidate=%ls, operation=%ls, treatedAsFailure=%d, "
+            L"shutdownStarted=%d, hwndAvailable=%d, "
+            L"messageLoopRunning=%d, compositionStopping=%d, "
+            L"generation=%llu, pendingOwnedRegions=%d, "
+            L"lastErrorOrHresult=0x%08lX, threadId=%lu, "
+            L"gdiInitial=%u, gdiFinal=%u, gdiDelta=%d.\n",
+            FailureStageName(candidate),
+            operation,
+            treatedAsFailure ? 1 : 0,
+            g_stopRequested.load() ? 1 : 0,
+            windowAvailable ? 1 : 0,
+            messageLoopRunning ? 1 : 0,
+            compositionStopping ? 1 : 0,
+            static_cast<unsigned long long>(
+                g_appliedGeneration.load()),
+            g_hrgnLive.load(),
+            static_cast<unsigned long>(error),
+            static_cast<unsigned long>(::GetCurrentThreadId()),
+            g_initialGdiCount.load(),
+            g_finalGdiCount.load(),
+            g_gdiDelta.load());
+        ::OutputDebugStringW(message);
     }
 
     void Fail(
@@ -287,7 +355,9 @@ namespace
         std::uint64_t hash = 14695981039346656037ull;
         for (const auto value : pixels)
         {
-            hash ^= value;
+            // Duplicate suppression is intentionally based on the binary
+            // hit-test mask, not insignificant anti-aliased alpha changes.
+            hash ^= value >= kThreshold ? 1u : 0u;
             hash *= 1099511628211ull;
         }
         return hash;
@@ -468,6 +538,7 @@ namespace DesktopMascotNative
             g_phaseMerged[phase].store(0);
             g_phaseFinal[phase].store(0);
             g_phaseCovered[phase].store(0);
+            g_phaseHash[phase].store(0);
         }
         RESET_U64(g_lastBuildUs); g_minBuildUs.store(UINT64_MAX);
         RESET_U64(g_maxBuildUs); RESET_U64(g_totalBuildUs);
@@ -487,6 +558,13 @@ namespace DesktopMascotNative
         RESET_BOOL(g_completeRequested); RESET_BOOL(g_topLeft);
         RESET_BOOL(g_topRight); RESET_BOOL(g_bottomRight);
         RESET_BOOL(g_bottomLeft); RESET_BOOL(g_center);
+        RESET_BOOL(g_realMascotMode);
+        RESET_BOOL(g_realMascotAnimatedMode);
+        RESET_BOOL(g_runtimeMode);
+        RESET_BOOL(g_stopRequested);
+        RESET_BOOL(g_shutdownAuditLogged);
+        g_externalPhase.store(-1);
+        RESET_U64(g_externalPhaseGeneration);
 #undef RESET_I32
 #undef RESET_U32
 #undef RESET_U64
@@ -496,6 +574,22 @@ namespace DesktopMascotNative
     void SetAnimatedWindowRegionUiWindow(void* window)
     {
         g_window.store(static_cast<HWND>(window));
+    }
+
+    void NotifyAnimatedWindowRegionShutdownRequested()
+    {
+        g_stopRequested.store(true, std::memory_order_release);
+        g_enabled.store(false, std::memory_order_release);
+        const auto state = g_state.load(std::memory_order_acquire);
+        if (state != static_cast<std::int32_t>(
+                AnimatedWindowRegionState::Completed)
+            && state != static_cast<std::int32_t>(
+                AnimatedWindowRegionState::Stopped)
+            && state != static_cast<std::int32_t>(
+                AnimatedWindowRegionState::Failed))
+        {
+            StoreState(AnimatedWindowRegionState::StopRequested);
+        }
     }
 
     std::int32_t StartAnimatedWindowRegionDiagnostics(
@@ -551,10 +645,52 @@ namespace DesktopMascotNative
         return 1;
     }
 
+    std::int32_t StartRealMascotStaticAlphaDiagnostics(
+        std::int32_t threshold)
+    {
+        g_realMascotMode.store(true);
+        return StartAnimatedWindowRegionDiagnostics(threshold, 250);
+    }
+
+    std::int32_t StartRealMascotAnimatedAlphaDiagnostics(
+        std::int32_t threshold,
+        std::int32_t intervalMilliseconds)
+    {
+        g_realMascotMode.store(true);
+        g_realMascotAnimatedMode.store(true);
+        return StartAnimatedWindowRegionDiagnostics(
+            threshold, intervalMilliseconds);
+    }
+
+    std::int32_t StartRuntimeAlphaRegion(
+        std::int32_t threshold,
+        std::int32_t intervalMilliseconds)
+    {
+        g_realMascotMode.store(true);
+        g_runtimeMode.store(true);
+        return StartAnimatedWindowRegionDiagnostics(
+            threshold, intervalMilliseconds);
+    }
+
+    std::int32_t SetRealMascotAnimatedPhaseForGeneration(
+        std::int32_t phase,
+        std::uint64_t generation)
+    {
+        // The first phase is registered immediately before the first mask is
+        // published, which necessarily precedes starting the region consumer.
+        if (phase < 0 || phase >= 4 || generation == 0)
+            return 0;
+        g_externalPhase.store(phase, std::memory_order_relaxed);
+        g_externalPhaseGeneration.store(
+            generation, std::memory_order_release);
+        return 1;
+    }
+
     std::int32_t PollAnimatedWindowRegionDiagnostics()
     {
         const auto state = g_state.load();
-        if (state != static_cast<int>(AnimatedWindowRegionState::Running)
+        if (g_stopRequested.load(std::memory_order_acquire)
+            || state != static_cast<int>(AnimatedWindowRegionState::Running)
             || g_pending.load())
         {
             return state;
@@ -591,6 +727,12 @@ namespace DesktopMascotNative
 
     void HandleAnimatedWindowRegionApplyMessage()
     {
+        if (g_stopRequested.load(std::memory_order_acquire))
+        {
+            g_pending.store(false, std::memory_order_release);
+            g_lastApplySucceeded.store(false);
+            return;
+        }
         g_executionCount.fetch_add(1);
         const HWND window = g_window.load();
         if (window == nullptr || ::IsWindow(window) == FALSE)
@@ -677,6 +819,11 @@ namespace DesktopMascotNative
             g_pending.store(false);
             g_lastApplySucceeded.store(true);
             g_lastUpdateTick.store(::GetTickCount64());
+            if (g_stopRequested.load(std::memory_order_acquire))
+            {
+                g_enabled.store(false, std::memory_order_release);
+                StoreState(AnimatedWindowRegionState::StopRequested);
+            }
             return;
         }
 
@@ -703,9 +850,11 @@ namespace DesktopMascotNative
                 error);
             return;
         }
-        if (covered == 0 || covered >= kByteCount
+        if (covered == 0
+            || (!g_realMascotMode.load() && covered >= kByteCount)
             || rectangles <= 1 || merged <= 1 || merged > rectangles
-            || finalRectangles <= 1 || buildUs > 10000)
+            || finalRectangles <= 1
+            || (!g_runtimeMode.load() && buildUs > 10000))
         {
             DeleteTrackedRegion(region);
             Fail(
@@ -713,7 +862,14 @@ namespace DesktopMascotNative
                     RegionPixelCountValidationFailed);
             return;
         }
-        const int phase = ValidateAndStoreSamples(region);
+        const int phase = g_realMascotAnimatedMode.load()
+            ? (g_externalPhaseGeneration.load(std::memory_order_acquire)
+                    == generation
+                ? g_externalPhase.load(std::memory_order_relaxed)
+                : -1)
+            : (g_realMascotMode.load()
+                ? 0
+                : ValidateAndStoreSamples(region));
         if (phase < 0)
         {
             DeleteTrackedRegion(region);
@@ -740,7 +896,7 @@ namespace DesktopMascotNative
         }
         // Windows owns region after successful SetWindowRgn.
         TransferTrackedRegion();
-        if (setUs > 5000)
+        if (!g_runtimeMode.load() && setUs > 5000)
         {
             Fail(AnimatedWindowRegionFailureStage::SetWindowRgnFailed);
             return;
@@ -748,7 +904,8 @@ namespace DesktopMascotNative
         HRGN appliedCopy = CreateTrackedRegion(0, 0, 0, 0);
         if (appliedCopy == nullptr
             || ::GetWindowRgn(window, appliedCopy) == ERROR
-            || ValidateAndStoreSamples(appliedCopy) != phase)
+            || (!g_realMascotMode.load()
+                && ValidateAndStoreSamples(appliedCopy) != phase))
         {
             if (appliedCopy != nullptr)
                 DeleteTrackedRegion(appliedCopy, true);
@@ -773,7 +930,9 @@ namespace DesktopMascotNative
         g_lastApplySucceeded.store(true);
         g_lastWin32Error.store(0);
         g_lastUpdateTick.store(::GetTickCount64());
-        g_enabled.store(true);
+        const bool stopping =
+            g_stopRequested.load(std::memory_order_acquire);
+        g_enabled.store(!stopping);
         g_builtPhase.store(phase);
         g_publishedPhase.store(phase);
         g_phaseApplied[phase].store(true);
@@ -782,6 +941,7 @@ namespace DesktopMascotNative
         g_phaseMerged[phase].store(merged);
         g_phaseFinal[phase].store(finalRectangles);
         g_phaseCovered[phase].store(covered);
+        g_phaseHash[phase].store(hash);
         g_phaseApplyCount.fetch_add(1);
         const auto animationGdi = CurrentGdiCount();
         UpdateMinimum(g_minAnimationGdi, animationGdi);
@@ -804,7 +964,10 @@ namespace DesktopMascotNative
                 phase);
             ::OutputDebugStringW(message);
         }
-        StoreState(AnimatedWindowRegionState::Running);
+        StoreState(
+            stopping
+                ? AnimatedWindowRegionState::StopRequested
+                : AnimatedWindowRegionState::Running);
         ObserveGdiCount();
     }
 
@@ -824,16 +987,24 @@ namespace DesktopMascotNative
 
     std::int32_t StopAnimatedWindowRegionDiagnostics()
     {
-        if (!g_regionChanged.load() && !g_styleChanged.load())
-        {
-            return 1;
-        }
+        if (g_runtimeMode.load())
+            g_completeRequested.store(true);
+        NotifyAnimatedWindowRegionShutdownRequested();
         if (g_pending.exchange(true))
         {
             return 0;
         }
-        g_enabled.store(false);
-        StoreState(AnimatedWindowRegionState::StopRequested);
+        if (!g_regionChanged.load() && !g_styleChanged.load())
+        {
+            g_pending.store(false);
+            g_regionRestored.store(true);
+            g_styleRestored.store(true);
+            StoreState(
+                g_completeRequested.load()
+                    ? AnimatedWindowRegionState::Completed
+                    : AnimatedWindowRegionState::Stopped);
+            return 1;
+        }
         if (::PostMessageW(
                 g_window.load(), kAnimatedWindowRegionRestoreMessage, 0, 0)
             == FALSE)
@@ -891,9 +1062,24 @@ namespace DesktopMascotNative
         g_gdiDelta.store(delta);
         if (delta > 2)
         {
-            Fail(
-                AnimatedWindowRegionFailureStage::GdiObjectLeakDetected);
-            return;
+            const bool trackedRuntimeOwnershipIsClean =
+                g_runtimeMode.load()
+                && g_stopRequested.load()
+                && g_hrgnLive.load() == 0
+                && g_regionRestored.load()
+                && g_styleRestored.load();
+            LogShutdownAuditOnce(
+                AnimatedWindowRegionFailureStage::GdiObjectLeakDetected,
+                L"validate restored region GDI ownership",
+                !trackedRuntimeOwnershipIsClean,
+                ERROR_SUCCESS);
+            if (!trackedRuntimeOwnershipIsClean)
+            {
+                Fail(
+                    AnimatedWindowRegionFailureStage::
+                        GdiObjectLeakDetected);
+                return;
+            }
         }
         StoreState(
             g_completeRequested.load()
@@ -906,6 +1092,7 @@ namespace DesktopMascotNative
 
     void StopAnimatedWindowRegionDiagnosticsOnUiThread()
     {
+        NotifyAnimatedWindowRegionShutdownRequested();
         if (g_regionChanged.load() || g_styleChanged.load())
         {
             HandleAnimatedWindowRegionRestoreMessage();
@@ -1009,6 +1196,8 @@ namespace DesktopMascotNative
     { return phase >= 0 && phase < 4 ? g_phaseFinal[phase].load() : 0; }
     std::uint32_t GetAnimatedWindowRegionPhaseCovered(std::int32_t phase)
     { return phase >= 0 && phase < 4 ? g_phaseCovered[phase].load() : 0; }
+    std::uint64_t GetAnimatedWindowRegionPhaseHash(std::int32_t phase)
+    { return phase >= 0 && phase < 4 ? g_phaseHash[phase].load() : 0; }
     std::uint64_t GetAnimatedWindowRegionMinimumBuildMicroseconds()
     { const auto v=g_minBuildUs.load(); return v==UINT64_MAX?0:v; }
     std::uint64_t GetAnimatedWindowRegionAverageBuildMicroseconds()

@@ -10,7 +10,11 @@
 #include "DesktopMascotNative/CompositionWindowPositionDiagnostics.h"
 #include "DesktopMascotNative/ContinuousCompositionDiagnostics.h"
 #include "DesktopMascotNative/DestinationTexture.h"
+#include "DesktopMascotNative/NativeMascotWindowDrag.h"
+#include "DesktopMascotNative/NativeMascotContextMenu.h"
+#include "DesktopMascotNative/NativeTrayIcon.h"
 #include "DesktopMascotNative/ReadbackDiagnostics.h"
+#include "DesktopMascotNative/SingleInstanceCoordinator.h"
 #include "DesktopMascotNative/StaticComplexSilhouetteDiagnostics.h"
 
 #include <Windows.h>
@@ -528,6 +532,7 @@ extern "C"
 
     void UNITY_INTERFACE_EXPORT UNITY_INTERFACE_API UnityPluginUnload()
     {
+        DesktopMascotNative::StopNativeTrayIcon();
         auto* graphics = g_unityGraphics.load(std::memory_order_acquire);
         if (graphics != nullptr)
         {
@@ -1517,6 +1522,15 @@ extern "C"
             : 0;
     }
 
+    int UNITY_INTERFACE_EXPORT
+        DMN_EnableContinuousCompositionRuntimeModeForNextRun()
+    {
+        return DesktopMascotNative::
+            EnableContinuousCompositionRuntimeModeForNextRun()
+            ? 1
+            : 0;
+    }
+
     int UNITY_INTERFACE_EXPORT DMN_RequestContinuousCompositionFrame()
     {
         return DesktopMascotNative::RequestContinuousCompositionFrame();
@@ -2245,6 +2259,57 @@ extern "C"
     }
 
     int UNITY_INTERFACE_EXPORT
+        DMN_StartRealMascotStaticAlphaDiagnostics(
+            int width, int height, int alphaThreshold,
+            int targetFps, int targetPresentCount)
+    {
+        if (width != 256 || height != 256 || alphaThreshold != 128
+            || targetFps != 30 || targetPresentCount != 600)
+            return 0;
+        return DesktopMascotNative::StartRealMascotStaticAlphaDiagnostics(
+            alphaThreshold);
+    }
+
+    int UNITY_INTERFACE_EXPORT
+        DMN_StartRealMascotAnimatedAlphaDiagnostics(
+            int width, int height, int alphaThreshold,
+            int targetFps, int targetPresentCount,
+            int publishIntervalMilliseconds)
+    {
+        if (width != 256 || height != 256 || alphaThreshold != 128
+            || targetFps != 30 || targetPresentCount != 1200
+            || publishIntervalMilliseconds != 250)
+            return 0;
+        return DesktopMascotNative::
+            StartRealMascotAnimatedAlphaDiagnostics(
+                alphaThreshold, publishIntervalMilliseconds);
+    }
+
+    int UNITY_INTERFACE_EXPORT
+        DMN_SetRealMascotAnimatedPhaseForGeneration(
+            int phase, unsigned long long generation)
+    {
+        return DesktopMascotNative::
+            SetRealMascotAnimatedPhaseForGeneration(phase, generation);
+    }
+
+    int UNITY_INTERFACE_EXPORT DMN_StartRuntimeAlphaRegion(
+        int width,
+        int height,
+        int alphaThreshold,
+        int publishIntervalMilliseconds)
+    {
+        if (width != 256 || height != 256
+            || alphaThreshold != 128
+            || publishIntervalMilliseconds < 250)
+        {
+            return 0;
+        }
+        return DesktopMascotNative::StartRuntimeAlphaRegion(
+            alphaThreshold, publishIntervalMilliseconds);
+    }
+
+    int UNITY_INTERFACE_EXPORT
         DMN_PollProductionSizedAnimatedSilhouetteDiagnostics()
     { return DesktopMascotNative::PollAnimatedWindowRegionDiagnostics(); }
     int UNITY_INTERFACE_EXPORT
@@ -2481,6 +2546,9 @@ extern "C"
     unsigned int UNITY_INTERFACE_EXPORT
         DMN_GetProductionSizedAnimatedSilhouettePhaseCoveredPixels(int phase)
     { return DesktopMascotNative::GetAnimatedWindowRegionPhaseCovered(phase); }
+    unsigned long long UNITY_INTERFACE_EXPORT
+        DMN_GetProductionSizedAnimatedSilhouettePhaseHash(int phase)
+    { return DesktopMascotNative::GetAnimatedWindowRegionPhaseHash(phase); }
     int UNITY_INTERFACE_EXPORT
         DMN_DidProductionSizedAnimatedSilhouetteInitialRegionRestoreSucceed()
     { return DesktopMascotNative::DidAnimatedWindowRegionInitialRegionRestoreSucceed() ? 1 : 0; }
@@ -2700,4 +2768,429 @@ extern "C"
 #undef DMN_EXPORT_STATIC_BOOL
 #undef DMN_EXPORT_STATIC_UINT
 #undef DMN_EXPORT_STATIC_U64
+
+    int UNITY_INTERFACE_EXPORT DMN_EnableNativeMascotWindowDrag()
+    {
+        return DesktopMascotNative::EnableNativeMascotWindowDrag();
+    }
+
+    int UNITY_INTERFACE_EXPORT DMN_SetCompositionInitialPosition(
+        int x,
+        int y)
+    {
+        return DesktopMascotNative::ConfigureCompositionInitialPosition(x, y)
+            ? 1
+            : 0;
+    }
+
+    int UNITY_INTERFACE_EXPORT DMN_DisableNativeMascotWindowDrag()
+    {
+        return DesktopMascotNative::DisableNativeMascotWindowDrag();
+    }
+
+    int UNITY_INTERFACE_EXPORT DMN_StartNativeMascotWindowDragDiagnostic(
+        int deltaX,
+        int deltaY)
+    {
+        return DesktopMascotNative::
+            StartNativeMascotWindowDragDiagnostic(deltaX, deltaY);
+    }
+
+    int UNITY_INTERFACE_EXPORT
+        DMN_CompleteNativeMascotWindowDragDiagnostic()
+    {
+        return DesktopMascotNative::
+            CompleteNativeMascotWindowDragDiagnostic();
+    }
+
+#define DMN_EXPORT_DRAG_INT(exportName, nativeName) \
+    int UNITY_INTERFACE_EXPORT exportName() \
+    { return DesktopMascotNative::nativeName(); }
+#define DMN_EXPORT_DRAG_UINT(exportName, nativeName) \
+    unsigned int UNITY_INTERFACE_EXPORT exportName() \
+    { return DesktopMascotNative::nativeName(); }
+#define DMN_EXPORT_DRAG_U64(exportName, nativeName) \
+    unsigned long long UNITY_INTERFACE_EXPORT exportName() \
+    { return DesktopMascotNative::nativeName(); }
+#define DMN_EXPORT_DRAG_BOOL(exportName, nativeName) \
+    int UNITY_INTERFACE_EXPORT exportName() \
+    { return DesktopMascotNative::nativeName() ? 1 : 0; }
+    DMN_EXPORT_DRAG_BOOL(
+        DMN_IsNativeMascotWindowDragEnabled,
+        IsNativeMascotWindowDragEnabled)
+    DMN_EXPORT_DRAG_BOOL(
+        DMN_IsNativeMascotWindowDragging,
+        IsNativeMascotWindowDragging)
+    DMN_EXPORT_DRAG_BOOL(
+        DMN_IsNativeMascotWindowCaptureOwned,
+        IsNativeMascotWindowCaptureOwned)
+    DMN_EXPORT_DRAG_BOOL(
+        DMN_IsNativeMascotWindowAvailableForDrag,
+        IsNativeMascotWindowAvailableForDrag)
+    DMN_EXPORT_DRAG_INT(
+        DMN_GetNativeMascotDragDiagnosticState,
+        GetNativeMascotDragDiagnosticState)
+    DMN_EXPORT_DRAG_INT(
+        DMN_GetNativeMascotDragFailureStage,
+        GetNativeMascotDragFailureStage)
+    DMN_EXPORT_DRAG_UINT(
+        DMN_GetNativeMascotDragStartCount,
+        GetNativeMascotDragStartCount)
+    DMN_EXPORT_DRAG_UINT(
+        DMN_GetNativeMascotDragMoveCount,
+        GetNativeMascotDragMoveCount)
+    DMN_EXPORT_DRAG_UINT(
+        DMN_GetNativeMascotDragEndCount,
+        GetNativeMascotDragEndCount)
+    DMN_EXPORT_DRAG_UINT(
+        DMN_GetNativeMascotDragCaptureAcquiredCount,
+        GetNativeMascotDragCaptureAcquiredCount)
+    DMN_EXPORT_DRAG_UINT(
+        DMN_GetNativeMascotDragCaptureReleasedCount,
+        GetNativeMascotDragCaptureReleasedCount)
+    DMN_EXPORT_DRAG_U64(
+        DMN_GetNativeMascotCompletedDragGeneration,
+        GetNativeMascotCompletedDragGeneration)
+    int UNITY_INTERFACE_EXPORT DMN_TryGetNativeMascotWindowPosition(
+        int* x,
+        int* y)
+    {
+        if (x == nullptr || y == nullptr)
+        {
+            return 0;
+        }
+        std::int32_t nativeX = 0;
+        std::int32_t nativeY = 0;
+        if (!DesktopMascotNative::TryGetNativeMascotWindowPosition(
+                nativeX,
+                nativeY))
+        {
+            return 0;
+        }
+        *x = nativeX;
+        *y = nativeY;
+        return 1;
+    }
+    DMN_EXPORT_DRAG_INT(
+        DMN_GetNativeMascotDragLastWindowX,
+        GetNativeMascotDragLastWindowX)
+    DMN_EXPORT_DRAG_INT(
+        DMN_GetNativeMascotDragLastWindowY,
+        GetNativeMascotDragLastWindowY)
+    DMN_EXPORT_DRAG_BOOL(
+        DMN_DidNativeMascotDragDiagnosticMoveSucceed,
+        DidNativeMascotDragDiagnosticMoveSucceed)
+    DMN_EXPORT_DRAG_BOOL(
+        DMN_DidNativeMascotDragDiagnosticSizeRemainUnchanged,
+        DidNativeMascotDragDiagnosticSizeRemainUnchanged)
+    DMN_EXPORT_DRAG_BOOL(
+        DMN_DidNativeMascotDragDiagnosticRegionRemainApplied,
+        DidNativeMascotDragDiagnosticRegionRemainApplied)
+    DMN_EXPORT_DRAG_BOOL(
+        DMN_DidNativeMascotDragDiagnosticPresentContinue,
+        DidNativeMascotDragDiagnosticPresentContinue)
+    DMN_EXPORT_DRAG_BOOL(
+        DMN_DidNativeMascotDragDiagnosticRegionPublicationContinue,
+        DidNativeMascotDragDiagnosticRegionPublicationContinue)
+    DMN_EXPORT_DRAG_BOOL(
+        DMN_DidNativeMascotDragDiagnosticAvoidCompositionRestart,
+        DidNativeMascotDragDiagnosticAvoidCompositionRestart)
+    DMN_EXPORT_DRAG_BOOL(
+        DMN_DidNativeMascotDragDiagnosticPreserveZOrder,
+        DidNativeMascotDragDiagnosticPreserveZOrder)
+    DMN_EXPORT_DRAG_BOOL(
+        DMN_DidNativeMascotDragDiagnosticAvoidActivation,
+        DidNativeMascotDragDiagnosticAvoidActivation)
+    DMN_EXPORT_DRAG_BOOL(
+        DMN_DidNativeMascotDragDiagnosticReleaseCapture,
+        DidNativeMascotDragDiagnosticReleaseCapture)
+    DMN_EXPORT_DRAG_BOOL(
+        DMN_DidNativeMascotDragDiagnosticRestoreInitialPosition,
+        DidNativeMascotDragDiagnosticRestoreInitialPosition)
+#undef DMN_EXPORT_DRAG_INT
+#undef DMN_EXPORT_DRAG_UINT
+#undef DMN_EXPORT_DRAG_U64
+#undef DMN_EXPORT_DRAG_BOOL
+
+    int UNITY_INTERFACE_EXPORT DMN_EnableNativeMascotContextMenu()
+    {
+        return DesktopMascotNative::EnableNativeMascotContextMenu();
+    }
+
+    int UNITY_INTERFACE_EXPORT DMN_DisableNativeMascotContextMenu()
+    {
+        return DesktopMascotNative::DisableNativeMascotContextMenu();
+    }
+
+    unsigned long long UNITY_INTERFACE_EXPORT
+        DMN_GetNativeMascotCommandGeneration()
+    {
+        return DesktopMascotNative::GetNativeMascotCommandGeneration();
+    }
+
+    int UNITY_INTERFACE_EXPORT DMN_TryConsumeNativeMascotCommand(
+        unsigned long long* generation,
+        int* command)
+    {
+        if (generation == nullptr || command == nullptr)
+            return 0;
+        std::uint64_t nativeGeneration = 0;
+        std::int32_t nativeCommand = 0;
+        if (!DesktopMascotNative::TryConsumeNativeMascotCommand(
+                nativeGeneration,
+                nativeCommand))
+        {
+            return 0;
+        }
+        *generation = nativeGeneration;
+        *command = nativeCommand;
+        return 1;
+    }
+
+    int UNITY_INTERFACE_EXPORT
+        DMN_PublishNativeMascotCommandForDiagnostics(int command)
+    {
+        return DesktopMascotNative::
+            PublishNativeMascotCommandForDiagnostics(command)
+            ? 1
+            : 0;
+    }
+
+    int UNITY_INTERFACE_EXPORT
+        DMN_RunNativeMascotMenuResourceDiagnostic()
+    {
+        return DesktopMascotNative::RunNativeMascotMenuResourceDiagnostic()
+            ? 1
+            : 0;
+    }
+
+#define DMN_EXPORT_MENU_UINT(exportName, nativeName) \
+    unsigned int UNITY_INTERFACE_EXPORT exportName() \
+    { return DesktopMascotNative::nativeName(); }
+    DMN_EXPORT_MENU_UINT(
+        DMN_GetNativeMascotCommandPublishCount,
+        GetNativeMascotCommandPublishCount)
+    DMN_EXPORT_MENU_UINT(
+        DMN_GetNativeMascotCommandConsumeCount,
+        GetNativeMascotCommandConsumeCount)
+    DMN_EXPORT_MENU_UINT(
+        DMN_GetNativeMascotCommandRejectedCount,
+        GetNativeMascotCommandRejectedCount)
+    DMN_EXPORT_MENU_UINT(
+        DMN_GetNativeMascotMenuCreatedCount,
+        GetNativeMascotMenuCreatedCount)
+    DMN_EXPORT_MENU_UINT(
+        DMN_GetNativeMascotMenuDestroyedCount,
+        GetNativeMascotMenuDestroyedCount)
+    DMN_EXPORT_MENU_UINT(
+        DMN_GetNativeMascotMenuCancelledCount,
+        GetNativeMascotMenuCancelledCount)
+#undef DMN_EXPORT_MENU_UINT
+
+    int UNITY_INTERFACE_EXPORT DMN_GetNativeMascotMenuLiveOwnedCount()
+    {
+        return DesktopMascotNative::GetNativeMascotMenuLiveOwnedCount();
+    }
+
+    int UNITY_INTERFACE_EXPORT DMN_GetNativeApplicationCommandLastSource()
+    {
+        return DesktopMascotNative::GetNativeApplicationCommandLastSource();
+    }
+
+    int UNITY_INTERFACE_EXPORT DMN_StartNativeTrayIcon()
+    {
+        return DesktopMascotNative::StartNativeTrayIcon();
+    }
+
+    int UNITY_INTERFACE_EXPORT DMN_StopNativeTrayIcon()
+    {
+        return DesktopMascotNative::StopNativeTrayIcon();
+    }
+
+#define DMN_EXPORT_TRAY_BOOL(exportName, nativeName) \
+    int UNITY_INTERFACE_EXPORT exportName() \
+    { return DesktopMascotNative::nativeName() ? 1 : 0; }
+    DMN_EXPORT_TRAY_BOOL(
+        DMN_IsNativeTrayIconRunning,
+        IsNativeTrayIconRunning)
+    DMN_EXPORT_TRAY_BOOL(
+        DMN_IsNativeTrayOwnerWindowAvailable,
+        IsNativeTrayOwnerWindowAvailable)
+    DMN_EXPORT_TRAY_BOOL(
+        DMN_IsNativeTrayIconRegistered,
+        IsNativeTrayIconRegistered)
+    DMN_EXPORT_TRAY_BOOL(
+        DMN_IsNativeTrayPopupActive,
+        IsNativeTrayPopupActive)
+    DMN_EXPORT_TRAY_BOOL(
+        DMN_WasNativeTrayTooltipConfigured,
+        WasNativeTrayTooltipConfigured)
+#undef DMN_EXPORT_TRAY_BOOL
+
+#define DMN_EXPORT_TRAY_UINT(exportName, nativeName) \
+    unsigned int UNITY_INTERFACE_EXPORT exportName() \
+    { return DesktopMascotNative::nativeName(); }
+    DMN_EXPORT_TRAY_UINT(
+        DMN_GetNativeTrayInitialAddRequestCount,
+        GetNativeTrayInitialAddRequestCount)
+    DMN_EXPORT_TRAY_UINT(
+        DMN_GetNativeTraySetVersionRequestCount,
+        GetNativeTraySetVersionRequestCount)
+    DMN_EXPORT_TRAY_UINT(
+        DMN_GetNativeTrayDeleteRequestCount,
+        GetNativeTrayDeleteRequestCount)
+    DMN_EXPORT_TRAY_UINT(
+        DMN_GetNativeTrayReregisterRequestCount,
+        GetNativeTrayReregisterRequestCount)
+    DMN_EXPORT_TRAY_UINT(
+        DMN_GetNativeTrayOwnerCreatedCount,
+        GetNativeTrayOwnerCreatedCount)
+    DMN_EXPORT_TRAY_UINT(
+        DMN_GetNativeTrayOwnerDestroyedCount,
+        GetNativeTrayOwnerDestroyedCount)
+    DMN_EXPORT_TRAY_UINT(
+        DMN_GetNativeTrayMenuCreatedCount,
+        GetNativeTrayMenuCreatedCount)
+    DMN_EXPORT_TRAY_UINT(
+        DMN_GetNativeTrayMenuDestroyedCount,
+        GetNativeTrayMenuDestroyedCount)
+    DMN_EXPORT_TRAY_UINT(
+        DMN_GetNativeTrayIconCreatedCount,
+        GetNativeTrayIconCreatedCount)
+    DMN_EXPORT_TRAY_UINT(
+        DMN_GetNativeTrayIconDestroyedCount,
+        GetNativeTrayIconDestroyedCount)
+    DMN_EXPORT_TRAY_UINT(
+        DMN_GetNativeTrayCancelledCount,
+        GetNativeTrayCancelledCount)
+    DMN_EXPORT_TRAY_UINT(
+        DMN_GetNativeTrayOpenSettingsSelectionCount,
+        GetNativeTrayOpenSettingsSelectionCount)
+    DMN_EXPORT_TRAY_UINT(
+        DMN_GetNativeTrayRequestExitSelectionCount,
+        GetNativeTrayRequestExitSelectionCount)
+    DMN_EXPORT_TRAY_UINT(
+        DMN_GetNativeTrayTaskbarCreatedCount,
+        GetNativeTrayTaskbarCreatedCount)
+    DMN_EXPORT_TRAY_UINT(
+        DMN_GetNativeTrayShutdownRejectedCount,
+        GetNativeTrayShutdownRejectedCount)
+#undef DMN_EXPORT_TRAY_UINT
+
+    int UNITY_INTERFACE_EXPORT DMN_GetNativeTrayMenuLiveOwnedCount()
+    {
+        return DesktopMascotNative::GetNativeTrayMenuLiveOwnedCount();
+    }
+
+    int UNITY_INTERFACE_EXPORT DMN_GetNativeTrayIconLiveOwnedCount()
+    {
+        return DesktopMascotNative::GetNativeTrayIconLiveOwnedCount();
+    }
+
+    int UNITY_INTERFACE_EXPORT
+        DMN_PublishNativeTrayCommandForDiagnostics(int command)
+    {
+        return DesktopMascotNative::
+            PublishNativeTrayCommandForDiagnostics(command);
+    }
+
+    int UNITY_INTERFACE_EXPORT DMN_RunNativeTrayFocusedDiagnostic()
+    {
+        return DesktopMascotNative::RunNativeTrayFocusedDiagnostic();
+    }
+
+    int UNITY_INTERFACE_EXPORT DMN_InitializeSingleInstance()
+    {
+        return DesktopMascotNative::InitializeSingleInstance();
+    }
+
+    int UNITY_INTERFACE_EXPORT DMN_BeginSingleInstanceShutdown()
+    {
+        return DesktopMascotNative::BeginSingleInstanceShutdown();
+    }
+
+    int UNITY_INTERFACE_EXPORT DMN_ShutdownSingleInstance()
+    {
+        return DesktopMascotNative::ShutdownSingleInstance();
+    }
+
+    int UNITY_INTERFACE_EXPORT DMN_TryConsumeSingleInstanceActivation(
+        unsigned long long* generation)
+    {
+        if (generation == nullptr)
+            return 0;
+        std::uint64_t nativeGeneration = 0;
+        if (!DesktopMascotNative::TryConsumeSingleInstanceActivation(
+                nativeGeneration))
+        {
+            return 0;
+        }
+        *generation = nativeGeneration;
+        return 1;
+    }
+
+    int UNITY_INTERFACE_EXPORT
+        DMN_RunSingleInstanceCoalescingFocusedDiagnostic()
+    {
+        return DesktopMascotNative::
+            RunSingleInstanceCoalescingFocusedDiagnostic();
+    }
+
+#define DMN_EXPORT_SINGLE_BOOL(exportName, nativeName) \
+    int UNITY_INTERFACE_EXPORT exportName() \
+    { return DesktopMascotNative::nativeName() ? 1 : 0; }
+    DMN_EXPORT_SINGLE_BOOL(
+        DMN_IsSingleInstancePrimary,
+        IsSingleInstancePrimary)
+    DMN_EXPORT_SINGLE_BOOL(
+        DMN_IsSingleInstanceNotificationReady,
+        IsSingleInstanceNotificationReady)
+    DMN_EXPORT_SINGLE_BOOL(
+        DMN_IsSingleInstanceAcceptingActivations,
+        IsSingleInstanceAcceptingActivations)
+    DMN_EXPORT_SINGLE_BOOL(
+        DMN_IsSingleInstanceActivationPending,
+        IsSingleInstanceActivationPending)
+#undef DMN_EXPORT_SINGLE_BOOL
+
+    unsigned long long UNITY_INTERFACE_EXPORT
+        DMN_GetSingleInstanceActivationGeneration()
+    {
+        return DesktopMascotNative::
+            GetSingleInstanceActivationGeneration();
+    }
+
+#define DMN_EXPORT_SINGLE_UINT(exportName, nativeName) \
+    unsigned int UNITY_INTERFACE_EXPORT exportName() \
+    { return DesktopMascotNative::nativeName(); }
+    DMN_EXPORT_SINGLE_UINT(
+        DMN_GetSingleInstanceSignalReceivedCount,
+        GetSingleInstanceSignalReceivedCount)
+    DMN_EXPORT_SINGLE_UINT(
+        DMN_GetSingleInstanceGenerationPublishCount,
+        GetSingleInstanceGenerationPublishCount)
+    DMN_EXPORT_SINGLE_UINT(
+        DMN_GetSingleInstanceActivationConsumeCount,
+        GetSingleInstanceActivationConsumeCount)
+    DMN_EXPORT_SINGLE_UINT(
+        DMN_GetSingleInstanceActivationCoalescedCount,
+        GetSingleInstanceActivationCoalescedCount)
+    DMN_EXPORT_SINGLE_UINT(
+        DMN_GetSingleInstanceActivationRejectedCount,
+        GetSingleInstanceActivationRejectedCount)
+    DMN_EXPORT_SINGLE_UINT(
+        DMN_GetSingleInstanceMaximumPendingCount,
+        GetSingleInstanceMaximumPendingCount)
+    DMN_EXPORT_SINGLE_UINT(
+        DMN_GetSingleInstanceNotificationCreatedCount,
+        GetSingleInstanceNotificationCreatedCount)
+    DMN_EXPORT_SINGLE_UINT(
+        DMN_GetSingleInstanceNotificationDestroyedCount,
+        GetSingleInstanceNotificationDestroyedCount)
+#undef DMN_EXPORT_SINGLE_UINT
+
+    int UNITY_INTERFACE_EXPORT DMN_GetSingleInstanceFailureStage()
+    {
+        return DesktopMascotNative::GetSingleInstanceFailureStage();
+    }
 }

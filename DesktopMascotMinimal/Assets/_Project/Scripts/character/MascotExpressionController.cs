@@ -42,7 +42,9 @@ namespace DesktopMascot.Character
         private float openingDuration = 0.12f;
 
         private Vrm10RuntimeExpression expression;
+        private Coroutine initializationCoroutine;
         private Coroutine blinkCoroutine;
+        private int blinkLoopStartCount;
 
         private static readonly ExpressionKey BlinkKey =
             ExpressionKey.CreateFromPreset(ExpressionPreset.blink);
@@ -67,13 +69,25 @@ namespace DesktopMascot.Character
             character = GetComponent<MascotCharacter>();
         }
 
-        private IEnumerator Start()
-        {
-            if (character == null)
-            {
-                character = GetComponent<MascotCharacter>();
-            }
+        internal bool IsBlinkLoopRunning => blinkCoroutine != null;
+        internal int BlinkLoopStartCount => blinkLoopStartCount;
 
+        private void OnEnable()
+        {
+            EnsureExpressionAndBlink();
+        }
+
+        private void Start()
+        {
+            EnsureExpressionAndBlink();
+        }
+
+        private void EnsureExpressionAndBlink()
+        {
+            if (!isActiveAndEnabled)
+                return;
+            if (character == null)
+                character = GetComponent<MascotCharacter>();
             if (character == null)
             {
                 Debug.LogError(
@@ -82,19 +96,39 @@ namespace DesktopMascot.Character
                     this);
 
                 enabled = false;
-                yield break;
+                return;
             }
+            if (expression != null)
+            {
+                StartBlinkLoopIfNeeded();
+                return;
+            }
+            if (initializationCoroutine == null)
+            {
+                initializationCoroutine =
+                    StartCoroutine(InitializeExpression());
+            }
+        }
 
+        private IEnumerator InitializeExpression()
+        {
             /*
              * Vrm10Instance.Runtimeは、Start直後には
              * 初期化が完了していない場合があるため待機します。
              */
-            while (!character.IsVrmRuntimeReady)
+            while (isActiveAndEnabled
+                   && !character.IsVrmRuntimeReady)
             {
                 yield return null;
             }
+            if (!isActiveAndEnabled)
+            {
+                initializationCoroutine = null;
+                yield break;
+            }
 
             expression = character.VrmInstance.Runtime.Expression;
+            initializationCoroutine = null;
 
             if (expression == null)
             {
@@ -106,15 +140,29 @@ namespace DesktopMascot.Character
                 enabled = false;
                 yield break;
             }
+            StartBlinkLoopIfNeeded();
+        }
 
-            if (automaticBlink)
+        private void StartBlinkLoopIfNeeded()
+        {
+            if (!automaticBlink
+                || expression == null
+                || !isActiveAndEnabled
+                || blinkCoroutine != null)
             {
-                blinkCoroutine = StartCoroutine(BlinkLoop());
+                return;
             }
+            blinkCoroutine = StartCoroutine(BlinkLoop());
+            blinkLoopStartCount++;
         }
 
         private void OnDisable()
         {
+            if (initializationCoroutine != null)
+            {
+                StopCoroutine(initializationCoroutine);
+                initializationCoroutine = null;
+            }
             if (blinkCoroutine != null)
             {
                 StopCoroutine(blinkCoroutine);

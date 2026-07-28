@@ -68,6 +68,7 @@ namespace
         static_cast<std::int32_t>(S_OK)};
     std::atomic<std::int32_t> g_lastDeviceRemovedReason{
         static_cast<std::int32_t>(S_OK)};
+    std::atomic<bool> g_presentOcclusionReported{false};
     std::atomic<std::uint64_t> g_startTick{0};
     std::atomic<std::uint64_t> g_frameRequestTick{0};
     std::atomic<std::uint64_t> g_fenceSubmissionTick{0};
@@ -83,6 +84,7 @@ namespace
     std::atomic<bool> g_completedNormally{false};
     std::atomic<bool> g_overallTimeout{false};
     std::atomic<bool> g_shutdownRequested{false};
+    std::atomic<bool> g_runtimeMode{false};
 
     void StoreState(ContinuousPresentState state)
     {
@@ -262,6 +264,7 @@ namespace DesktopMascotNative
         g_frameInFlight.store(false);
         g_lastPresentResult.store(static_cast<std::int32_t>(S_OK));
         g_lastDeviceRemovedReason.store(static_cast<std::int32_t>(S_OK));
+        g_presentOcclusionReported.store(false);
         g_startTick.store(0);
         g_frameRequestTick.store(0);
         g_fenceSubmissionTick.store(0);
@@ -277,6 +280,7 @@ namespace DesktopMascotNative
         g_completedNormally.store(false);
         g_overallTimeout.store(false);
         g_shutdownRequested.store(false);
+        g_runtimeMode.store(false);
     }
 
     void SetContinuousCompositionUiObjects(
@@ -299,6 +303,18 @@ namespace DesktopMascotNative
             return false;
         }
         g_targetFrameCount.store(targetFrameCount, std::memory_order_release);
+        return true;
+    }
+
+    bool EnableContinuousCompositionRuntimeModeForNextRun()
+    {
+        if (g_state.load(std::memory_order_acquire)
+            != static_cast<std::int32_t>(
+                ContinuousPresentState::NotStarted))
+        {
+            return false;
+        }
+        g_runtimeMode.store(true, std::memory_order_release);
         return true;
     }
 
@@ -369,8 +385,9 @@ namespace DesktopMascotNative
     std::int32_t RequestContinuousCompositionFrame()
     {
         if (g_shutdownRequested.load(std::memory_order_acquire)
-            || g_presentCount.load(std::memory_order_acquire)
-                >= g_targetFrameCount.load(std::memory_order_acquire))
+            || (!g_runtimeMode.load(std::memory_order_acquire)
+                && g_presentCount.load(std::memory_order_acquire)
+                    >= g_targetFrameCount.load(std::memory_order_acquire)))
         {
             g_rejectedFrameRequestCount.fetch_add(1);
             return 0;
@@ -598,7 +615,8 @@ namespace DesktopMascotNative
         if (start != 0)
         {
             g_elapsedMilliseconds.store(now - start);
-            if (now - start > kOverallTimeoutMilliseconds)
+            if (!g_runtimeMode.load(std::memory_order_acquire)
+                && now - start > kOverallTimeoutMilliseconds)
             {
                 g_overallTimeout.store(true);
                 Fail(ContinuousPresentFailureStage::OverallTimeout);
@@ -698,27 +716,39 @@ namespace DesktopMascotNative
         }
         const HRESULT result =
             g_swapChain3->Present(kPresentSyncInterval, kPresentFlags);
-        g_lastPresentResult.store(static_cast<std::int32_t>(result));
-        if (result != S_OK)
+        if (result == DXGI_STATUS_OCCLUDED)
         {
-            if (result == DXGI_ERROR_DEVICE_REMOVED
-                || result == DXGI_ERROR_DEVICE_RESET)
+            if (!g_presentOcclusionReported.exchange(true))
             {
-                auto* device =
-                    g_borrowedDevice.load(std::memory_order_acquire);
-                if (device != nullptr)
+                ::OutputDebugStringW(
+                    L"[DesktopMascotNative] Continuous composition Present "
+                    L"temporarily occluded; retrying.\n");
+            }
+        }
+        else
+        {
+            g_lastPresentResult.store(static_cast<std::int32_t>(result));
+            if (result != S_OK)
+            {
+                if (result == DXGI_ERROR_DEVICE_REMOVED
+                    || result == DXGI_ERROR_DEVICE_RESET)
                 {
-                    g_lastDeviceRemovedReason.store(
-                        static_cast<std::int32_t>(
-                            device->GetDeviceRemovedReason()));
+                    auto* device =
+                        g_borrowedDevice.load(std::memory_order_acquire);
+                    if (device != nullptr)
+                    {
+                        g_lastDeviceRemovedReason.store(
+                            static_cast<std::int32_t>(
+                                device->GetDeviceRemovedReason()));
+                    }
+                    Fail(ContinuousPresentFailureStage::DeviceRemoved);
                 }
-                Fail(ContinuousPresentFailureStage::DeviceRemoved);
+                else
+                {
+                    Fail(ContinuousPresentFailureStage::PresentFailed);
+                }
+                return;
             }
-            else
-            {
-                Fail(ContinuousPresentFailureStage::PresentFailed);
-            }
-            return;
         }
 
         const auto index = g_lastBackBufferIndex.load();
@@ -737,7 +767,8 @@ namespace DesktopMascotNative
         const auto count = g_presentCount.fetch_add(1) + 1;
         const auto target =
             g_targetFrameCount.load(std::memory_order_acquire);
-        if (count > target)
+        if (!g_runtimeMode.load(std::memory_order_acquire)
+            && count > target)
         {
             Fail(ContinuousPresentFailureStage::UnexpectedPresentCount);
             return;
@@ -763,7 +794,8 @@ namespace DesktopMascotNative
                 L"[DesktopMascotNative] Continuous composition first "
                 L"Present succeeded.\n");
         }
-        if (count == target)
+        if (!g_runtimeMode.load(std::memory_order_acquire)
+            && count == target)
         {
             const auto start = g_startTick.load();
             g_elapsedMilliseconds.store(::GetTickCount64() - start);

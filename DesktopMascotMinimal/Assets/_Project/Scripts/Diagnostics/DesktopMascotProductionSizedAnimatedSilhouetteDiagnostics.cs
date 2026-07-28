@@ -9,6 +9,7 @@ namespace DesktopMascot.Diagnostics
 {
     internal sealed class DesktopMascotProductionSizedAnimatedSilhouetteDiagnostics : MonoBehaviour
     {
+        internal static bool AutoStartEnabled { get; set; } = true;
         private const string Dll = "DesktopMascotNative";
         private const int Size = 256;
         private const int Threshold = 128;
@@ -107,6 +108,7 @@ namespace DesktopMascot.Diagnostics
         static void Select()
         {
 #if UNITY_STANDALONE_WIN && !UNITY_EDITOR
+            if (!AutoStartEnabled) return;
             DesktopMascotAnimatedWindowRegionDiagnostics.AutoStartEnabled=false;
             DesktopMascotStaticComplexSilhouetteDiagnostics.AutoStartEnabled=false;
             DesktopMascotProductionSizedStaticSilhouetteDiagnostics.AutoStartEnabled=false;
@@ -116,6 +118,7 @@ namespace DesktopMascot.Diagnostics
         static void Launch()
         {
 #if UNITY_STANDALONE_WIN && !UNITY_EDITOR
+            if (!AutoStartEnabled) return;
             var go=new GameObject(nameof(DesktopMascotProductionSizedAnimatedSilhouetteDiagnostics));
             DontDestroyOnLoad(go); go.AddComponent<DesktopMascotProductionSizedAnimatedSilhouetteDiagnostics>();
 #endif

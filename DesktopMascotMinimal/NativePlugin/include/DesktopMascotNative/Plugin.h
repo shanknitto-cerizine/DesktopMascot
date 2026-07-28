@@ -535,4 +535,155 @@ extern "C"
         DMN_GetCompositionWindowRegionCurrentExtendedStyle();
     UNITY_INTERFACE_EXPORT int
         DMN_DidCompositionWindowRegionStyleRestoreSucceed();
+    UNITY_INTERFACE_EXPORT int DMN_SetCompositionInitialPosition(
+        int x,
+        int y);
+    UNITY_INTERFACE_EXPORT int DMN_EnableNativeMascotWindowDrag();
+    UNITY_INTERFACE_EXPORT int DMN_DisableNativeMascotWindowDrag();
+    UNITY_INTERFACE_EXPORT int DMN_StartNativeMascotWindowDragDiagnostic(
+        int deltaX,
+        int deltaY);
+    UNITY_INTERFACE_EXPORT int
+        DMN_CompleteNativeMascotWindowDragDiagnostic();
+    UNITY_INTERFACE_EXPORT int DMN_IsNativeMascotWindowDragEnabled();
+    UNITY_INTERFACE_EXPORT int DMN_IsNativeMascotWindowDragging();
+    UNITY_INTERFACE_EXPORT int DMN_IsNativeMascotWindowCaptureOwned();
+    UNITY_INTERFACE_EXPORT int
+        DMN_IsNativeMascotWindowAvailableForDrag();
+    UNITY_INTERFACE_EXPORT int DMN_GetNativeMascotDragDiagnosticState();
+    UNITY_INTERFACE_EXPORT int DMN_GetNativeMascotDragFailureStage();
+    UNITY_INTERFACE_EXPORT unsigned int DMN_GetNativeMascotDragStartCount();
+    UNITY_INTERFACE_EXPORT unsigned int DMN_GetNativeMascotDragMoveCount();
+    UNITY_INTERFACE_EXPORT unsigned int DMN_GetNativeMascotDragEndCount();
+    UNITY_INTERFACE_EXPORT unsigned int
+        DMN_GetNativeMascotDragCaptureAcquiredCount();
+    UNITY_INTERFACE_EXPORT unsigned int
+        DMN_GetNativeMascotDragCaptureReleasedCount();
+    UNITY_INTERFACE_EXPORT unsigned long long
+        DMN_GetNativeMascotCompletedDragGeneration();
+    UNITY_INTERFACE_EXPORT int DMN_TryGetNativeMascotWindowPosition(
+        int* x,
+        int* y);
+    UNITY_INTERFACE_EXPORT int DMN_GetNativeMascotDragLastWindowX();
+    UNITY_INTERFACE_EXPORT int DMN_GetNativeMascotDragLastWindowY();
+    UNITY_INTERFACE_EXPORT int
+        DMN_DidNativeMascotDragDiagnosticMoveSucceed();
+    UNITY_INTERFACE_EXPORT int
+        DMN_DidNativeMascotDragDiagnosticSizeRemainUnchanged();
+    UNITY_INTERFACE_EXPORT int
+        DMN_DidNativeMascotDragDiagnosticRegionRemainApplied();
+    UNITY_INTERFACE_EXPORT int
+        DMN_DidNativeMascotDragDiagnosticPresentContinue();
+    UNITY_INTERFACE_EXPORT int
+        DMN_DidNativeMascotDragDiagnosticRegionPublicationContinue();
+    UNITY_INTERFACE_EXPORT int
+        DMN_DidNativeMascotDragDiagnosticAvoidCompositionRestart();
+    UNITY_INTERFACE_EXPORT int
+        DMN_DidNativeMascotDragDiagnosticPreserveZOrder();
+    UNITY_INTERFACE_EXPORT int
+        DMN_DidNativeMascotDragDiagnosticAvoidActivation();
+    UNITY_INTERFACE_EXPORT int
+        DMN_DidNativeMascotDragDiagnosticReleaseCapture();
+    UNITY_INTERFACE_EXPORT int
+        DMN_DidNativeMascotDragDiagnosticRestoreInitialPosition();
+    UNITY_INTERFACE_EXPORT int DMN_EnableNativeMascotContextMenu();
+    UNITY_INTERFACE_EXPORT int DMN_DisableNativeMascotContextMenu();
+    UNITY_INTERFACE_EXPORT unsigned long long
+        DMN_GetNativeMascotCommandGeneration();
+    UNITY_INTERFACE_EXPORT int DMN_TryConsumeNativeMascotCommand(
+        unsigned long long* generation,
+        int* command);
+    UNITY_INTERFACE_EXPORT int
+        DMN_PublishNativeMascotCommandForDiagnostics(int command);
+    UNITY_INTERFACE_EXPORT int
+        DMN_RunNativeMascotMenuResourceDiagnostic();
+    UNITY_INTERFACE_EXPORT unsigned int
+        DMN_GetNativeMascotCommandPublishCount();
+    UNITY_INTERFACE_EXPORT unsigned int
+        DMN_GetNativeMascotCommandConsumeCount();
+    UNITY_INTERFACE_EXPORT unsigned int
+        DMN_GetNativeMascotCommandRejectedCount();
+    UNITY_INTERFACE_EXPORT unsigned int
+        DMN_GetNativeMascotMenuCreatedCount();
+    UNITY_INTERFACE_EXPORT unsigned int
+        DMN_GetNativeMascotMenuDestroyedCount();
+    UNITY_INTERFACE_EXPORT int
+        DMN_GetNativeMascotMenuLiveOwnedCount();
+    UNITY_INTERFACE_EXPORT unsigned int
+        DMN_GetNativeMascotMenuCancelledCount();
+    UNITY_INTERFACE_EXPORT int
+        DMN_GetNativeApplicationCommandLastSource();
+    UNITY_INTERFACE_EXPORT int DMN_StartNativeTrayIcon();
+    UNITY_INTERFACE_EXPORT int DMN_StopNativeTrayIcon();
+    UNITY_INTERFACE_EXPORT int DMN_IsNativeTrayIconRunning();
+    UNITY_INTERFACE_EXPORT int DMN_IsNativeTrayOwnerWindowAvailable();
+    UNITY_INTERFACE_EXPORT int DMN_IsNativeTrayIconRegistered();
+    UNITY_INTERFACE_EXPORT int DMN_IsNativeTrayPopupActive();
+    UNITY_INTERFACE_EXPORT int DMN_WasNativeTrayTooltipConfigured();
+    UNITY_INTERFACE_EXPORT unsigned int
+        DMN_GetNativeTrayInitialAddRequestCount();
+    UNITY_INTERFACE_EXPORT unsigned int
+        DMN_GetNativeTraySetVersionRequestCount();
+    UNITY_INTERFACE_EXPORT unsigned int
+        DMN_GetNativeTrayDeleteRequestCount();
+    UNITY_INTERFACE_EXPORT unsigned int
+        DMN_GetNativeTrayReregisterRequestCount();
+    UNITY_INTERFACE_EXPORT unsigned int
+        DMN_GetNativeTrayOwnerCreatedCount();
+    UNITY_INTERFACE_EXPORT unsigned int
+        DMN_GetNativeTrayOwnerDestroyedCount();
+    UNITY_INTERFACE_EXPORT unsigned int
+        DMN_GetNativeTrayMenuCreatedCount();
+    UNITY_INTERFACE_EXPORT unsigned int
+        DMN_GetNativeTrayMenuDestroyedCount();
+    UNITY_INTERFACE_EXPORT int DMN_GetNativeTrayMenuLiveOwnedCount();
+    UNITY_INTERFACE_EXPORT unsigned int
+        DMN_GetNativeTrayIconCreatedCount();
+    UNITY_INTERFACE_EXPORT unsigned int
+        DMN_GetNativeTrayIconDestroyedCount();
+    UNITY_INTERFACE_EXPORT int DMN_GetNativeTrayIconLiveOwnedCount();
+    UNITY_INTERFACE_EXPORT unsigned int DMN_GetNativeTrayCancelledCount();
+    UNITY_INTERFACE_EXPORT unsigned int
+        DMN_GetNativeTrayOpenSettingsSelectionCount();
+    UNITY_INTERFACE_EXPORT unsigned int
+        DMN_GetNativeTrayRequestExitSelectionCount();
+    UNITY_INTERFACE_EXPORT unsigned int
+        DMN_GetNativeTrayTaskbarCreatedCount();
+    UNITY_INTERFACE_EXPORT unsigned int
+        DMN_GetNativeTrayShutdownRejectedCount();
+    UNITY_INTERFACE_EXPORT int
+        DMN_PublishNativeTrayCommandForDiagnostics(int command);
+    UNITY_INTERFACE_EXPORT int DMN_RunNativeTrayFocusedDiagnostic();
+    UNITY_INTERFACE_EXPORT int DMN_InitializeSingleInstance();
+    UNITY_INTERFACE_EXPORT int DMN_BeginSingleInstanceShutdown();
+    UNITY_INTERFACE_EXPORT int DMN_ShutdownSingleInstance();
+    UNITY_INTERFACE_EXPORT int DMN_TryConsumeSingleInstanceActivation(
+        unsigned long long* generation);
+    UNITY_INTERFACE_EXPORT int
+        DMN_RunSingleInstanceCoalescingFocusedDiagnostic();
+    UNITY_INTERFACE_EXPORT int DMN_IsSingleInstancePrimary();
+    UNITY_INTERFACE_EXPORT int
+        DMN_IsSingleInstanceNotificationReady();
+    UNITY_INTERFACE_EXPORT int
+        DMN_IsSingleInstanceAcceptingActivations();
+    UNITY_INTERFACE_EXPORT int DMN_IsSingleInstanceActivationPending();
+    UNITY_INTERFACE_EXPORT unsigned long long
+        DMN_GetSingleInstanceActivationGeneration();
+    UNITY_INTERFACE_EXPORT unsigned int
+        DMN_GetSingleInstanceSignalReceivedCount();
+    UNITY_INTERFACE_EXPORT unsigned int
+        DMN_GetSingleInstanceGenerationPublishCount();
+    UNITY_INTERFACE_EXPORT unsigned int
+        DMN_GetSingleInstanceActivationConsumeCount();
+    UNITY_INTERFACE_EXPORT unsigned int
+        DMN_GetSingleInstanceActivationCoalescedCount();
+    UNITY_INTERFACE_EXPORT unsigned int
+        DMN_GetSingleInstanceActivationRejectedCount();
+    UNITY_INTERFACE_EXPORT unsigned int
+        DMN_GetSingleInstanceMaximumPendingCount();
+    UNITY_INTERFACE_EXPORT unsigned int
+        DMN_GetSingleInstanceNotificationCreatedCount();
+    UNITY_INTERFACE_EXPORT unsigned int
+        DMN_GetSingleInstanceNotificationDestroyedCount();
+    UNITY_INTERFACE_EXPORT int DMN_GetSingleInstanceFailureStage();
 }
