@@ -245,7 +245,8 @@ namespace DesktopMascot.Runtime
                     UnityPlayerWindowVisibilityController>();
                 playerVisibility.Initialize(
                     settingsWindow,
-                    selectedMode == "runtime");
+                    selectedMode == "runtime",
+                    presentationSource: playerPresentation);
                 RuntimeCharacterSelectionController characterSelection = null;
                 if (selectedMode == "runtime")
                 {
@@ -295,7 +296,8 @@ namespace DesktopMascot.Runtime
                     presentationDiagnostics.Configure(
                         settingsWindow,
                         playerPresentation,
-                        runtime);
+                        runtime,
+                        playerVisibility);
                 }
             }
             if (settingsWindow != null)

@@ -8,6 +8,9 @@ namespace DesktopMascot.Runtime.Settings.UI
         int PresentationWidth { get; }
         int PresentationHeight { get; }
         int RenderTextureAllocationCount { get; }
+        bool SettingsOnlyRenderingActive { get; }
+        bool CharacterHiddenFromPlayerSurface { get; }
         bool CleanupComplete { get; }
+        bool ApplySettingsPresentation(bool settingsVisible);
     }
 }

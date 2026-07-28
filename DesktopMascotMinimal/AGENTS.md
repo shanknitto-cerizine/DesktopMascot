@@ -1,6 +1,6 @@
 # DesktopMascot development instructions — Version 2
 
-Last architecture baseline: M-044
+Last architecture baseline: M-045
 
 ## Environment and non-negotiable constraints
 
@@ -14,7 +14,7 @@ Last architecture baseline: M-044
 - UniVRM / VRM 1.0
 - C++20
 
-M-028 through M-044 are completed. The real animated mascot path, production
+M-028 through M-045 are completed. The real animated mascot path, production
 runtime foundation, native-window drag interaction, screen-bounds position
 persistence, product-identity boundary, settings foundation, and the M-030
 shutdown regression correction are validated. The optional Settings UI and
@@ -203,7 +203,8 @@ settings persistence, and window-position persistence remain independent.
 
 ## Render-safe retired-character disposal boundary
 
-M-044 is validated and is the current architecture baseline.
+M-044 is validated. Its render-safe retired-character disposal contract
+remains authoritative within the current M-045 architecture baseline.
 `CharacterAssetManager` remains the sole owner of
 active and retired runtime-imported characters. Its private
 `RuntimeRetiredCharacterDisposalQueue` helper owns the FIFO and GraphicsFence
@@ -283,13 +284,43 @@ changes only the ViewModel until the user selects `Apply`. Settings UI must
 not read, display, or modify `window-position.json`. Do not add a tray icon,
 context menu, or future settings without an explicit milestone.
 
-Settings is an overlay over a continuously rendered, full-resolution Player
-preview. Do not scale the 256 x 256 `NormalizedTransferTexture` to the Player
-surface, clear the whole Player surface from IMGUI, or use the Player preview
-as input to D3D12, readback, masks, regions, or DirectComposition. The
-Player-only preview Camera renders directly to the Player backbuffer and owns
-no preview RenderTexture. Its lifecycle must not change the production
-Camera's `targetTexture` or the single Camera-source Y-normalization boundary.
+M-045 supersedes the original M-034 Player-overlay presentation contract.
+While Settings is visible, stop only the separate Player-preview Camera and
+draw one completely opaque Settings surface across the Player. The production
+Camera, character animation, D3D12 transfer, readback, masks, regions, and
+DirectComposition mascot must continue. Closing Settings restores the same
+Player-preview Camera before the established application-cloak path.
+
+Do not scale the 256 x 256 `NormalizedTransferTexture` to the Player surface
+or use the Player preview as input to D3D12, readback, masks, regions, or
+DirectComposition. The Player-preview Camera normally renders directly to the
+Player backbuffer and owns no preview RenderTexture. Its lifecycle and the
+opaque IMGUI Settings surface must not clear or alter the production Camera's
+`targetTexture`, native transfer textures, or the single Camera-source
+Y-normalization boundary.
+
+## Cross-platform Settings presentation boundary
+
+M-045 is validated and is the current architecture baseline. Common Settings
+state, validation, binding, and Unity UI must remain independent from
+platform-window operations. `ISettingsPresentationHost` is the boundary for
+show, close, bring-to-front, visibility, and presentation-state requests.
+
+On Windows, `UnityPlayerWindowVisibilityController` implements that boundary
+and remains the sole owner of exact `UnityWndClass` discovery and
+`DWMWA_CLOAK`. The common `SettingsWindowController` must not access HWND,
+DWM, or Windows APIs. Tray, mascot context menu, and Single Instance Settings
+requests route through the presentation host.
+
+While Settings is visible, the Unity Player renders an opaque Settings-only
+surface. Only the separate Player-preview Camera may be suppressed; the
+production Camera, character root, animation, 256 x 256 normalized transfer,
+D3D12/readback/HRGN, and DirectComposition mascot must continue unchanged.
+Closing Settings restores the same Player-preview Camera without per-frame
+RenderTexture allocation.
+
+Do not implement Player resizing, a native Settings window, Android
+presentation, or a new UI framework as part of this foundation stage.
 
 ## Native mascot context-menu boundary
 

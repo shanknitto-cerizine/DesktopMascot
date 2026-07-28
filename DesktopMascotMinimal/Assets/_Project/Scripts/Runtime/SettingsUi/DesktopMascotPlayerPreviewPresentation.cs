@@ -11,6 +11,7 @@ namespace DesktopMascot.Runtime.Settings.UI
         private int presentationFrame = -1;
         private bool initialized;
         private bool disposed;
+        private bool settingsOnlyRenderingActive;
 
         public int PresentationFrame => presentationFrame;
         public int PresentationWidth =>
@@ -18,6 +19,12 @@ namespace DesktopMascot.Runtime.Settings.UI
         public int PresentationHeight =>
             previewCamera != null ? previewCamera.pixelHeight : 0;
         public int RenderTextureAllocationCount => 0;
+        public bool SettingsOnlyRenderingActive =>
+            settingsOnlyRenderingActive;
+        public bool CharacterHiddenFromPlayerSurface =>
+            settingsOnlyRenderingActive
+            && previewCamera != null
+            && !previewCamera.enabled;
         public bool CleanupComplete => disposed;
 
         internal bool Initialize(Camera source)
@@ -32,6 +39,15 @@ namespace DesktopMascot.Runtime.Settings.UI
             SyncTransform();
             initialized = true;
             return true;
+        }
+
+        public bool ApplySettingsPresentation(bool settingsVisible)
+        {
+            if (!initialized || disposed || previewCamera == null)
+                return false;
+            settingsOnlyRenderingActive = settingsVisible;
+            previewCamera.enabled = !settingsVisible;
+            return previewCamera.enabled != settingsVisible;
         }
 
         private void LateUpdate()
@@ -51,6 +67,7 @@ namespace DesktopMascot.Runtime.Settings.UI
             if (disposed)
                 return;
             disposed = true;
+            settingsOnlyRenderingActive = false;
             if (previewCamera != null)
             {
                 previewCamera.enabled = false;

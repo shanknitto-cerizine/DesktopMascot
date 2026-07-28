@@ -161,8 +161,7 @@ namespace DesktopMascot.Diagnostics
                     && !settings.IsOpen));
 
                 var trayDispatcher = new NativeMascotCommandDispatcher(
-                    settings,
-                    visibility.TryOpenSettings,
+                    visibility,
                     _ => { });
                 var trayOpen = trayDispatcher.Dispatch(
                     NativeMascotCommandDispatcher.OpenSettingsCommand,

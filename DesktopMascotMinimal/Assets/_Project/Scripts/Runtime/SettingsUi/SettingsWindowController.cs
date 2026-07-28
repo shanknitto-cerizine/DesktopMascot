@@ -11,6 +11,10 @@ namespace DesktopMascot.Runtime.Settings.UI
         private const float WindowWidth = 420f;
         private const float WindowHeight = 410f;
         private const string Prefix = "[DesktopMascotSettingsWindow]";
+        private static readonly Color SettingsSurfaceColor =
+            new Color(0.075f, 0.085f, 0.105f, 1f);
+        private static readonly Color SettingsPanelColor =
+            new Color(0.13f, 0.15f, 0.18f, 1f);
 
         private SettingsManager manager;
         private RuntimeCharacterSelectionController characterSelection;
@@ -34,6 +38,11 @@ namespace DesktopMascot.Runtime.Settings.UI
             presentationAdvanceWhileClosedCount;
         internal SettingsBinding Binding => binding;
         internal string StatusMessage => statusMessage;
+        internal bool BackgroundOpaque =>
+            Mathf.Approximately(SettingsSurfaceColor.a, 1f)
+            && Mathf.Approximately(SettingsPanelColor.a, 1f);
+        internal int CancelCount { get; private set; }
+        internal int CloseCount { get; private set; }
         internal event Action<bool> OpenStateChanged;
 
         internal void Initialize(
@@ -76,6 +85,7 @@ namespace DesktopMascot.Runtime.Settings.UI
         {
             if (!initialized || !isOpen)
                 return;
+            CloseCount++;
             ReleaseGuiControl();
             viewModel.CancelChanges();
             statusMessage = string.Empty;
@@ -85,6 +95,8 @@ namespace DesktopMascot.Runtime.Settings.UI
 
         internal void Cancel()
         {
+            if (initialized && isOpen)
+                CancelCount++;
             Close();
         }
 
@@ -127,6 +139,7 @@ namespace DesktopMascot.Runtime.Settings.UI
                 ObservePresentationFrameForDiagnostics();
             if (!isOpen)
                 return;
+            DrawOpaqueSettingsSurface();
             windowRect = GUI.Window(
                 WindowId,
                 windowRect,
@@ -271,6 +284,26 @@ namespace DesktopMascot.Runtime.Settings.UI
                 Mathf.Max(0f, (Screen.height - WindowHeight) * 0.5f),
                 WindowWidth,
                 WindowHeight);
+
+        private void DrawOpaqueSettingsSurface()
+        {
+            DrawOpaqueRect(
+                new Rect(0f, 0f, Screen.width, Screen.height),
+                SettingsSurfaceColor);
+            DrawOpaqueRect(windowRect, SettingsPanelColor);
+        }
+
+        private static void DrawOpaqueRect(Rect rect, Color color)
+        {
+            var previousColor = GUI.color;
+            GUI.color = color;
+            GUI.DrawTexture(
+                rect,
+                Texture2D.whiteTexture,
+                ScaleMode.StretchToFill,
+                true);
+            GUI.color = previousColor;
+        }
 
     }
 }

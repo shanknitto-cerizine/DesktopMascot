@@ -48,10 +48,7 @@ namespace DesktopMascot.Runtime.Settings.UI
             UnityPlayerWindowVisibilityController visibility = null)
         {
             dispatcher = new NativeMascotCommandDispatcher(
-                settingsWindow,
-                visibility != null
-                    ? (Func<bool>)visibility.TryOpenSettings
-                    : null,
+                visibility,
                 runtime != null ? runtime.RequestOrderlyQuit : null);
             configured = settingsWindow != null
                 && runtime != null

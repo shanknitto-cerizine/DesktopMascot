@@ -207,7 +207,16 @@ namespace DesktopMascot.Diagnostics
             public int PresentationWidth => 500;
             public int PresentationHeight => 700;
             public int RenderTextureAllocationCount => 0;
+            public bool SettingsOnlyRenderingActive { get; private set; }
+            public bool CharacterHiddenFromPlayerSurface =>
+                SettingsOnlyRenderingActive;
             public bool CleanupComplete { get; private set; }
+
+            public bool ApplySettingsPresentation(bool settingsVisible)
+            {
+                SettingsOnlyRenderingActive = settingsVisible;
+                return true;
+            }
 
             public void Dispose()
             {

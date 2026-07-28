@@ -9,17 +9,14 @@ namespace DesktopMascot.Runtime.Settings.UI
         internal const int MascotContextMenuSource = 1;
         internal const int SystemTraySource = 2;
 
-        private readonly SettingsWindowController settingsWindow;
-        private readonly Func<bool> makePlayerInteractive;
+        private readonly ISettingsPresentationHost presentationHost;
         private readonly Action<string> requestOrderlyQuit;
 
         internal NativeMascotCommandDispatcher(
-            SettingsWindowController controller,
-            Func<bool> playerActivation,
+            ISettingsPresentationHost host,
             Action<string> orderlyQuit)
         {
-            settingsWindow = controller;
-            makePlayerInteractive = playerActivation;
+            presentationHost = host;
             requestOrderlyQuit = orderlyQuit;
         }
 
@@ -34,13 +31,13 @@ namespace DesktopMascot.Runtime.Settings.UI
             switch (command)
             {
                 case OpenSettingsCommand:
-                    if (settingsWindow == null)
+                    if (presentationHost == null)
                         return false;
-                    makePlayerInteractive?.Invoke();
-                    if (!settingsWindow.IsOpen)
-                        settingsWindow.Open();
+                    var shown = presentationHost.IsSettingsVisible
+                        ? presentationHost.BringSettingsToFront()
+                        : presentationHost.ShowSettings();
                     OpenSettingsDispatchCount++;
-                    return settingsWindow.IsOpen;
+                    return shown && presentationHost.IsSettingsVisible;
                 case RequestExitCommand:
                     if (requestOrderlyQuit == null)
                         return false;

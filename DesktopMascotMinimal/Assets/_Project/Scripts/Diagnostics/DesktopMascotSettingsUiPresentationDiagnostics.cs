@@ -14,17 +14,20 @@ namespace DesktopMascot.Diagnostics
         private SettingsWindowController controller;
         private ISettingsPlayerPresentationSource presentation;
         private DesktopMascotRuntimePipeline runtime;
+        private ISettingsPresentationHost presentationHost;
 
         internal static bool Passed { get; private set; }
 
         internal void Configure(
             SettingsWindowController value,
             ISettingsPlayerPresentationSource playerPresentation,
-            DesktopMascotRuntimePipeline runtimePipeline)
+            DesktopMascotRuntimePipeline runtimePipeline,
+            ISettingsPresentationHost host)
         {
             controller = value;
             presentation = playerPresentation;
             runtime = runtimePipeline;
+            presentationHost = host;
             Passed = false;
         }
 
@@ -46,6 +49,10 @@ namespace DesktopMascot.Diagnostics
                     false,
                     false,
                     false,
+                    false,
+                    false,
+                    false,
+                    false,
                     false);
                 yield break;
             }
@@ -57,13 +64,23 @@ namespace DesktopMascot.Diagnostics
                 controller.PresentationAdvanceWhileClosedCount
                     > closedBefore;
 
-            controller.Open();
-            var openBefore =
-                controller.PresentationAdvanceWhileOpenCount;
+            var openSucceeded =
+                presentationHost != null
+                && presentationHost.ShowSettings();
+            var openFrame = presentation.PresentationFrame;
+            var presentBeforeOpen = runtime?.PresentCount ?? 0;
             yield return WaitForFreshFrames(8);
-            var freshWhileOpen =
-                controller.PresentationAdvanceWhileOpenCount
-                    > openBefore;
+            var playerPreviewPausedWhileOpen =
+                presentation.PresentationFrame == openFrame;
+            var backgroundOpaque =
+                controller.BackgroundOpaque;
+            var settingsOnlyRenderingActive =
+                presentation.SettingsOnlyRenderingActive;
+            var characterHidden =
+                presentation.CharacterHiddenFromPlayerSurface;
+            var directCompositionContinues =
+                runtime != null
+                && runtime.PresentCount > presentBeforeOpen;
 
             controller.Binding.FirstRunCompleted =
                 !controller.Binding.FirstRunCompleted;
@@ -75,7 +92,7 @@ namespace DesktopMascot.Diagnostics
                 controller.PresentationAdvanceWhileClosedCount
                     > closedAfterCancel;
 
-            controller.Open();
+            presentationHost.ShowSettings();
             var reopenedInteractive =
                 controller.IsOpen
                 && !controller.Binding.IsDirty
@@ -102,25 +119,40 @@ namespace DesktopMascot.Diagnostics
             var noPreviewRenderTextureAllocations =
                 presentation != null
                 && presentation.RenderTextureAllocationCount == 0;
+            var hostInitialized =
+                presentationHost != null
+                && presentationHost.IsInitialized
+                && presentationHost.PresentationFailureStage == 0;
 
             Passed =
                 freshBeforeOpen
-                && freshWhileOpen
+                && openSucceeded
+                && playerPreviewPausedWhileOpen
+                && backgroundOpaque
+                && settingsOnlyRenderingActive
+                && characterHidden
+                && directCompositionContinues
                 && freshAfterCancel
                 && freshAfterClose
                 && reopenedInteractive
                 && fullQualityResolution
                 && nativeTransferRemains256
-                && noPreviewRenderTextureAllocations;
+                && noPreviewRenderTextureAllocations
+                && hostInitialized;
             LogFinal(
                 freshBeforeOpen,
-                freshWhileOpen,
+                playerPreviewPausedWhileOpen,
                 freshAfterCancel,
                 freshAfterClose,
                 reopenedInteractive,
+                backgroundOpaque,
+                settingsOnlyRenderingActive,
+                characterHidden,
+                directCompositionContinues,
                 fullQualityResolution,
                 nativeTransferRemains256,
-                noPreviewRenderTextureAllocations);
+                noPreviewRenderTextureAllocations,
+                hostInitialized);
         }
 
         private IEnumerator WaitForFreshFrames(int count)
@@ -134,18 +166,24 @@ namespace DesktopMascot.Diagnostics
 
         private void LogFinal(
             bool freshBeforeOpen,
-            bool freshWhileOpen,
+            bool playerPreviewPausedWhileOpen,
             bool freshAfterCancel,
             bool freshAfterClose,
             bool reopenedInteractive,
+            bool backgroundOpaque,
+            bool settingsOnlyRenderingActive,
+            bool characterHidden,
+            bool directCompositionContinues,
             bool fullQualityResolution = false,
             bool nativeTransferRemains256 = false,
-            bool noPreviewRenderTextureAllocations = false)
+            bool noPreviewRenderTextureAllocations = false,
+            bool hostInitialized = false)
         {
             Debug.Log(
                 $"{Prefix} Fresh before open: {freshBeforeOpen}");
             Debug.Log(
-                $"{Prefix} Fresh while Settings open: {freshWhileOpen}");
+                $"{Prefix} Player preview paused while Settings open: " +
+                playerPreviewPausedWhileOpen);
             Debug.Log(
                 $"{Prefix} Fresh after Cancel: {freshAfterCancel}");
             Debug.Log(
@@ -156,6 +194,28 @@ namespace DesktopMascot.Diagnostics
                 $"{Prefix} Open/closed frame advances: " +
                 $"{controller?.PresentationAdvanceWhileOpenCount ?? 0}/" +
                 $"{controller?.PresentationAdvanceWhileClosedCount ?? 0}");
+            Debug.Log(
+                $"{Prefix} Settings presentation host initialized: " +
+                hostInitialized);
+            Debug.Log(
+                $"{Prefix} Settings background opaque: " +
+                backgroundOpaque);
+            Debug.Log(
+                $"{Prefix} Settings-only rendering active: " +
+                settingsOnlyRenderingActive);
+            Debug.Log(
+                $"{Prefix} Character hidden from Player Settings surface: " +
+                characterHidden);
+            Debug.Log(
+                $"{Prefix} DirectComposition mascot continues rendering: " +
+                directCompositionContinues);
+            Debug.Log(
+                $"{Prefix} Close/Cancel count: " +
+                $"{controller?.CloseCount ?? 0}/" +
+                $"{controller?.CancelCount ?? 0}");
+            Debug.Log(
+                $"{Prefix} Presentation failure stage: " +
+                (presentationHost?.PresentationFailureStage ?? -1));
             Debug.Log(
                 $"{Prefix} Player preview resolution: " +
                 $"{presentation?.PresentationWidth ?? 0} x " +

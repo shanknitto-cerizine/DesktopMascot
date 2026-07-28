@@ -10,7 +10,7 @@ namespace DesktopMascot.Runtime.SingleInstance
         private const string Dll = "DesktopMascotNative";
         private const string Prefix = "[DesktopMascotSingleInstance]";
 
-        private UnityPlayerWindowVisibilityController visibility;
+        private ISettingsPresentationHost presentationHost;
         private bool initialized;
         private bool shutdownStarted;
         private bool shutdownCompleted;
@@ -64,12 +64,12 @@ namespace DesktopMascot.Runtime.SingleInstance
 #endif
 
         internal void Configure(
-            UnityPlayerWindowVisibilityController visibilityController)
+            ISettingsPresentationHost host)
         {
-            visibility = visibilityController;
+            presentationHost = host;
 #if UNITY_STANDALONE_WIN && !UNITY_EDITOR
             initialized = SingleInstanceStartupGate.IsPrimary
-                && visibility != null
+                && presentationHost != null
                 && DMN_IsSingleInstancePrimary() != 0
                 && DMN_IsSingleInstanceNotificationReady() != 0;
 #endif
@@ -92,7 +92,9 @@ namespace DesktopMascot.Runtime.SingleInstance
                 return;
             lastConsumedGeneration = generation;
             var routed =
-                visibility.TryActivateSettingsFromSecondary();
+                presentationHost.IsSettingsVisible
+                    ? presentationHost.BringSettingsToFront()
+                    : presentationHost.ShowSettings();
             if (routed)
                 RoutedOpenSettingsCount++;
             Debug.Log(

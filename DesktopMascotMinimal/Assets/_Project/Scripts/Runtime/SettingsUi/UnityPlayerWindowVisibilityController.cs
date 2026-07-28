@@ -40,12 +40,14 @@ namespace DesktopMascot.Runtime.Settings.UI
     }
 
     internal sealed partial class UnityPlayerWindowVisibilityController :
-        MonoBehaviour
+        MonoBehaviour,
+        ISettingsPresentationHost
     {
         private const string Prefix =
             "[DesktopMascotPlayerVisibility]";
 
         private SettingsWindowController settingsWindow;
+        private ISettingsPlayerPresentationSource playerPresentation;
         private IUnityPlayerWindowVisibilityBackend backend;
         private bool productionHiddenByDefault;
         private bool initialized;
@@ -56,6 +58,13 @@ namespace DesktopMascot.Runtime.Settings.UI
         private bool settingsCloseHidePending;
 
         internal bool Initialized => initialized;
+        public bool IsInitialized => initialized;
+        public bool IsSettingsVisible =>
+            settingsWindow != null && settingsWindow.IsOpen;
+        public int PresentationFailureStage { get; private set; }
+        public int PresentationRequestCount { get; private set; }
+        public int PresentationVisibleCount { get; private set; }
+        public int PresentationClosedCount { get; private set; }
         internal bool RuntimeReady => runtimeReady;
         internal bool ShutdownStarted => shutdownStarted;
         internal bool RequestedVisible => requestedVisible;
@@ -75,9 +84,11 @@ namespace DesktopMascot.Runtime.Settings.UI
         internal void Initialize(
             SettingsWindowController window,
             bool hiddenByDefault,
-            IUnityPlayerWindowVisibilityBackend visibilityBackend = null)
+            IUnityPlayerWindowVisibilityBackend visibilityBackend = null,
+            ISettingsPlayerPresentationSource presentationSource = null)
         {
             settingsWindow = window;
+            playerPresentation = presentationSource;
             var usesWindowsBackend = visibilityBackend == null;
             backend = visibilityBackend
                 ?? new UnityPlayerWindowVisibilityBackend();
@@ -90,6 +101,10 @@ namespace DesktopMascot.Runtime.Settings.UI
             }
             if (initialized && productionHiddenByDefault)
                 ApplyStartupHiddenState(usesWindowsBackend);
+            Debug.Log(
+                "[DesktopMascotSettingsPresentation] " +
+                "Settings presentation host initialized: " +
+                initialized);
         }
 
         private void ApplyStartupHiddenState(bool usesWindowsBackend)
@@ -148,6 +163,73 @@ namespace DesktopMascot.Runtime.Settings.UI
             var shown = RequestVisible("TryOpenSettings");
             settingsWindow.Open();
             return shown && settingsWindow.IsOpen;
+        }
+
+        public bool ShowSettings()
+        {
+            PresentationRequestCount++;
+            Debug.Log(
+                "[DesktopMascotSettingsPresentation] " +
+                "Settings presentation requested: True");
+            return TryOpenSettings();
+        }
+
+        public bool BringSettingsToFront()
+        {
+            if (!initialized || shutdownStarted)
+                return false;
+            return settingsWindow.IsOpen
+                ? ReactivateOpenSettings()
+                : ShowSettings();
+        }
+
+        public bool CloseSettings()
+        {
+            if (!initialized || settingsWindow == null)
+                return false;
+            if (!settingsWindow.IsOpen)
+                return true;
+            settingsWindow.Close();
+            return !settingsWindow.IsOpen;
+        }
+
+        public bool ApplyPresentationState(bool settingsVisible)
+        {
+            var applied =
+                playerPresentation == null
+                || playerPresentation.ApplySettingsPresentation(
+                    settingsVisible);
+            if (!applied && PresentationFailureStage == 0)
+                PresentationFailureStage = settingsVisible ? 1 : 2;
+            if (settingsVisible)
+            {
+                PresentationVisibleCount++;
+                Debug.Log(
+                    "[DesktopMascotSettingsPresentation] " +
+                    $"Settings presentation visible: {applied}");
+                Debug.Log(
+                    "[DesktopMascotSettingsPresentation] " +
+                    "Settings background opaque: " +
+                    (settingsWindow?.BackgroundOpaque ?? false));
+                Debug.Log(
+                    "[DesktopMascotSettingsPresentation] " +
+                    "Settings-only rendering active: " +
+                    (playerPresentation?.
+                        SettingsOnlyRenderingActive ?? false));
+                Debug.Log(
+                    "[DesktopMascotSettingsPresentation] " +
+                    "Character hidden from Player Settings surface: " +
+                    (playerPresentation?.
+                        CharacterHiddenFromPlayerSurface ?? false));
+            }
+            else
+            {
+                PresentationClosedCount++;
+                Debug.Log(
+                    "[DesktopMascotSettingsPresentation] " +
+                    $"Settings presentation closed: {applied}");
+            }
+            return applied;
         }
 
         private bool ReactivateOpenSettings()
@@ -262,6 +344,7 @@ namespace DesktopMascot.Runtime.Settings.UI
         private void OnSettingsOpenStateChanged(bool open)
         {
             settingsVisibilityGeneration++;
+            ApplyPresentationState(open);
             if (open)
             {
                 settingsCloseHidePending = false;
@@ -321,6 +404,7 @@ namespace DesktopMascot.Runtime.Settings.UI
                 settingsWindow.OpenStateChanged -=
                     OnSettingsOpenStateChanged;
             }
+            playerPresentation = null;
         }
 
     }

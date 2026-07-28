@@ -2947,3 +2947,163 @@ controls.
 
 M-044 is complete. Automated validation and user visual verification passed.
 The next architecture baseline advances to M-044.
+
+## M-045 — Cross-Platform Settings Presentation Foundation
+
+Status: Completed
+
+Automated validation: Passed
+
+Visual verification: Passed
+
+Architecture baseline: M-045
+
+### Scope
+
+M-045 introduces the smallest shared Settings presentation boundary while
+continuing to use the existing Unity Settings UI. This stage contains only:
+
+- an `ISettingsPresentationHost` boundary between common Settings behavior
+  and the Windows Player visibility implementation;
+- a completely opaque Settings surface;
+- Player-only 3D exclusion while Settings is visible;
+- state-transition diagnostics and focused regression coverage.
+
+The Windows implementation remains
+`UnityPlayerWindowVisibilityController`, preserving its exclusive ownership
+of exact `UnityWndClass` discovery and `DWMWA_CLOAK`. The Player-only preview
+Camera is disabled while Settings is open and re-enabled when it closes.
+The production Camera and the validated Camera normalization, D3D12,
+readback, HRGN, DirectComposition, runtime-character ownership, and M-044
+disposal paths are unchanged.
+
+Detailed design:
+`NativePlugin/docs/SettingsPresentationDesign.md`
+
+This stage does not resize the Player, create a native Settings UI, implement
+Android presentation, migrate UI frameworks, add settings, or reintroduce F10
+or Settings Escape.
+
+### Implementation state
+
+- `ISettingsPresentationHost` now separates common presentation requests from
+  Windows Player-window behavior.
+- `UnityPlayerWindowVisibilityController` is the Windows host and remains the
+  only HWND/DWM visibility owner.
+- tray, mascot context menu, and Single Instance activation route through the
+  presentation host.
+- the Player-only preview Camera is disabled only while Settings is visible;
+  the production Camera and native transfer remain active.
+- Settings draws an alpha-1 full-Player surface and alpha-1 panel foundation.
+- Cancel and Close restore the same preview Camera before the established
+  application-cloak path.
+
+### Automated validation
+
+Unity Development Player incremental build: Passed.
+
+Known warning only:
+`TransparentWindowController.borderless` CS0414.
+
+Drag/focused Settings validation:
+`NativePlugin/out/development-player-20260728-225324-546-2fd86e5f.log`
+
+- Settings presentation host initialized: True
+- Settings background opaque: True
+- Settings-only rendering active: True
+- Character hidden from Player Settings surface: True
+- DirectComposition mascot continues rendering: True
+- Player preview paused while Settings is open: True
+- fresh Player preview after Cancel/Close: True/True
+- native transfer remains 256 x 256: True
+- preview RenderTexture allocations: 0
+- presentation failure stage: 0
+- Settings presentation automated test: Passed
+- position, Player visibility, context menu, tray, and drag diagnostics:
+  Passed
+- cleanup/fatal stage: `True/0`
+- Present/device-removed HRESULT: `S_OK/S_OK`
+- readback and continuous/region failures: `0`, `0/0`
+
+Runtime-smoke:
+`NativePlugin/out/development-player-20260728-225346-728-e5f8f3f1.log`
+
+- Present/mask/region: `220/32/32`
+- cleanup/fatal stage: `True/0`
+- Present/device-removed HRESULT: `S_OK/S_OK`
+- readback and continuous/region failures: `0`, `0/0`
+
+Real animated:
+`NativePlugin/out/development-player-20260728-225408-138-d43873e9.log`
+
+- Present/published/applied: `1200/126/126`
+- all four phases observed/applied: True/True
+- automated diagnostics: Passed
+- readback/failure stage: `0/0`
+
+Runtime VRM selection and M-044 disposal:
+`NativePlugin/out/development-player-20260728-225532-344-a2c1fcd7.log`
+
+- Runtime A/B/C -> Bundled -> Runtime D: Passed
+- fence cohorts/passed/timeouts/fallback: `3/3/0/0`
+- Dispose requested/release confirmed/failure: `3/3/0`
+- retired queue current/maximum: `0/1`
+- Runtime selection validation: Passed
+- render-safe disposal validation: Passed
+
+Single Instance secondary:
+`NativePlugin/out/development-player-20260728-225743-068-fd89640c.log`
+
+- secondary detected/signal sent/exited normally: `True/True/True`
+- single-instance validation: Passed
+
+### Manual verification
+
+Final manual Player:
+`NativePlugin/out/development-player-20260728-230300-912-9bda2e3b.log`
+
+The user confirmed:
+
+- the tray icon and native mascot appeared;
+- Settings opened from the tray;
+- the Settings background was fully opaque and the magenta clear color did
+  not show through;
+- the Player-side 3D character was not visible behind Settings;
+- text and enabled/disabled controls were readable;
+- Settings remained open during ordinary interaction;
+- Cancel closed Settings;
+- the mascot context menu reopened the existing Settings surface;
+- Close closed Settings;
+- external VRM and bundled-character switching worked;
+- the DirectComposition mascot updated and continued animating;
+- orderly exit left no Player, mascot window, or tray icon.
+
+Final normal-runtime evidence:
+
+- runtime elapsed/final Present/final regions:
+  `1371147 ms / 37619 / 5384`
+- runtime-owned active/retired handles after release: `0/0`
+- no outstanding readback: True
+- pending owned region count: 0
+- initial region/style restored: `True/True`
+- Camera target and runInBackground restored: `True/True`
+- Player preview, character, selection, persistence, and Single Instance
+  cleanup: Passed
+- tray cleanup/icon removal/owner destruction: `True/True/True`
+- Present/device-removed HRESULT: `S_OK/S_OK`
+- readback errors and continuous/region failures: `0`, `0/0`
+- cleanup/fatal stage: `True/0`
+- Player process remaining after exit: False
+
+The process-wide GDI sample increased by 92 during the long interactive run.
+This supporting metric is not used alone as an HRGN leak determination:
+direct HRGN ownership, pending-region count, restoration, native teardown, and
+process exit all passed.
+
+Future Work candidate: add a focused diagnostic that samples process-wide GDI
+usage across repeated Settings open/close cycles and correlates the trend with
+direct HRGN ownership counters. This observation does not change M-045
+acceptance, and the diagnostic is not implemented in M-045.
+
+M-045 is complete. Automated validation and user visual verification passed.
+The architecture baseline advances to M-045.
