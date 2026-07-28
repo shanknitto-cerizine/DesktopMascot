@@ -74,6 +74,25 @@ namespace DesktopMascot.Diagnostics
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
         private static extern uint DMN_GetNativeTrayTaskbarCreatedCount();
         [DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+        private static extern uint DMN_GetNativeTrayNimAddAttemptCount();
+        [DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+        private static extern uint DMN_GetNativeTrayNimAddSuccessCount();
+        [DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+        private static extern uint DMN_GetNativeTrayNimAddLastError();
+        [DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+        private static extern uint
+            DMN_GetNativeTrayNimSetVersionSuccessCount();
+        [DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+        private static extern uint DMN_GetNativeTrayNimSetVersionLastError();
+        [DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+        private static extern uint DMN_GetNativeTrayRegistrationRetryCount();
+        [DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+        private static extern int
+            DMN_GetNativeTrayRegistrationFinalResult();
+        [DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
+        private static extern int
+            DMN_WasNativeTrayRegistrationRetryExhausted();
+        [DllImport(Dll, CallingConvention = CallingConvention.Cdecl)]
         private static extern ulong
             DMN_GetNativeMascotCompletedDragGeneration();
 #endif
@@ -97,7 +116,7 @@ namespace DesktopMascot.Diagnostics
         private IEnumerator Start()
         {
             for (var frame = 0;
-                 frame < 900
+                 frame < 1800
                  && (!DesktopMascotNativeContextMenuDiagnostics.Passed
                      || trayController == null
                      || !trayController.Running);
@@ -130,9 +149,17 @@ namespace DesktopMascot.Diagnostics
                 && DMN_IsNativeTrayIconRegistered() == 1
                 && DMN_WasNativeTrayTooltipConfigured() == 1
                 && DMN_GetNativeTrayInitialAddRequestCount() == 1
-                && DMN_GetNativeTraySetVersionRequestCount() == 3
+                && DMN_GetNativeTraySetVersionRequestCount() == 4
                 && DMN_GetNativeTrayReregisterRequestCount() == 2
-                && DMN_GetNativeTrayTaskbarCreatedCount() == 2;
+                && DMN_GetNativeTrayTaskbarCreatedCount() == 2
+                && DMN_GetNativeTrayNimAddAttemptCount() == 4
+                && DMN_GetNativeTrayNimAddSuccessCount() == 4
+                && DMN_GetNativeTrayNimAddLastError() == 0
+                && DMN_GetNativeTrayNimSetVersionSuccessCount() == 4
+                && DMN_GetNativeTrayNimSetVersionLastError() == 0
+                && DMN_GetNativeTrayRegistrationRetryCount() == 1
+                && DMN_GetNativeTrayRegistrationFinalResult() == 1
+                && DMN_WasNativeTrayRegistrationRetryExhausted() == 0;
 
             var cancelled =
                 DMN_PublishNativeTrayCommandForDiagnostics(0) == 0

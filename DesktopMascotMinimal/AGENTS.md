@@ -1,6 +1,6 @@
 # DesktopMascot development instructions — Version 2
 
-Last architecture baseline: M-045
+Last architecture baseline: M-046
 
 ## Environment and non-negotiable constraints
 
@@ -14,7 +14,7 @@ Last architecture baseline: M-045
 - UniVRM / VRM 1.0
 - C++20
 
-M-028 through M-045 are completed. The real animated mascot path, production
+M-028 through M-046 are completed. The real animated mascot path, production
 runtime foundation, native-window drag interaction, screen-bounds position
 persistence, product-identity boundary, settings foundation, and the M-030
 shutdown regression correction are validated. The optional Settings UI and
@@ -301,7 +301,8 @@ Y-normalization boundary.
 
 ## Cross-platform Settings presentation boundary
 
-M-045 is validated and is the current architecture baseline. Common Settings
+M-045 is validated. Its cross-platform Settings presentation contract remains
+authoritative within the current M-046 architecture baseline. Common Settings
 state, validation, binding, and Unity UI must remain independent from
 platform-window operations. `ISettingsPresentationHost` is the boundary for
 show, close, bring-to-front, visibility, and presentation-state requests.
@@ -370,6 +371,24 @@ shutdown barrier. Stop tracking an active popup, delete the tray icon, destroy
 the owner window, and destroy the owned icon before existing native teardown.
 The tray owner must never replace the mascot `HWND`, affect its activation,
 region, drag contract, Z-order, or create another visible application surface.
+
+M-046 validates bounded tray startup recovery. Create the hidden owner window,
+register `TaskbarCreated`, and keep the native message loop alive even when
+the initial `NIM_ADD` or `NIM_SETVERSION` attempt fails. Retry registration at
+the constant 200 ms interval for at most 75 attempts; do not use an unbounded
+retry, busy loop, or per-frame managed retry. A successful retry or
+`TaskbarCreated` recovery must converge to one registered GUID icon and cancel
+the pending retry window. Keep the owner window and message loop available
+after retry exhaustion so a later `TaskbarCreated` notification can still
+recover the icon. Suppress all retry and re-registration work after the
+shutdown barrier.
+
+Keep separate diagnostics for `NIM_ADD` and `NIM_SETVERSION` attempts,
+successes, and last errors, plus `TaskbarCreated`, retry, exhaustion,
+shutdown-suppression, final-result, and current-registration state. Managed
+startup may observe the native recovery state with a bounded interval, but
+must not create a second native tray thread or change the established
+`startAttempted` ownership contract.
 
 ## Production Player visibility boundary
 
@@ -616,6 +635,38 @@ additive APIs, explicit ownership, idempotent cleanup, incremental changes,
 source inspection before editing, and coherent complete-file changes over
 disconnected snippets. Preserve existing user changes and previously validated
 paths. Build after structural changes.
+
+## Repository structure boundary
+
+M-046 is validated and is the current architecture baseline. It reorganizes
+source placement while preserving the M-045 product responsibility
+boundaries. Production managed code lives under
+`Assets/_Project/Runtime`, focused diagnostics under
+`Assets/_Project/Diagnostics`, and Editor-only code under
+`Assets/_Project/Editor`.
+
+Within Runtime, keep core orchestration, Character, Persistence, Settings,
+Presentation, and Platform responsibilities physically separate. Windows-only
+HWND, visibility, tray, context-menu, single-instance, position, and native
+interaction code belongs under `Runtime/Platform/Windows`. Platform-neutral
+Settings presentation contracts and ViewModel behavior remain outside that
+Windows boundary. Older sample-scene helpers retained under `Runtime/Legacy`
+must not become dependencies of new production work.
+
+Move Unity assets only with their existing `.meta` sidecars. Preserve GUIDs,
+namespaces, type names, serialized field names, partial-class pairing, public
+APIs, diagnostic mode names, and fixed paths unless a dedicated milestone
+changes them. Do not introduce an assembly definition as an incidental
+cleanup.
+
+Keep `NativePlugin/include`, `NativePlugin/src`, copied Unity headers, CMake
+files, and native output contracts stable. `NativePlugin/docs` is
+documentation; `NativePlugin/out` is generated output and retained diagnostic
+evidence, never a source dependency. Keep the canonical
+`Tools/Development/*.ps1` entry points at their current paths.
+
+See `NativePlugin/docs/RepositoryStructureDesign.md` for the current layout,
+intentional no-move decisions, and future cleanup candidates.
 
 ## Mandatory milestone workflow
 

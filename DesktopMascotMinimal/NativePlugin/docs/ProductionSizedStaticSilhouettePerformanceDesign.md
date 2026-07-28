@@ -205,7 +205,7 @@ ABI exports remain unchanged.
 The independent managed controller is:
 
 ```text
-Assets/_Project/Scripts/Diagnostics/
+Assets/_Project/Diagnostics/Presentation/
 DesktopMascotProductionSizedStaticSilhouetteDiagnostics.cs
 ```
 

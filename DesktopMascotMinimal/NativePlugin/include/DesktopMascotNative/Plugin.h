@@ -651,6 +651,24 @@ extern "C"
         DMN_GetNativeTrayTaskbarCreatedCount();
     UNITY_INTERFACE_EXPORT unsigned int
         DMN_GetNativeTrayShutdownRejectedCount();
+    UNITY_INTERFACE_EXPORT unsigned int
+        DMN_GetNativeTrayNimAddAttemptCount();
+    UNITY_INTERFACE_EXPORT unsigned int
+        DMN_GetNativeTrayNimAddSuccessCount();
+    UNITY_INTERFACE_EXPORT unsigned int
+        DMN_GetNativeTrayNimAddLastError();
+    UNITY_INTERFACE_EXPORT unsigned int
+        DMN_GetNativeTrayNimSetVersionSuccessCount();
+    UNITY_INTERFACE_EXPORT unsigned int
+        DMN_GetNativeTrayNimSetVersionLastError();
+    UNITY_INTERFACE_EXPORT unsigned int
+        DMN_GetNativeTrayRegistrationRetryCount();
+    UNITY_INTERFACE_EXPORT unsigned int
+        DMN_GetNativeTrayShutdownRetrySuppressedCount();
+    UNITY_INTERFACE_EXPORT int
+        DMN_GetNativeTrayRegistrationFinalResult();
+    UNITY_INTERFACE_EXPORT int
+        DMN_WasNativeTrayRegistrationRetryExhausted();
     UNITY_INTERFACE_EXPORT int
         DMN_PublishNativeTrayCommandForDiagnostics(int command);
     UNITY_INTERFACE_EXPORT int DMN_RunNativeTrayFocusedDiagnostic();

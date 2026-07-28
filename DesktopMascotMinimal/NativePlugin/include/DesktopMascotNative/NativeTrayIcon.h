@@ -28,6 +28,15 @@ namespace DesktopMascotNative
     std::uint32_t GetNativeTrayRequestExitSelectionCount();
     std::uint32_t GetNativeTrayTaskbarCreatedCount();
     std::uint32_t GetNativeTrayShutdownRejectedCount();
+    std::uint32_t GetNativeTrayNimAddAttemptCount();
+    std::uint32_t GetNativeTrayNimAddSuccessCount();
+    std::uint32_t GetNativeTrayNimAddLastError();
+    std::uint32_t GetNativeTrayNimSetVersionSuccessCount();
+    std::uint32_t GetNativeTrayNimSetVersionLastError();
+    std::uint32_t GetNativeTrayRegistrationRetryCount();
+    std::uint32_t GetNativeTrayShutdownRetrySuppressedCount();
+    bool GetNativeTrayRegistrationFinalResult();
+    bool WasNativeTrayRegistrationRetryExhausted();
     std::int32_t PublishNativeTrayCommandForDiagnostics(
         std::int32_t command);
     std::int32_t RunNativeTrayFocusedDiagnostic();

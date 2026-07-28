@@ -3107,3 +3107,166 @@ acceptance, and the diagnostic is not implemented in M-045.
 
 M-045 is complete. Automated validation and user visual verification passed.
 The architecture baseline advances to M-045.
+
+## M-046 — Repository Structure Cleanup
+
+Status: Completed
+
+Automated validation: Passed
+
+Visual verification: Passed
+
+Architecture baseline: M-046
+
+### Scope
+
+M-046 aligns physical repository layout with the responsibility boundaries
+validated through M-045. The repository cleanup changes file placement only
+and does not modify serialized contracts, persistence schemas, diagnostic
+mode contracts, rendering, ownership, or shutdown order. An explicitly
+approved prerequisite correction, Tray Startup Recovery Robustness, addresses
+the pre-existing normal-runtime tray startup race without changing existing
+export names, command IDs, visibility ownership, or shutdown order.
+
+The managed source tree is separated into:
+
+- production runtime responsibilities under `Assets/_Project/Runtime`;
+- focused diagnostics under `Assets/_Project/Diagnostics`;
+- Editor-only code under `Assets/_Project/Editor`;
+- Windows-only integration under
+  `Assets/_Project/Runtime/Platform/Windows`.
+
+Existing `.cs` files and `.meta` sidecars are moved together. Existing asset
+GUIDs, namespaces, type names, serialized fields, partial-class pairing, and
+public APIs remain unchanged. No assembly definition is introduced.
+
+Native source, CMake inputs, canonical `Tools/Development` entry points,
+Scene and VRM assets, plugin binaries, `NativePlugin/out`, production
+persistence, and milestone-referenced logs remain in place.
+
+Detailed design:
+`NativePlugin/docs/RepositoryStructureDesign.md`
+
+### Initial inventory and move policy
+
+- The previous managed code was distributed across
+  `Scripts/Runtime`, `Scripts/character`, `Scripts/Desktop`,
+  `Scripts/Interaction`, and one flat Diagnostics directory.
+- The project has no `.asmdef` or `.asmref`.
+- `MascotMain.unity` references seven moved project MonoScripts by GUID; all
+  seven GUIDs continue to resolve after relocation.
+- The only managed partial class,
+  `UnityPlayerWindowVisibilityController`, keeps both definitions together in
+  the Windows presentation folder.
+- Runtime/build fixed paths remain in CMake and the canonical PowerShell
+  scripts and are not changed.
+- `NativePlugin/out` contains tracked generated evidence, including logs cited
+  by this milestone history, and is not reorganized.
+- The duplicate `Assets/_Project/Scripts/TEST_MODEL.vrm` remains untouched.
+- Older sample-scene helpers are retained under `Runtime/Legacy`; deletion is
+  deferred until references and intended use are proven.
+
+### Validation state
+
+Structural validation and all required automated regressions pass:
+
+- moved tracked `.cs` and `.meta` blobs are byte-identical: `188/188`;
+- unresolved project Scene script GUIDs: `0`;
+- missing `.cs.meta`, duplicate asset GUID, and current old-path references:
+  `0/0/0`;
+- `git diff --check`: Passed;
+- Unity Development Player build: Passed;
+- known warning only:
+  `TransparentWindowController.borderless` CS0414;
+- runtime-smoke: Passed;
+- drag-diagnostic and its Settings, Player visibility, context menu, tray,
+  Single Instance, settings, window-position, and character-persistence
+  focused tests: Passed;
+- real-animated diagnostic: Passed;
+- Runtime VRM selection/import and M-044 disposal diagnostics: Passed;
+- M-044 Dispose requested/release confirmed/failure: `3/3/0`;
+- M-044 retired queue current/maximum and cleanup handles: `0/1`, `0/0`;
+- Present/device-removed HRESULT: `S_OK/S_OK`;
+- readback and continuous/region failures: `0`, `0/0`.
+
+Passing evidence:
+
+- drag and focused regressions:
+  `NativePlugin/out/development-player-20260729-014006-810-813b7e0f.log`;
+- runtime-smoke:
+  `NativePlugin/out/development-player-20260729-014026-901-3825412c.log`;
+- real animated:
+  `NativePlugin/out/development-player-20260729-014043-254-25e3142e.log`;
+- Runtime VRM and M-044 disposal:
+  `NativePlugin/out/development-player-20260729-014353-848-d198fd04.log`;
+- final normal runtime and user verification:
+  `NativePlugin/out/development-player-20260729-015746-050-a6c44de3.log`.
+
+### Tray Startup Recovery prerequisite
+
+Root cause: an initial `Shell_NotifyIconW` registration failure caused the
+native tray thread to exit. The owner window and message loop therefore could
+not receive `TaskbarCreated` or retry after Explorer became ready.
+
+The approved correction:
+
+- creates and retains the hidden owner window before icon registration;
+- registers `TaskbarCreated` before the first icon attempt;
+- keeps the native message loop alive after an initial failure;
+- retries at a constant 200 ms interval for at most 75 attempts
+  (approximately 15 seconds);
+- cancels retry after success and prevents duplicate GUID icons;
+- re-registers through the same path on `TaskbarCreated`;
+- suppresses retry and re-registration after the shutdown barrier;
+- keeps the managed `startAttempted` single-start contract and observes native
+  recovery at a bounded 200 ms interval for at most 20 seconds.
+
+Diagnostics separately report `NIM_ADD` and `NIM_SETVERSION`
+attempted/succeeded/last-error values, `TaskbarCreated` count, retry count,
+final result, exhaustion, shutdown suppression, and current registration.
+Existing export names and ABI remain available; new diagnostics are additive.
+
+Final validation:
+
+- native configure/Ninja RelWithDebInfo build: Passed;
+- Unity Development Player build: Passed;
+- existing native exports removed: `0`;
+- Debug CRT dependency: Absent;
+- Assets/Player DLL SHA-256:
+  `7C182D05CE7972AE418B275FCE57B4F9FB029B625007B65AFBC8A696E03A0E5D`;
+- focused initial-registration-loss retry recovery: Passed;
+- repeated `TaskbarCreated` recovery: Passed;
+- normal tray startup/cleanup: `True/True`;
+- `NIM_ADD` and `NIM_SETVERSION`: `1/1`, `1/1`;
+- tray owner created/destroyed and logical delete: `1/1`, `1`;
+- live-owned menu/icon after cleanup: `0/0`;
+- Present/device-removed HRESULT: `S_OK/S_OK`;
+- readback errors and continuous/region failure stages: `0`, `0/0`;
+- pending owned region and active/retired handles: `0`, `0/0`;
+- aggregate cleanup/fatal failure stage: `True/0`;
+- `git diff --check`: Passed.
+
+### Manual validation
+
+The user confirmed:
+
+- exactly one tray icon is displayed;
+- exactly one mascot is displayed and continues animating;
+- Tray `設定` opens the existing Settings surface;
+- Settings remains interactive;
+- Tray `終了` performs orderly shutdown;
+- no Player, mascot window, or tray icon remains after exit.
+
+### Known limitations
+
+- Tray startup retry is intentionally bounded. A notification area that does
+  not accept registration within the 75-attempt window reports exhaustion
+  rather than retrying indefinitely. The owner/message-loop infrastructure
+  remains available for a later `TaskbarCreated` recovery until shutdown.
+- The established `TransparentWindowController.borderless` CS0414 warning
+  remains and is not globally suppressed.
+- The duplicate bundled VRM and retained Legacy helpers remain intentionally
+  unresolved structure candidates.
+
+M-046 is complete. Automated validation and user visual verification passed.
+The architecture baseline advances to M-046.

@@ -3075,7 +3075,46 @@ extern "C"
     DMN_EXPORT_TRAY_UINT(
         DMN_GetNativeTrayShutdownRejectedCount,
         GetNativeTrayShutdownRejectedCount)
+    DMN_EXPORT_TRAY_UINT(
+        DMN_GetNativeTrayNimAddAttemptCount,
+        GetNativeTrayNimAddAttemptCount)
+    DMN_EXPORT_TRAY_UINT(
+        DMN_GetNativeTrayNimAddSuccessCount,
+        GetNativeTrayNimAddSuccessCount)
+    DMN_EXPORT_TRAY_UINT(
+        DMN_GetNativeTrayNimAddLastError,
+        GetNativeTrayNimAddLastError)
+    DMN_EXPORT_TRAY_UINT(
+        DMN_GetNativeTrayNimSetVersionSuccessCount,
+        GetNativeTrayNimSetVersionSuccessCount)
+    DMN_EXPORT_TRAY_UINT(
+        DMN_GetNativeTrayNimSetVersionLastError,
+        GetNativeTrayNimSetVersionLastError)
+    DMN_EXPORT_TRAY_UINT(
+        DMN_GetNativeTrayRegistrationRetryCount,
+        GetNativeTrayRegistrationRetryCount)
+    DMN_EXPORT_TRAY_UINT(
+        DMN_GetNativeTrayShutdownRetrySuppressedCount,
+        GetNativeTrayShutdownRetrySuppressedCount)
 #undef DMN_EXPORT_TRAY_UINT
+
+    int UNITY_INTERFACE_EXPORT
+        DMN_GetNativeTrayRegistrationFinalResult()
+    {
+        return DesktopMascotNative::
+            GetNativeTrayRegistrationFinalResult()
+            ? 1
+            : 0;
+    }
+
+    int UNITY_INTERFACE_EXPORT
+        DMN_WasNativeTrayRegistrationRetryExhausted()
+    {
+        return DesktopMascotNative::
+            WasNativeTrayRegistrationRetryExhausted()
+            ? 1
+            : 0;
+    }
 
     int UNITY_INTERFACE_EXPORT DMN_GetNativeTrayMenuLiveOwnedCount()
     {

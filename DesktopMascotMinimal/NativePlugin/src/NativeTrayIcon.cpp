@@ -24,8 +24,12 @@ namespace
     constexpr wchar_t kRequestExitLabel[] = L"\u7D42\u4E86";
     constexpr UINT kTrayCallbackMessage = WM_APP + 0x360;
     constexpr UINT kCancelPopupMessage = WM_APP + 0x361;
+    constexpr UINT kSimulateRegistrationFailureMessage = WM_APP + 0x362;
     constexpr UINT kOpenSettingsCommandId = 0x5201;
     constexpr UINT kRequestExitCommandId = 0x5202;
+    constexpr auto kRegistrationRetryInterval =
+        std::chrono::milliseconds(200);
+    constexpr std::uint32_t kMaximumRegistrationRetryCount = 75;
     constexpr GUID kTrayIconGuid{
         0x7e347aa1,
         0xcace,
@@ -61,6 +65,28 @@ namespace
     std::atomic<std::uint32_t> g_requestExitSelectionCount{0};
     std::atomic<std::uint32_t> g_taskbarCreatedCount{0};
     std::atomic<std::uint32_t> g_shutdownRejectedCount{0};
+    std::atomic<std::uint32_t> g_nimAddAttemptCount{0};
+    std::atomic<std::uint32_t> g_nimAddSuccessCount{0};
+    std::atomic<DWORD> g_nimAddLastError{ERROR_SUCCESS};
+    std::atomic<std::uint32_t> g_nimSetVersionSuccessCount{0};
+    std::atomic<DWORD> g_nimSetVersionLastError{ERROR_SUCCESS};
+    std::atomic<std::uint32_t> g_registrationRetryCount{0};
+    std::atomic<std::uint32_t> g_shutdownRetrySuppressedCount{0};
+    std::atomic<bool> g_registrationFinalResult{false};
+    std::atomic<bool> g_registrationRetryExhausted{false};
+    std::atomic<bool> g_threadInfrastructureReady{false};
+
+    bool g_registrationRetryPending = false;
+    std::uint32_t g_registrationRetryWindowCount = 0;
+    std::chrono::steady_clock::time_point g_nextRegistrationRetry{};
+    std::chrono::steady_clock::time_point g_registrationRetryDeadline{};
+
+    enum class RegistrationRequestKind
+    {
+        Initial,
+        Retry,
+        TaskbarCreated
+    };
 
     void ResetDiagnostics()
     {
@@ -81,7 +107,21 @@ namespace
         g_requestExitSelectionCount.store(0);
         g_taskbarCreatedCount.store(0);
         g_shutdownRejectedCount.store(0);
+        g_nimAddAttemptCount.store(0);
+        g_nimAddSuccessCount.store(0);
+        g_nimAddLastError.store(ERROR_SUCCESS);
+        g_nimSetVersionSuccessCount.store(0);
+        g_nimSetVersionLastError.store(ERROR_SUCCESS);
+        g_registrationRetryCount.store(0);
+        g_shutdownRetrySuppressedCount.store(0);
+        g_registrationFinalResult.store(false);
+        g_registrationRetryExhausted.store(false);
+        g_threadInfrastructureReady.store(false);
         g_tooltipConfigured.store(false);
+        g_registrationRetryPending = false;
+        g_registrationRetryWindowCount = 0;
+        g_nextRegistrationRetry = {};
+        g_registrationRetryDeadline = {};
     }
 
     HICON CreateOwnedApplicationIcon()
@@ -174,30 +214,155 @@ namespace
         return data;
     }
 
-    bool AddTrayIcon(HWND window, HICON icon, bool reregister)
+    void PublishStartResult(bool succeeded)
+    {
+        g_registrationFinalResult.store(succeeded);
+    }
+
+    void CancelRegistrationRetry()
+    {
+        g_registrationRetryPending = false;
+        g_registrationRetryWindowCount = 0;
+    }
+
+    void ScheduleRegistrationRetry()
+    {
+        if (g_shutdownRequested.load())
+        {
+            g_shutdownRetrySuppressedCount.fetch_add(1);
+            return;
+        }
+        const auto now = std::chrono::steady_clock::now();
+        g_registrationRetryPending = true;
+        g_registrationRetryWindowCount = 0;
+        g_nextRegistrationRetry = now + kRegistrationRetryInterval;
+        g_registrationRetryDeadline =
+            now
+            + kRegistrationRetryInterval
+                * kMaximumRegistrationRetryCount;
+    }
+
+    bool AddTrayIcon(
+        HWND window,
+        HICON icon,
+        RegistrationRequestKind requestKind)
     {
         if (g_shutdownRequested.load() || window == nullptr || icon == nullptr)
         {
             g_shutdownRejectedCount.fetch_add(1);
             return false;
         }
-        if (reregister)
-            g_reregisterRequestCount.fetch_add(1);
-        else
-            g_initialAddRequestCount.fetch_add(1);
+        switch (requestKind)
+        {
+            case RegistrationRequestKind::Initial:
+                g_initialAddRequestCount.fetch_add(1);
+                break;
+            case RegistrationRequestKind::Retry:
+                g_registrationRetryCount.fetch_add(1);
+                break;
+            case RegistrationRequestKind::TaskbarCreated:
+                g_reregisterRequestCount.fetch_add(1);
+                break;
+        }
 
         auto data = BuildNotifyIconData(window, icon);
+        g_nimAddAttemptCount.fetch_add(1);
+        ::SetLastError(ERROR_SUCCESS);
         if (::Shell_NotifyIconW(NIM_ADD, &data) == FALSE)
-            return false;
-        data.uVersion = NOTIFYICON_VERSION_4;
-        g_setVersionRequestCount.fetch_add(1);
-        if (::Shell_NotifyIconW(NIM_SETVERSION, &data) == FALSE)
         {
-            ::Shell_NotifyIconW(NIM_DELETE, &data);
+            g_nimAddLastError.store(::GetLastError());
+            g_iconRegistered.store(false);
+            g_running.store(false);
+            g_registrationFinalResult.store(false);
             return false;
         }
+        g_nimAddSuccessCount.fetch_add(1);
+        data.uVersion = NOTIFYICON_VERSION_4;
+        g_setVersionRequestCount.fetch_add(1);
+        ::SetLastError(ERROR_SUCCESS);
+        if (::Shell_NotifyIconW(NIM_SETVERSION, &data) == FALSE)
+        {
+            g_nimSetVersionLastError.store(::GetLastError());
+            ::Shell_NotifyIconW(NIM_DELETE, &data);
+            g_iconRegistered.store(false);
+            g_running.store(false);
+            g_registrationFinalResult.store(false);
+            return false;
+        }
+        g_nimSetVersionSuccessCount.fetch_add(1);
         g_iconRegistered.store(true);
+        g_running.store(true);
+        g_registrationFinalResult.store(true);
         return true;
+    }
+
+    void CompleteRegistrationAttempt(bool succeeded)
+    {
+        if (succeeded)
+        {
+            CancelRegistrationRetry();
+            PublishStartResult(true);
+            return;
+        }
+        ScheduleRegistrationRetry();
+    }
+
+    void ProcessRegistrationRetry(HWND window, HICON icon)
+    {
+        if (!g_registrationRetryPending)
+            return;
+        if (g_shutdownRequested.load())
+        {
+            g_registrationRetryPending = false;
+            g_shutdownRetrySuppressedCount.fetch_add(1);
+            return;
+        }
+
+        const auto now = std::chrono::steady_clock::now();
+        if (g_registrationRetryWindowCount
+                >= kMaximumRegistrationRetryCount
+            || now >= g_registrationRetryDeadline)
+        {
+            g_registrationRetryPending = false;
+            g_registrationRetryExhausted.store(true);
+            PublishStartResult(false);
+            return;
+        }
+
+        ++g_registrationRetryWindowCount;
+        const bool succeeded = AddTrayIcon(
+            window,
+            icon,
+            RegistrationRequestKind::Retry);
+        if (succeeded)
+        {
+            CancelRegistrationRetry();
+            PublishStartResult(true);
+            return;
+        }
+        g_nextRegistrationRetry =
+            std::chrono::steady_clock::now()
+            + kRegistrationRetryInterval;
+        if (g_registrationRetryWindowCount
+            >= kMaximumRegistrationRetryCount)
+        {
+            g_registrationRetryPending = false;
+            g_registrationRetryExhausted.store(true);
+            PublishStartResult(false);
+        }
+    }
+
+    DWORD GetRegistrationWaitTimeout()
+    {
+        if (!g_registrationRetryPending)
+            return INFINITE;
+        const auto now = std::chrono::steady_clock::now();
+        if (now >= g_nextRegistrationRetry)
+            return 0;
+        const auto remaining =
+            std::chrono::duration_cast<std::chrono::milliseconds>(
+                g_nextRegistrationRetry - now);
+        return static_cast<DWORD>(remaining.count());
     }
 
     void DeleteTrayIcon(HWND window, HICON icon)
@@ -241,6 +406,33 @@ namespace
             if (g_taskbarCreatedCount.load() == handledBefore + 1
                 && g_reregisterRequestCount.load() == reregisteredBefore + 1
                 && g_iconRegistered.load())
+            {
+                return true;
+            }
+            std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        }
+        return false;
+    }
+
+    bool SimulateRegistrationFailureForDiagnostics()
+    {
+        const HWND window = g_ownerWindow.load();
+        if (window == nullptr || ::IsWindow(window) == FALSE)
+            return false;
+        const auto retryCountBefore = g_registrationRetryCount.load();
+        if (::PostMessageW(
+                window,
+                kSimulateRegistrationFailureMessage,
+                0,
+                0) == FALSE)
+        {
+            return false;
+        }
+        for (int attempt = 0; attempt < 100; ++attempt)
+        {
+            if (g_registrationRetryCount.load() == retryCountBefore + 1
+                && g_iconRegistered.load()
+                && g_registrationFinalResult.load())
             {
                 return true;
             }
@@ -339,6 +531,18 @@ namespace
             ::EndMenu();
             return 0;
         }
+        if (message == kSimulateRegistrationFailureMessage)
+        {
+            const auto icon = reinterpret_cast<HICON>(
+                ::GetWindowLongPtrW(window, GWLP_USERDATA));
+            auto data = BuildNotifyIconData(window, icon);
+            ::Shell_NotifyIconW(NIM_DELETE, &data);
+            g_iconRegistered.store(false);
+            g_running.store(false);
+            g_registrationFinalResult.store(false);
+            ScheduleRegistrationRetry();
+            return 0;
+        }
         if (message == g_taskbarCreatedMessage.load()
             && message != 0)
         {
@@ -350,11 +554,15 @@ namespace
                 const auto icon = reinterpret_cast<HICON>(
                     ::GetWindowLongPtrW(window, GWLP_USERDATA));
                 g_iconRegistered.store(false);
-                AddTrayIcon(window, icon, true);
+                CompleteRegistrationAttempt(AddTrayIcon(
+                    window,
+                    icon,
+                    RegistrationRequestKind::TaskbarCreated));
             }
             else
             {
                 g_shutdownRejectedCount.fetch_add(1);
+                g_shutdownRetrySuppressedCount.fetch_add(1);
             }
             return 0;
         }
@@ -422,15 +630,25 @@ namespace
                 GWLP_USERDATA,
                 reinterpret_cast<LONG_PTR>(icon));
         }
-        const bool started =
+        const bool infrastructureReady =
             window != nullptr
             && icon != nullptr
-            && taskbarCreated != 0
-            && AddTrayIcon(window, icon, false);
-        g_running.store(started);
+            && taskbarCreated != 0;
+        g_threadInfrastructureReady.store(infrastructureReady);
+        if (infrastructureReady)
+        {
+            CompleteRegistrationAttempt(AddTrayIcon(
+                window,
+                icon,
+                RegistrationRequestKind::Initial));
+        }
+        else
+        {
+            PublishStartResult(false);
+        }
         ::SetEvent(g_readyEvent);
 
-        if (started)
+        if (infrastructureReady)
         {
             bool stop = false;
             while (!stop)
@@ -439,10 +657,22 @@ namespace
                     1,
                     &g_stopEvent,
                     FALSE,
-                    INFINITE,
+                    GetRegistrationWaitTimeout(),
                     QS_ALLINPUT);
                 if (waitResult == WAIT_OBJECT_0)
+                {
+                    if (g_registrationRetryPending)
+                    {
+                        g_registrationRetryPending = false;
+                        g_shutdownRetrySuppressedCount.fetch_add(1);
+                    }
                     break;
+                }
+                if (waitResult == WAIT_TIMEOUT)
+                {
+                    ProcessRegistrationRetry(window, icon);
+                    continue;
+                }
                 if (waitResult != WAIT_OBJECT_0 + 1)
                     break;
                 MSG message{};
@@ -470,6 +700,7 @@ namespace
         if (registeredHere)
             ::UnregisterClassW(kOwnerClassName, instance);
         g_running.store(false);
+        g_threadInfrastructureReady.store(false);
         ::SetEvent(g_stoppedEvent);
     }
 }
@@ -480,7 +711,7 @@ namespace DesktopMascotNative
     {
         std::lock_guard lock(g_threadMutex);
         if (g_thread.joinable())
-            return g_running.load() ? 1 : 0;
+            return g_threadInfrastructureReady.load() ? 1 : 0;
         ResetDiagnostics();
         g_shutdownRequested.store(false);
         g_iconRegistered.store(false);
@@ -516,7 +747,7 @@ namespace DesktopMascotNative
         }
         if (::WaitForSingleObject(g_readyEvent, 5000) != WAIT_OBJECT_0)
             return -3;
-        return g_running.load() ? 1 : 0;
+        return g_threadInfrastructureReady.load() ? 1 : 0;
     }
 
     std::int32_t StopNativeTrayIcon()
@@ -598,7 +829,38 @@ namespace DesktopMascotNative
     DMN_TRAY_GET_U32(
         GetNativeTrayShutdownRejectedCount,
         g_shutdownRejectedCount)
+    DMN_TRAY_GET_U32(
+        GetNativeTrayNimAddAttemptCount,
+        g_nimAddAttemptCount)
+    DMN_TRAY_GET_U32(
+        GetNativeTrayNimAddSuccessCount,
+        g_nimAddSuccessCount)
+    DMN_TRAY_GET_U32(
+        GetNativeTrayNimAddLastError,
+        g_nimAddLastError)
+    DMN_TRAY_GET_U32(
+        GetNativeTrayNimSetVersionSuccessCount,
+        g_nimSetVersionSuccessCount)
+    DMN_TRAY_GET_U32(
+        GetNativeTrayNimSetVersionLastError,
+        g_nimSetVersionLastError)
+    DMN_TRAY_GET_U32(
+        GetNativeTrayRegistrationRetryCount,
+        g_registrationRetryCount)
+    DMN_TRAY_GET_U32(
+        GetNativeTrayShutdownRetrySuppressedCount,
+        g_shutdownRetrySuppressedCount)
 #undef DMN_TRAY_GET_U32
+
+    bool GetNativeTrayRegistrationFinalResult()
+    {
+        return g_registrationFinalResult.load();
+    }
+
+    bool WasNativeTrayRegistrationRetryExhausted()
+    {
+        return g_registrationRetryExhausted.load();
+    }
 
     std::int32_t GetNativeTrayMenuLiveOwnedCount()
     {
@@ -668,13 +930,23 @@ namespace DesktopMascotNative
         const bool repeatedRecovery =
             firstRecovery
             && SimulateExplorerRestartForDiagnostics();
+        const bool boundedRetryRecovery =
+            repeatedRecovery
+            && SimulateRegistrationFailureForDiagnostics();
         return appended
             && taskbarRecoveryPolicy
             && firstRecovery
             && repeatedRecovery
+            && boundedRetryRecovery
             && g_reregisterRequestCount.load() == 2
             && g_initialAddRequestCount.load() == 1
-            && g_setVersionRequestCount.load() == 3
+            && g_registrationRetryCount.load() == 1
+            && g_nimAddAttemptCount.load() == 4
+            && g_nimAddSuccessCount.load() == 4
+            && g_setVersionRequestCount.load() == 4
+            && g_nimSetVersionSuccessCount.load() == 4
+            && !g_registrationRetryExhausted.load()
+            && g_registrationFinalResult.load()
             && g_ownerCreatedCount.load() == 1
             && g_iconCreatedCount.load() == 1
             && g_iconLiveOwnedCount.load() == 1
