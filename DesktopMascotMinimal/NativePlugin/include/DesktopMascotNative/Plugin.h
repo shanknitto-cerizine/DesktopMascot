@@ -11,7 +11,8 @@ enum DesktopMascotNativeRenderEventId
     DMN_RENDER_EVENT_READBACK_COPY = 5,
     DMN_RENDER_EVENT_READBACK_FENCE_SIGNAL = 6,
     DMN_RENDER_EVENT_COMPOSITION_COPY = 7,
-    DMN_RENDER_EVENT_CONTINUOUS_COMPOSITION_FRAME = 8
+    DMN_RENDER_EVENT_CONTINUOUS_COMPOSITION_FRAME = 8,
+    DMN_RENDER_EVENT_SPEECH_PRESENTATION_FRAME = 9
 };
 
 extern "C"
@@ -36,6 +37,44 @@ extern "C"
     UNITY_INTERFACE_EXPORT int DMN_WasD3D12ReadyDuringLastRenderEvent();
     UNITY_INTERFACE_EXPORT UnityRenderingEventAndData UNITY_INTERFACE_API
         DMN_GetRenderEventAndDataFunc();
+    UNITY_INTERFACE_EXPORT int DMN_InitializeSpeechPresentation();
+    UNITY_INTERFACE_EXPORT int DMN_ShowSpeechPresentation(
+        unsigned int generation, int anchorX, int anchorY);
+    UNITY_INTERFACE_EXPORT int DMN_HideSpeechPresentation(
+        unsigned int generation);
+    UNITY_INTERFACE_EXPORT int DMN_UpdateSpeechPresentationAnchor(
+        int anchorX, int anchorY);
+    UNITY_INTERFACE_EXPORT void DMN_PollSpeechPresentation();
+    UNITY_INTERFACE_EXPORT unsigned int DMN_ConsumeSpeechClickGeneration();
+    UNITY_INTERFACE_EXPORT int DMN_BeginSpeechPresentationShutdown();
+    UNITY_INTERFACE_EXPORT int DMN_IsSpeechPresentationReady();
+    UNITY_INTERFACE_EXPORT int DMN_IsSpeechPresentationVisible();
+    UNITY_INTERFACE_EXPORT unsigned int DMN_GetSpeechPresentationGeneration();
+    UNITY_INTERFACE_EXPORT unsigned int DMN_GetSpeechPresentCount();
+    UNITY_INTERFACE_EXPORT int DMN_GetSpeechPresentHRESULT();
+    UNITY_INTERFACE_EXPORT int DMN_GetSpeechDeviceRemovedHRESULT();
+    UNITY_INTERFACE_EXPORT int DMN_GetSpeechFailureStage();
+    UNITY_INTERFACE_EXPORT unsigned int DMN_GetSpeechWindowCreatedCount();
+    UNITY_INTERFACE_EXPORT unsigned int DMN_GetSpeechWindowDestroyedCount();
+    UNITY_INTERFACE_EXPORT unsigned int DMN_GetSpeechRegionCreatedCount();
+    UNITY_INTERFACE_EXPORT unsigned int DMN_GetSpeechRegionTransferredCount();
+    UNITY_INTERFACE_EXPORT unsigned int DMN_GetSpeechRegionCallerDeletedCount();
+    UNITY_INTERFACE_EXPORT unsigned int DMN_GetSpeechRegionLiveOwnedCount();
+    UNITY_INTERFACE_EXPORT unsigned int DMN_GetSpeechCompositionTargetCreatedCount();
+    UNITY_INTERFACE_EXPORT unsigned int DMN_GetSpeechVisualCreatedCount();
+    UNITY_INTERFACE_EXPORT unsigned int DMN_GetSpeechSwapChainCreatedCount();
+    UNITY_INTERFACE_EXPORT unsigned int DMN_GetSpeechFollowUpdateCount();
+    UNITY_INTERFACE_EXPORT unsigned int DMN_GetSpeechMaximumFollowErrorPixels();
+    UNITY_INTERFACE_EXPORT unsigned int DMN_GetSpeechEdgeFlipCount();
+    UNITY_INTERFACE_EXPORT unsigned int DMN_GetSpeechClampCount();
+    UNITY_INTERFACE_EXPORT unsigned int DMN_GetSpeechDpi();
+    UNITY_INTERFACE_EXPORT int DMN_DidSpeechOwnerMatchMascot();
+    UNITY_INTERFACE_EXPORT int DMN_DidSpeechCleanupSucceed();
+    UNITY_INTERFACE_EXPORT unsigned int DMN_GetSpeechContextAvailabilityMask();
+    UNITY_INTERFACE_EXPORT unsigned int DMN_GetSpeechInitializeRequestCount();
+    UNITY_INTERFACE_EXPORT unsigned int DMN_GetSpeechInitializePostSuccessCount();
+    UNITY_INTERFACE_EXPORT unsigned int DMN_GetSpeechInitializeHandleCount();
+    UNITY_INTERFACE_EXPORT unsigned int DMN_GetSpeechLiveResourceCount();
     UNITY_INTERFACE_EXPORT int DMN_GetTextureDiagnosticEventCount();
     UNITY_INTERFACE_EXPORT int DMN_WasTextureDataNonNull();
     UNITY_INTERFACE_EXPORT int DMN_WasTextureResourceDescriptionAvailable();

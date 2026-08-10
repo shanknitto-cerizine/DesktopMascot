@@ -21,6 +21,7 @@ add_library(DesktopMascotNative SHARED
     src/ReadbackDiagnostics.cpp
     src/SingleInstanceCoordinator.cpp
     src/StaticComplexSilhouetteDiagnostics.cpp
+    src/SpeechPresentation.cpp
 )
 
 target_link_libraries(DesktopMascotNative

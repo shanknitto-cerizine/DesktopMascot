@@ -503,6 +503,55 @@ and validated previews must not perform another Y inversion. Shader-side Y
 inversion is prohibited. Do not move or redesign this normalization boundary
 without a dedicated regression milestone.
 
+## Speech presentation boundary
+
+M-048 is validated as an additive implementation under the M-046 architecture
+baseline and M-047.5 design baseline. Its corrected full-body framing,
+170 x 64 center-aligned card, 12/11-pixel Japanese text, split manual close
+checks, diagnostic Character-selection integration, and orderly Speech
+shutdown are visually verified. Shared
+Speech data contains display-only `SpeakerData` and `SpeechMessage` values.
+`SpeechPresentationController` owns exactly one current message, has no queue,
+and is unaware of event, rule, script, conversation-pack, or AI-provider
+types. A same-ID Show coalesces, a different ID returns Busy, and a matching
+presentation generation plus first-close-wins governs click and timeout
+closure.
+
+Keep the Speech rendering path independent:
+
+```text
+TMP Speech view
+→ dedicated 170×64 B8G8R8A8_SRGB RenderTexture
+→ render event 9
+→ independent Speech D3D12 copy and composition swap chain
+→ independent owned top-level Speech HWND
+```
+
+Never composite Speech into the mascot's 256×256 transfer, add another
+Camera-source Y normalization, reuse the mascot alpha mask/HRGN, parent Speech
+under a Character root, or expose HWND/HRGN/D3D12 types through the shared
+presentation interface. `WindowsSpeechPresentationHost` is the Windows
+boundary. The Speech HWND is nonactivating and owned by the mascot HWND, but
+owns its own DComp target/visual/swap chain, copy objects, and rounded input
+HRGN. Unity device, queue, fence, factory, composition device, and source
+texture remain borrowed and must not be released.
+
+Anchor resolution observes `CharacterAssetManager` generation without taking
+Character ownership. Prefer humanoid hips/leg bones, fall back to current
+Renderer bounds, and discard old references on generation changes. Native
+positioning starts from the actual mascot `GetWindowRect`, reads the current
+applied silhouette with `GetWindowRgnBox`, and aligns the Speech-card center
+to that silhouette center. Work-area clamping applies only the smallest
+necessary horizontal correction; it uses no activation or Z-order change and
+never persists a Speech position.
+
+Close the Speech shutdown barrier and drain/release Speech resources before
+mascot composition teardown. Speech cleanup is idempotent and must succeed for
+never-shown and partial initialization. Speech failure is isolated from the
+mascot runtime, but it fails `message-window-diagnostic`. Do not add a
+conversation pack, schema, provider, AI integration, persistence, variable
+timeout, queue, or production greeting without a later explicit milestone.
+
 ## Transparency and pixel interaction
 
 - Transparency uses a premultiplied-alpha DirectComposition composition swap
@@ -579,6 +628,7 @@ DESKTOP_MASCOT_MODE=runtime-smoke
 DESKTOP_MASCOT_MODE=real-static-diagnostic
 DESKTOP_MASCOT_MODE=real-animated-diagnostic
 DESKTOP_MASCOT_MODE=drag-diagnostic
+DESKTOP_MASCOT_MODE=message-window-diagnostic
 ```
 
 The command-line equivalent is `--desktop-mascot-mode=<mode>`. With no explicit

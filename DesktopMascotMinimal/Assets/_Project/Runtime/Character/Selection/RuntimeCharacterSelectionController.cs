@@ -219,6 +219,11 @@ namespace DesktopMascot.Runtime.CharacterSelection
 
         internal bool RequestFileSelection()
         {
+            Debug.Log(
+                $"{Prefix} File picker request received/state/initialized/" +
+                "busy/shutdown/picker running: " +
+                $"True/{State}/{initialized}/{IsBusy}/{shutdownStarted}/" +
+                (picker?.IsRunning ?? false));
             if (!initialized)
                 return FailRequest(
                     RuntimeCharacterSelectionResult.PickerFailed,
@@ -233,16 +238,23 @@ namespace DesktopMascot.Runtime.CharacterSelection
                     "モデルの読み込み中です");
             var ownerWindow = ownerWindowProvider?.Invoke()
                 ?? IntPtr.Zero;
+            var ownerResolvedByProvider = ownerWindow != IntPtr.Zero;
             if (ownerWindow == IntPtr.Zero
                 && (visibility == null
                     || !visibility.TryGetFileDialogOwner(
                         out ownerWindow)))
             {
+                Debug.LogWarning(
+                    $"{Prefix} File picker owner resolved/provider: " +
+                    $"False/{ownerResolvedByProvider}");
                 return FailRequest(
                     RuntimeCharacterSelectionResult.PickerFailed,
                     RuntimeCharacterSelectionMessages.ForPicker(
                         VrmFilePickerStatus.OwnerUnavailable));
             }
+            Debug.Log(
+                $"{Prefix} File picker owner resolved/provider: " +
+                $"True/{ownerResolvedByProvider}");
 
             State = RuntimeCharacterSelectionState.SelectingFile;
             LastResult = RuntimeCharacterSelectionResult.None;
@@ -874,6 +886,8 @@ namespace DesktopMascot.Runtime.CharacterSelection
             StatusMessage = message;
             if (result == RuntimeCharacterSelectionResult.ShutdownRejected)
                 State = RuntimeCharacterSelectionState.Shutdown;
+            Debug.LogWarning(
+                $"{Prefix} Request rejected result/state: {result}/{State}");
             return false;
         }
 

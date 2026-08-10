@@ -9,6 +9,7 @@
 #include "DesktopMascotNative/NativeMascotContextMenu.h"
 #include "DesktopMascotNative/NativeMascotWindowDrag.h"
 #include "DesktopMascotNative/StaticComplexSilhouetteDiagnostics.h"
+#include "DesktopMascotNative/SpeechPresentation.h"
 
 #include <Windows.h>
 #include <d3d12.h>
@@ -146,6 +147,15 @@ namespace
                 menuResult))
         {
             return static_cast<LRESULT>(menuResult);
+        }
+        std::intptr_t speechResult = 0;
+        if (DesktopMascotNative::HandleSpeechPresentationOwnerMessage(
+                message,
+                static_cast<std::uintptr_t>(wParam),
+                static_cast<std::intptr_t>(lParam),
+                speechResult))
+        {
+            return static_cast<LRESULT>(speechResult);
         }
         switch (message)
         {
@@ -488,6 +498,12 @@ namespace
         DesktopMascotNative::SetStaticComplexSilhouetteUiWindow(window);
         DesktopMascotNative::SetNativeMascotWindowDragUiWindow(window);
         DesktopMascotNative::SetNativeMascotContextMenuUiWindow(window);
+        DesktopMascotNative::SetSpeechPresentationUiContext(
+            window,
+            factory.Get(),
+            device.Get(),
+            g_borrowedCommandQueue);
+        DesktopMascotNative::RequestSpeechPresentationInitialize();
         StoreState(CompositionInitializationState::SwapChainCreated);
 
         g_setContentAttempted.store(true, std::memory_order_relaxed);
@@ -572,6 +588,13 @@ namespace
         runInitializationAndMessageLoop();
 
         g_messageLoopRunning.store(false, std::memory_order_release);
+        DesktopMascotNative::BeginSpeechPresentationShutdown();
+        if (!DesktopMascotNative::
+                ShutdownSpeechPresentationOnUiThread(4000))
+        {
+            ::OutputDebugStringW(
+                L"[DesktopMascotNative] Speech presentation teardown failed.\n");
+        }
         if (!DesktopMascotNative::
                 ShutdownContinuousCompositionDiagnosticsOnUiThread(2000))
         {

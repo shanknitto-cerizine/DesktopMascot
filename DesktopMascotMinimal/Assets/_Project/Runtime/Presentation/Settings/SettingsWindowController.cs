@@ -194,7 +194,13 @@ namespace DesktopMascot.Runtime.Settings.UI
                     new Rect(20f, 216f, 120f, 30f),
                     "VRMを選択"))
             {
-                characterSelection.RequestFileSelection();
+                Debug.Log(
+                    "[DesktopMascotSettingsUI] VRM selection button " +
+                    "click received: True");
+                var routed = characterSelection.RequestFileSelection();
+                Debug.Log(
+                    "[DesktopMascotSettingsUI] VRM selection command " +
+                    $"routed: {routed}");
             }
             GUI.enabled = previousEnabled;
 

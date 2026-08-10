@@ -1,6 +1,7 @@
 using System;
 using System.Runtime.InteropServices;
 using System.Threading;
+using UnityEngine;
 
 namespace DesktopMascot.Runtime.CharacterSelection
 {
@@ -77,6 +78,9 @@ namespace DesktopMascot.Runtime.CharacterSelection
 
         public bool TryStart(IntPtr ownerWindow)
         {
+            Debug.Log(
+                "[DesktopMascotVrmFilePicker] Start request owner " +
+                $"available: {ownerWindow != IntPtr.Zero}");
             lock (gate)
             {
                 if (shutdownStarted)
@@ -103,6 +107,9 @@ namespace DesktopMascot.Runtime.CharacterSelection
                 };
                 worker.SetApartmentState(ApartmentState.STA);
                 worker.Start();
+                Debug.Log(
+                    "[DesktopMascotVrmFilePicker] STA picker thread " +
+                    "start requested: True");
                 return true;
             }
 #else
@@ -149,6 +156,9 @@ namespace DesktopMascot.Runtime.CharacterSelection
 
         private void RunDialog(IntPtr ownerWindow)
         {
+            Debug.Log(
+                "[DesktopMascotVrmFilePicker] STA picker thread started: " +
+                "True");
             var result = Result(VrmFilePickerStatus.DialogFailed);
             var comInitialized = false;
             IFileOpenDialog dialog = null;
@@ -158,6 +168,9 @@ namespace DesktopMascot.Runtime.CharacterSelection
                 var initializeResult = CoInitializeEx(
                     IntPtr.Zero,
                     CoinitApartmentThreaded | CoinitDisableOle1Dde);
+                Debug.Log(
+                    "[DesktopMascotVrmFilePicker] COM initialize HRESULT: " +
+                    $"0x{initializeResult:X8}");
                 if (initializeResult < 0)
                 {
                     result = Result(
@@ -190,7 +203,13 @@ namespace DesktopMascot.Runtime.CharacterSelection
                 ThrowIfFailed(dialog.SetOptions(options));
                 ThrowIfFailed(dialog.SetTitle("VRM 1.0ファイルを選択"));
 
+                Debug.Log(
+                    "[DesktopMascotVrmFilePicker] Dialog Show attempted: " +
+                    "True");
                 var showResult = dialog.Show(ownerWindow);
+                Debug.Log(
+                    "[DesktopMascotVrmFilePicker] Dialog Show HRESULT: " +
+                    $"0x{showResult:X8}");
                 if (showResult == CancelledHResult)
                 {
                     result = Result(VrmFilePickerStatus.Cancelled);
@@ -219,6 +238,9 @@ namespace DesktopMascot.Runtime.CharacterSelection
             }
             catch (Exception exception)
             {
+                Debug.LogWarning(
+                    "[DesktopMascotVrmFilePicker] Dialog exception type: " +
+                    exception.GetType().Name);
                 result = new VrmFilePickerResult(
                     VrmFilePickerStatus.DialogFailed,
                     string.Empty,
@@ -232,6 +254,9 @@ namespace DesktopMascot.Runtime.CharacterSelection
                     Marshal.FinalReleaseComObject(dialog);
                 if (comInitialized)
                     CoUninitialize();
+                Debug.Log(
+                    "[DesktopMascotVrmFilePicker] Picker result/status: " +
+                    $"True/{result.Status}");
                 PublishResult(result);
             }
         }

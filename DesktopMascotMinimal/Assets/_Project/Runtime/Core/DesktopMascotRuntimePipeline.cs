@@ -9,6 +9,8 @@ using DesktopMascot.Runtime.SingleInstance;
 using DesktopMascot.Runtime.CharacterSelection;
 using DesktopMascot.Runtime.CharacterPersistence;
 using DesktopMascot.Runtime.Settings.UI;
+using DesktopMascot.Runtime.Presentation.Speech;
+using DesktopMascot.Diagnostics;
 using Debug = UnityEngine.Debug;
 
 namespace DesktopMascot.Runtime
@@ -66,6 +68,11 @@ namespace DesktopMascot.Runtime
         private bool characterSelectionCleanupComplete = true;
         private CharacterSelectionPersistenceManager
             characterSelectionPersistence;
+        private SpeechPresentationController speechPresentationController;
+        private bool speechPresentationCleanupComplete = true;
+        private DesktopMascotSpeechMascotScaleDiagnostics
+            speechCameraIsolationDiagnostics;
+        private bool speechCameraIsolationCleanupComplete = true;
         private bool characterPersistenceCleanupComplete = true;
 
         internal int NativeTransferWidth =>
@@ -226,6 +233,7 @@ namespace DesktopMascot.Runtime
             characterAssetManager?.BeginShutdown();
             singleInstanceController?.BeginShutdown();
             playerVisibilityController?.BeginShutdown();
+            speechPresentationController?.BeginShutdown();
             if (!shutdownStarted)
                 StartCoroutine(Shutdown(reason, true));
 #endif
@@ -285,6 +293,20 @@ namespace DesktopMascot.Runtime
             SingleInstanceController controller)
         {
             singleInstanceController = controller;
+        }
+
+        internal void AttachSpeechPresentationController(
+            SpeechPresentationController controller)
+        {
+            speechPresentationController = controller;
+            speechPresentationCleanupComplete = controller == null;
+        }
+
+        internal void AttachSpeechCameraIsolationDiagnostics(
+            DesktopMascotSpeechMascotScaleDiagnostics diagnostics)
+        {
+            speechCameraIsolationDiagnostics = diagnostics;
+            speechCameraIsolationCleanupComplete = diagnostics == null;
         }
 
 #if UNITY_STANDALONE_WIN && !UNITY_EDITOR
@@ -650,6 +672,7 @@ namespace DesktopMascot.Runtime
             playerVisibilityController?.BeginShutdown();
             systemTrayController?.BeginShutdown();
             contextMenuController?.BeginShutdown();
+            speechPresentationController?.BeginShutdown();
             Log($"Shutdown reason: {reason}");
             if (characterSelectionController != null)
             {
@@ -847,6 +870,8 @@ namespace DesktopMascot.Runtime
                 && characterAssetCleanupComplete
                 && runtimeVrmSourceCleanupComplete
                 && characterSelectionCleanupComplete
+                && speechPresentationCleanupComplete
+                && speechCameraIsolationCleanupComplete
                 && characterPersistenceCleanupComplete
                 && !runtimeVrmShutdownWaitExceeded
                 && singleInstanceCleanupSucceeded
@@ -873,6 +898,12 @@ namespace DesktopMascot.Runtime
             Log(
                 "Runtime character selection cleanup result: " +
                 characterSelectionCleanupComplete);
+            Log(
+                "Speech presentation cleanup result: " +
+                speechPresentationCleanupComplete);
+            Log(
+                "Speech Camera isolation cleanup result: " +
+                speechCameraIsolationCleanupComplete);
             Log(
                 "Character persistence cleanup result: " +
                 characterPersistenceCleanupComplete);
@@ -977,6 +1008,13 @@ namespace DesktopMascot.Runtime
                 return;
             }
             managedCleanupCompleted = true;
+            speechPresentationCleanupComplete =
+                speechPresentationController == null
+                || speechPresentationController.Cleanup();
+            Log(
+                "Speech presentation cleanup result: " +
+                speechPresentationCleanupComplete);
+            speechPresentationController = null;
             Application.wantsToQuit -= WantsToQuit;
             presentCommandBuffer?.Release();
             presentCommandBuffer = null;
@@ -1000,6 +1038,13 @@ namespace DesktopMascot.Runtime
                     playerPresentation.CleanupComplete;
                 playerPresentation = null;
             }
+            speechCameraIsolationCleanupComplete =
+                speechCameraIsolationDiagnostics == null
+                || speechCameraIsolationDiagnostics.Restore();
+            Log(
+                "Speech Camera isolation cleanup result: " +
+                speechCameraIsolationCleanupComplete);
+            speechCameraIsolationDiagnostics = null;
             if (characterSelectionController != null)
             {
                 characterSelectionCleanupComplete =
@@ -1059,6 +1104,7 @@ namespace DesktopMascot.Runtime
             singleInstanceController?.BeginShutdown();
             systemTrayController?.BeginShutdown();
             contextMenuController?.BeginShutdown();
+            speechPresentationController?.BeginShutdown();
             try
             {
                 if (regionStarted)

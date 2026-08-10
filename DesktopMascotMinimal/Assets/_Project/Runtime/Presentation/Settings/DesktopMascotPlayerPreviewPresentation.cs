@@ -26,6 +26,8 @@ namespace DesktopMascot.Runtime.Settings.UI
             && previewCamera != null
             && !previewCamera.enabled;
         public bool CleanupComplete => disposed;
+        internal int PresentationCullingMask =>
+            previewCamera != null ? previewCamera.cullingMask : 0;
 
         internal bool Initialize(Camera source)
         {

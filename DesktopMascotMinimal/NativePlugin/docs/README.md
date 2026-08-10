@@ -28,6 +28,7 @@ recovery prerequisite have completed automated and manual validation.
 - [`SingleInstanceDesign.md`](SingleInstanceDesign.md)
 - [`WindowPositionPersistenceDesign.md`](WindowPositionPersistenceDesign.md)
 - [`D3D12TextureTransferDesign.md`](D3D12TextureTransferDesign.md)
+- [`SpeechPresentationDesign.md`](SpeechPresentationDesign.md)
 
 The remaining files in this directory are focused design records for earlier
 native composition, interaction, and diagnostic milestones. They remain

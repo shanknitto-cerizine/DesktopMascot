@@ -16,6 +16,7 @@
 #include "DesktopMascotNative/ReadbackDiagnostics.h"
 #include "DesktopMascotNative/SingleInstanceCoordinator.h"
 #include "DesktopMascotNative/StaticComplexSilhouetteDiagnostics.h"
+#include "DesktopMascotNative/SpeechPresentation.h"
 
 #include <Windows.h>
 #include <d3d12.h>
@@ -156,6 +157,9 @@ namespace
             &compositionPresentConfig);
         d3d12->ConfigureEvent(
             DMN_RENDER_EVENT_CONTINUOUS_COMPOSITION_FRAME,
+            &copyConfig);
+        d3d12->ConfigureEvent(
+            DMN_RENDER_EVENT_SPEECH_PRESENTATION_FRAME,
             &copyConfig);
         ::OutputDebugStringW(
             L"[DesktopMascotNative] Readback and composition Present events "
@@ -372,6 +376,14 @@ namespace
 
     void UNITY_INTERFACE_API OnRenderEventAndData(int eventId, void* data)
     {
+        if (eventId == DMN_RENDER_EVENT_SPEECH_PRESENTATION_FRAME)
+        {
+            DesktopMascotNative::HandleSpeechPresentationFrameEvent(
+                g_unityGraphicsD3D12.load(std::memory_order_acquire),
+                g_unityD3D12Device.load(std::memory_order_acquire),
+                data);
+            return;
+        }
         if (eventId == DMN_RENDER_EVENT_CONTINUOUS_COMPOSITION_FRAME)
         {
             auto* d3d12 =
@@ -514,6 +526,7 @@ extern "C"
         DesktopMascotNative::ResetAnimatedWindowRegionDiagnostics();
         DesktopMascotNative::ResetStaticComplexSilhouetteDiagnostics();
         DesktopMascotNative::ResetContinuousCompositionDiagnostics();
+        DesktopMascotNative::ResetSpeechPresentation();
 
         auto* graphics =
             unityInterfaces != nullptr ? unityInterfaces->Get<IUnityGraphics>() : nullptr;
@@ -556,6 +569,7 @@ extern "C"
         DesktopMascotNative::ResetAnimatedWindowRegionDiagnostics();
         DesktopMascotNative::ResetStaticComplexSilhouetteDiagnostics();
         DesktopMascotNative::ResetContinuousCompositionDiagnostics();
+        DesktopMascotNative::ResetSpeechPresentation();
         g_unityInterfaces = nullptr;
 
         ::OutputDebugStringW(L"[DesktopMascotNative] UnityPluginUnload called.\n");
@@ -662,6 +676,78 @@ extern "C"
     {
         return OnRenderEventAndData;
     }
+
+    int UNITY_INTERFACE_EXPORT DMN_InitializeSpeechPresentation()
+    { return DesktopMascotNative::RequestSpeechPresentationInitialize() ? 1 : 0; }
+    int UNITY_INTERFACE_EXPORT DMN_ShowSpeechPresentation(
+        unsigned int generation, int anchorX, int anchorY)
+    { return DesktopMascotNative::RequestSpeechPresentationShow(generation, anchorX, anchorY) ? 1 : 0; }
+    int UNITY_INTERFACE_EXPORT DMN_HideSpeechPresentation(unsigned int generation)
+    { return DesktopMascotNative::RequestSpeechPresentationHide(generation) ? 1 : 0; }
+    int UNITY_INTERFACE_EXPORT DMN_UpdateSpeechPresentationAnchor(int anchorX, int anchorY)
+    { return DesktopMascotNative::UpdateSpeechPresentationAnchor(anchorX, anchorY) ? 1 : 0; }
+    void UNITY_INTERFACE_EXPORT DMN_PollSpeechPresentation()
+    { DesktopMascotNative::PollSpeechPresentation(); }
+    unsigned int UNITY_INTERFACE_EXPORT DMN_ConsumeSpeechClickGeneration()
+    { return DesktopMascotNative::ConsumeSpeechClickGeneration(); }
+    int UNITY_INTERFACE_EXPORT DMN_BeginSpeechPresentationShutdown()
+    { return DesktopMascotNative::BeginSpeechPresentationShutdown() ? 1 : 0; }
+    int UNITY_INTERFACE_EXPORT DMN_IsSpeechPresentationReady()
+    { return DesktopMascotNative::IsSpeechPresentationReady() ? 1 : 0; }
+    int UNITY_INTERFACE_EXPORT DMN_IsSpeechPresentationVisible()
+    { return DesktopMascotNative::IsSpeechPresentationVisible() ? 1 : 0; }
+    unsigned int UNITY_INTERFACE_EXPORT DMN_GetSpeechPresentationGeneration()
+    { return DesktopMascotNative::GetSpeechPresentationGeneration(); }
+    unsigned int UNITY_INTERFACE_EXPORT DMN_GetSpeechPresentCount()
+    { return DesktopMascotNative::GetSpeechPresentCount(); }
+    int UNITY_INTERFACE_EXPORT DMN_GetSpeechPresentHRESULT()
+    { return DesktopMascotNative::GetSpeechPresentResult(); }
+    int UNITY_INTERFACE_EXPORT DMN_GetSpeechDeviceRemovedHRESULT()
+    { return DesktopMascotNative::GetSpeechDeviceRemovedReason(); }
+    int UNITY_INTERFACE_EXPORT DMN_GetSpeechFailureStage()
+    { return DesktopMascotNative::GetSpeechFailureStage(); }
+    unsigned int UNITY_INTERFACE_EXPORT DMN_GetSpeechWindowCreatedCount()
+    { return DesktopMascotNative::GetSpeechWindowCreatedCount(); }
+    unsigned int UNITY_INTERFACE_EXPORT DMN_GetSpeechWindowDestroyedCount()
+    { return DesktopMascotNative::GetSpeechWindowDestroyedCount(); }
+    unsigned int UNITY_INTERFACE_EXPORT DMN_GetSpeechRegionCreatedCount()
+    { return DesktopMascotNative::GetSpeechRegionCreatedCount(); }
+    unsigned int UNITY_INTERFACE_EXPORT DMN_GetSpeechRegionTransferredCount()
+    { return DesktopMascotNative::GetSpeechRegionTransferredCount(); }
+    unsigned int UNITY_INTERFACE_EXPORT DMN_GetSpeechRegionCallerDeletedCount()
+    { return DesktopMascotNative::GetSpeechRegionCallerDeletedCount(); }
+    unsigned int UNITY_INTERFACE_EXPORT DMN_GetSpeechFollowUpdateCount()
+    { return DesktopMascotNative::GetSpeechFollowUpdateCount(); }
+    unsigned int UNITY_INTERFACE_EXPORT DMN_GetSpeechEdgeFlipCount()
+    { return DesktopMascotNative::GetSpeechEdgeFlipCount(); }
+    unsigned int UNITY_INTERFACE_EXPORT DMN_GetSpeechClampCount()
+    { return DesktopMascotNative::GetSpeechClampCount(); }
+    unsigned int UNITY_INTERFACE_EXPORT DMN_GetSpeechDpi()
+    { return DesktopMascotNative::GetSpeechDpi(); }
+    int UNITY_INTERFACE_EXPORT DMN_DidSpeechOwnerMatchMascot()
+    { return DesktopMascotNative::DidSpeechOwnerMatchMascot() ? 1 : 0; }
+    int UNITY_INTERFACE_EXPORT DMN_DidSpeechCleanupSucceed()
+    { return DesktopMascotNative::DidSpeechCleanupSucceed() ? 1 : 0; }
+    unsigned int UNITY_INTERFACE_EXPORT DMN_GetSpeechContextAvailabilityMask()
+    { return DesktopMascotNative::GetSpeechContextAvailabilityMask(); }
+    unsigned int UNITY_INTERFACE_EXPORT DMN_GetSpeechInitializeRequestCount()
+    { return DesktopMascotNative::GetSpeechInitializeRequestCount(); }
+    unsigned int UNITY_INTERFACE_EXPORT DMN_GetSpeechInitializePostSuccessCount()
+    { return DesktopMascotNative::GetSpeechInitializePostSuccessCount(); }
+    unsigned int UNITY_INTERFACE_EXPORT DMN_GetSpeechInitializeHandleCount()
+    { return DesktopMascotNative::GetSpeechInitializeHandleCount(); }
+    unsigned int UNITY_INTERFACE_EXPORT DMN_GetSpeechRegionLiveOwnedCount()
+    { return DesktopMascotNative::GetSpeechRegionLiveOwnedCount(); }
+    unsigned int UNITY_INTERFACE_EXPORT DMN_GetSpeechCompositionTargetCreatedCount()
+    { return DesktopMascotNative::GetSpeechCompositionTargetCreatedCount(); }
+    unsigned int UNITY_INTERFACE_EXPORT DMN_GetSpeechVisualCreatedCount()
+    { return DesktopMascotNative::GetSpeechVisualCreatedCount(); }
+    unsigned int UNITY_INTERFACE_EXPORT DMN_GetSpeechSwapChainCreatedCount()
+    { return DesktopMascotNative::GetSpeechSwapChainCreatedCount(); }
+    unsigned int UNITY_INTERFACE_EXPORT DMN_GetSpeechMaximumFollowErrorPixels()
+    { return DesktopMascotNative::GetSpeechMaximumFollowErrorPixels(); }
+    unsigned int UNITY_INTERFACE_EXPORT DMN_GetSpeechLiveResourceCount()
+    { return DesktopMascotNative::GetSpeechLiveResourceCount(); }
 
     int UNITY_INTERFACE_EXPORT DMN_GetTextureDiagnosticEventCount()
     {

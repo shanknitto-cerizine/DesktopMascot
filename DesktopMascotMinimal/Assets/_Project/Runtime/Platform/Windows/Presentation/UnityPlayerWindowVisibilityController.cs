@@ -248,11 +248,24 @@ namespace DesktopMascot.Runtime.Settings.UI
         {
             ownerWindow = System.IntPtr.Zero;
             if (!initialized || shutdownStarted)
+            {
+                Debug.Log(
+                    $"{Prefix} File dialog owner request accepted: False");
                 return false;
-            if (!RequestVisible("FileDialogOwner"))
+            }
+            var visible = RequestVisible("FileDialogOwner");
+            if (!visible)
+            {
+                Debug.Log(
+                    $"{Prefix} File dialog owner Player visible: False");
                 return false;
-            return backend.TryFind(out ownerWindow)
+            }
+            var found = backend.TryFind(out ownerWindow)
                 && ownerWindow != System.IntPtr.Zero;
+            Debug.Log(
+                $"{Prefix} File dialog owner Player visible/found: " +
+                $"{visible}/{found}");
+            return found;
         }
 
         internal bool TryActivateSettingsFromSecondary()

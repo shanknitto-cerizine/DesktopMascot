@@ -6,6 +6,7 @@ using DesktopMascot.Runtime.CharacterSelection;
 using DesktopMascot.Runtime.CharacterPersistence;
 using DesktopMascot.Runtime.Settings;
 using DesktopMascot.Runtime.Settings.UI;
+using DesktopMascot.Runtime.Presentation.Speech;
 using UnityEngine;
 
 namespace DesktopMascot.Runtime
@@ -20,6 +21,8 @@ namespace DesktopMascot.Runtime
             "--runtime-vrm-import=";
         private const string DevelopmentLaunchArgument =
             "--desktop-mascot-development-launch";
+        private const string SpeechManualCheckEnvironmentVariable =
+            "DESKTOP_MASCOT_SPEECH_MANUAL_CHECK";
 #if UNITY_STANDALONE_WIN && !UNITY_EDITOR
         private static string selectedMode = "runtime";
         private static WindowPositionPersistence positionPersistence;
@@ -80,16 +83,26 @@ namespace DesktopMascot.Runtime
                 $"{settingsManager.Current.SchemaVersion}/" +
                 $"{settingsManager.Current.SettingsVersion}/" +
                 settingsManager.Current.FirstRunCompleted);
-            if (selectedMode == "runtime")
+            if (selectedMode == "runtime"
+                || selectedMode == "message-window-diagnostic")
             {
-                var developmentImportRequested =
-                    IsDevelopmentLaunchRequested()
-                    && ReadRuntimeVrmImportPath() != null;
-                characterPersistence = developmentImportRequested
-                    ? CharacterSelectionPersistenceManager.CreateIsolated(
-                        "development-import")
-                    : CharacterSelectionPersistenceManager
-                        .CreateProduction();
+                if (selectedMode == "message-window-diagnostic")
+                {
+                    characterPersistence =
+                        CharacterSelectionPersistenceManager.CreateIsolated(
+                            "message-window-diagnostic");
+                }
+                else
+                {
+                    var developmentImportRequested =
+                        IsDevelopmentLaunchRequested()
+                        && ReadRuntimeVrmImportPath() != null;
+                    characterPersistence = developmentImportRequested
+                        ? CharacterSelectionPersistenceManager.CreateIsolated(
+                            "development-import")
+                        : CharacterSelectionPersistenceManager
+                            .CreateProduction();
+                }
                 var persistenceStatus =
                     characterPersistence.Initialize();
                 Debug.Log(
@@ -152,7 +165,8 @@ namespace DesktopMascot.Runtime
             }
             if (selectedMode != "runtime"
                 && selectedMode != "runtime-smoke"
-                && selectedMode != "drag-diagnostic")
+                && selectedMode != "drag-diagnostic"
+                && selectedMode != "message-window-diagnostic")
                 return;
             if (runtimeOwner != null)
                 return;
@@ -164,10 +178,12 @@ namespace DesktopMascot.Runtime
             }
 
             CharacterAssetManager characterAssetManager = null;
-            if (selectedMode == "runtime")
+            if (selectedMode == "runtime"
+                || selectedMode == "message-window-diagnostic")
             {
-                characterAssetManager =
-                    CharacterAssetManager.GetOrCreateProduction();
+                characterAssetManager = selectedMode == "runtime"
+                    ? CharacterAssetManager.GetOrCreateProduction()
+                    : CharacterAssetManager.CreateForFocusedDiagnostics();
                 var characterResult =
                     characterAssetManager != null
                         ? characterAssetManager
@@ -194,15 +210,31 @@ namespace DesktopMascot.Runtime
                     return;
                 }
                 Debug.Log(
-                    "[DesktopMascotCharacterAsset] Production manager " +
-                    "count: " +
+                    "[DesktopMascotCharacterAsset] Diagnostic/production " +
+                    "manager count: " +
+                    $"{(selectedMode == "message-window-diagnostic" ? 1 : 0)}/" +
                     CharacterAssetManager.ProductionInstanceCount);
             }
 
             var owner = new GameObject(nameof(DesktopMascotRuntimePipeline));
             UnityEngine.Object.DontDestroyOnLoad(owner);
             runtimeOwner = owner;
+            DesktopMascotSpeechMascotScaleDiagnostics scaleDiagnostics = null;
+            if (selectedMode == "message-window-diagnostic")
+            {
+                scaleDiagnostics = owner.AddComponent<
+                    DesktopMascotSpeechMascotScaleDiagnostics>();
+                if (!scaleDiagnostics.Configure(
+                        Camera.main,
+                        characterAssetManager))
+                {
+                    Debug.LogError(
+                        "[DesktopMascotSpeechDiagnostics] Diagnostic " +
+                        "mascot framing adjustment failed.");
+                }
+            }
             var runtime = owner.AddComponent<DesktopMascotRuntimePipeline>();
+            runtime.AttachSpeechCameraIsolationDiagnostics(scaleDiagnostics);
             runtime.AttachCharacterAssetManager(characterAssetManager);
             runtime.AttachCharacterSelectionPersistenceManager(
                 characterPersistence);
@@ -213,7 +245,8 @@ namespace DesktopMascot.Runtime
                     : null;
             DesktopMascotPlayerPreviewPresentation playerPresentation = null;
             if (selectedMode == "runtime"
-                || selectedMode == "drag-diagnostic")
+                || selectedMode == "drag-diagnostic"
+                || selectedMode == "message-window-diagnostic")
             {
                 var previewOwner = new GameObject(
                     nameof(DesktopMascotPlayerPreviewPresentation));
@@ -236,6 +269,28 @@ namespace DesktopMascot.Runtime
                 selectedMode == "runtime-smoke",
                 positionPersistence,
                 playerPresentation);
+            if (selectedMode == "message-window-diagnostic")
+            {
+                var speech = owner.AddComponent<SpeechPresentationController>();
+                if (!speech.Initialize(characterAssetManager, Camera.main))
+                {
+                    Debug.LogError(
+                        "[DesktopMascotSpeechDiagnostics] Initialization failed.");
+                }
+                else
+                {
+                    runtime.AttachSpeechPresentationController(speech);
+                    var speechDiagnostics = owner.AddComponent<
+                        DesktopMascotSpeechPresentationDiagnostics>();
+                    speechDiagnostics.Configure(
+                        speech,
+                        runtime,
+                        scaleDiagnostics,
+                        playerPresentation,
+                        Environment.GetEnvironmentVariable(
+                            SpeechManualCheckEnvironmentVariable));
+                }
+            }
             SettingsWindowController settingsWindow = null;
             UnityPlayerWindowVisibilityController playerVisibility = null;
             if (playerPresentation != null)
@@ -248,7 +303,8 @@ namespace DesktopMascot.Runtime
                     selectedMode == "runtime",
                     presentationSource: playerPresentation);
                 RuntimeCharacterSelectionController characterSelection = null;
-                if (selectedMode == "runtime")
+                if (selectedMode == "runtime"
+                    || selectedMode == "message-window-diagnostic")
                 {
                     characterSelection = owner.AddComponent<
                         RuntimeCharacterSelectionController>();
@@ -257,7 +313,9 @@ namespace DesktopMascot.Runtime
                         Camera.main,
                         playerVisibility,
                         persistenceManager: characterPersistence,
-                        enableStartupRestore: runtimeVrmPath == null);
+                        enableStartupRestore:
+                            selectedMode == "runtime"
+                            && runtimeVrmPath == null);
                     runtime.AttachCharacterSelectionController(
                         characterSelection);
                 }
@@ -390,6 +448,7 @@ namespace DesktopMascot.Runtime
                 case "real-static-diagnostic":
                 case "real-animated-diagnostic":
                 case "drag-diagnostic":
+                case "message-window-diagnostic":
                     return value.Trim().ToLowerInvariant();
                 default:
                     return "runtime";

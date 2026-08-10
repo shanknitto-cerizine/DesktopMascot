@@ -2,7 +2,7 @@
 
 ## Production-Sized Animated Silhouette Region Update Diagnostics
 
-Status: Completed  
+Status: Completed
 Visual verification: Passed
 
 ### Configuration
@@ -56,7 +56,7 @@ future cleanup milestone.
 
 ## M-028 — Real Mascot Animated Alpha Mask Integration Diagnostics
 
-Status: Completed  
+Status: Completed
 Visual verification: Passed
 
 ### Summary
@@ -3270,3 +3270,257 @@ The user confirmed:
 
 M-046 is complete. Automated validation and user visual verification passed.
 The architecture baseline advances to M-046.
+
+## M-048 — Minimum Speech Presentation Foundation
+
+Status: Completed
+
+Automated validation: Passed
+
+Visual verification: Passed
+
+Architecture baseline: M-046
+
+Design baseline: M-047.5
+
+### Scope and ownership
+
+M-048 adds one minimum, independent Speech presentation path for the explicit
+Development mode `message-window-diagnostic`. Normal runtime does not show an
+unsolicited greeting. Conversation packs, Rule, Script, AI providers,
+persistence, and schema changes remain outside this milestone.
+
+The managed path is:
+
+```text
+SpeechMessage
+→ SpeechPresentationController
+→ SpeechAnchorResolver + SpeechPresentationView
+→ ISettingsPresentationHost-independent WindowsSpeechPresentationHost
+→ Unity render event 9
+→ independent native Speech HWND/D3D12/DirectComposition presentation
+```
+
+`SpeechPresentationController` owns one current message, one monotonic
+presentation generation, timeout policy, and first-close-wins arbitration.
+It has no message queue. Matching MessageId requests coalesce; a different
+message while visible returns Busy. Stale or duplicate Click/Timeout/Explicit
+close callbacks cannot close a newer generation.
+
+`SpeechPresentationView` owns one persistent 170 x 64
+`B8G8R8A8_SRGB` RenderTexture, one Speech-only Camera, and its TMP object tree.
+The native Speech subsystem owns its independent non-activating popup HWND,
+composition target, visual, swap chain, command allocator/list, and input
+HRGN. It borrows Unity's D3D12 device, Direct queue, factory, composition
+device, fence, and source resource without `AddRef`, `Release`, or an owning
+`ComPtr`. Copy work is submitted through
+`IUnityGraphicsD3D12v8::ExecuteCommandList`; it is not injected directly into
+the borrowed queue.
+
+The Speech window is owned by the mascot HWND but remains a separate
+top-level non-activating tool window. It follows a Humanoid-bone-derived
+waist anchor, falls back deterministically when unavailable, aligns its
+horizontal center to the current read-only `GetWindowRgnBox` silhouette
+center, and clamps only as required by the current monitor work area. Its
+region is derived from the fixed card
+geometry, so transparent pixels outside the card click through. Speech
+cleanup precedes mascot composition teardown.
+
+Detailed design:
+`NativePlugin/docs/SpeechPresentationDesign.md`
+
+### Font and redistribution
+
+The project uses the unmodified **Noto Sans CJK JP Regular** OTF from the
+official `notofonts/noto-cjk` repository under SIL Open Font License 1.1. The
+official `OFL.txt` is shipped beside the font. Runtime loads the generated
+project TMP asset and does not generate it from the OTF.
+
+- font SHA-256:
+  `68A3FC98800B2A27B371F2FB79991DAF3633BD89309D4FFAA6946FD587F375B5`;
+- license SHA-256:
+  `6A73F9541C2DE74158C0E7CF6B0A58EF774F5A780BF191F2D7EC9CC53EFE2BF2`;
+- fixed speaker: `あなたといつも`;
+- fixed body: `おはようございます！` followed by
+  `今日も良い一日にしましょうね♪` on the second line.
+
+### Focused automated validation
+
+Focused diagnostic evidence:
+`NativePlugin/out/development-player-20260801-194337-371-95e3010f.log`
+
+Correction diagnostic evidence:
+`NativePlugin/out/development-player-20260802-164947-350-006841da.log`
+
+- controller/host count: `1/1`;
+- current/pending message count: `1/0`;
+- final presentation generation: `53`;
+- Show request/accepted/coalesced/busy/failed: `55/53/1/1/0`;
+- Close click/timeout/explicit: `1/1/50`;
+- first-close-wins/stale callback: `1/1`;
+- TMP font available: `True`;
+- Speech RenderTexture: `170 x 64`, `B8G8R8A8_SRGB`;
+- Speech/mascot RenderTexture independence: `True`;
+- anchor source/generation/rebind: `HumanoidBones/1/1`;
+- Speech HWND created/destroyed after cleanup: `1/1`;
+- owner HWND matched mascot: `True`;
+- Present count/HRESULT/device-removed HRESULT: `1/S_OK/S_OK`;
+- Speech HRGN created/transferred/caller-deleted/live-owned:
+  `1/1/0/0`;
+- DComp target/visual/swap chain created: `1/1/1`;
+- follow/edge-flip/clamp/DPI: `2/0/0/120`;
+- maximum follow error: `0 px`;
+- native cleanup/live resources/window destroyed/HRGN live-owned:
+  `True/0/1/0`;
+- managed host/view and aggregate Speech cleanup: `True/True`, `True`;
+- automated diagnostics: `Passed`;
+- failure stage: `0`.
+
+The correction diagnostic reports speaker/body font sizes `12/11`, body
+lines/preferred/rect height `2/31.42/37.00`, maximum unwrapped body-line width
+`165.01`, content-fit/region-separation `True/True`, and speaker/body overflow
+`False/False`. The Speech texture is `170 x 64`; Camera isolation, mascot
+texture independence, Present/device-removed HRESULT, failure stage, and the
+automated result all pass.
+
+A DPI-aware HWND measurement of the Manual Hold build reports the mascot
+window at `100,100-356,356`, applied region
+`left=73, top=17, right=159, bottom=241`, and global silhouette center `216`.
+The Speech window is `130,208-300,272`, center `215`; therefore the center
+difference is `1 px` (integer rounding), the bounding-box horizontal
+intersection is `86 px`, and no work-area clamp was required. The unchanged
+vertical range starts below the face and principal upper-body expression.
+
+### Regression validation
+
+- drag and focused product boundaries:
+  `development-player-20260801-194526-194-e1a40418.log` — Passed;
+- runtime-smoke:
+  `development-player-20260801-194544-092-c4e62c61.log` — Passed;
+- real animated mascot:
+  `development-player-20260801-194606-288-370b7b5c.log` — Passed;
+- Runtime VRM selection/import and M-044 disposal:
+  `development-player-20260801-194735-130-57b328d7.log` — Passed;
+- normal runtime orderly shutdown:
+  `development-player-20260801-195229-731-49fe54fb.log` — Passed;
+- actual primary/secondary Single Instance activation:
+  `development-player-20260801-195348-613-7123e406.log` and
+  `development-player-20260801-195433-204-7f005dee.log` — Passed.
+
+Correction regression evidence:
+
+- Runtime VRM selection/import and M-044 disposal:
+  `development-player-20260808-180429-379-b1f0d7b5.log` - Passed;
+- runtime-smoke:
+  `development-player-20260808-180956-140-2d09aa68.log` - Passed;
+- drag, Settings, visibility, context-menu, Tray, and persistence:
+  `development-player-20260808-181016-165-05262c15.log` - Passed.
+
+Across final cleanup evidence, Present and device-removed HRESULTs remain
+`S_OK`, readback errors are `0`, continuous/region failure stages are `0/0`,
+pending mascot-owned region is `0`, active/retired runtime handles are `0/0`,
+Dispose failure is `0`, aggregate cleanup is `True`, fatal failure stage is
+`0`, Tray cleanup is `True`, and Speech live resources reach `0`.
+
+### Correction history, known limitations, and future work
+
+- Initial user visual validation found the Speech Camera content vertically
+  inverted after the byte-for-byte D3D12 copy. The correction is localized to
+  one vertical transform on the independent Speech DirectComposition visual;
+  no Speech Camera-source Blit, shader inversion, mascot normalization change,
+  D3D12 copy change, or HRGN change was introduced. Final visual verification
+  confirmed the corrected orientation.
+- The same visual pass exposed the speaker-name RectTransform extending past
+  the left edge of the Speech Canvas. The final speaker/body rectangles are
+  154/166 pixels wide within the 170-pixel surface, and the focused diagnostic
+  requires both text rectangles to remain within the Speech Canvas.
+- Anchor diagnostics measured resolved/hips/upper/lower Y values of
+  `137/120/124/160` for the bundled character. Directly using resolved Y as
+  the card top placed the card at the feet. Native placement now applies a
+  documented 32-of-256 upward top-edge bias while retaining the same
+  generation-bound Humanoid anchor and work-area correction.
+- User visual validation then showed the original `384 x 192` card was
+  disproportionate to the 256-pixel mascot surface. The fixed Speech surface
+  was first reduced to `288 x 128`. Ratio-based follow-up validation used a
+  diagnostic-only 256-pixel mascot silhouette and compared `136 x 56`
+  (compact) with `156 x 64` (standard). The standard candidate keeps width
+  and height at 60.9% and 25.0% of the reference mascot height. Font sizes,
+  padding, accent geometry, rounded region radius, native swap chain, and
+  validation dimensions were adjusted together without changing the mascot
+  surface or per-frame allocation.
+- The initial comparison changed only the
+  `message-window-diagnostic` Camera FOV from `60.00` to `37.87` degrees and
+  restores it when the diagnostic owner is destroyed. Character scale stays
+  `1`; the native mascot HWND, transfer, swap chain, HRGN coordinate space,
+  drag, position persistence, and Camera-source Y normalization remain
+  `256 x 256` and unchanged. The standard candidate overlaps by `31 px`, or
+  48.4% of card height.
+- The 37.87-degree comparison was not accepted as the final visual baseline:
+  its measured alpha silhouette touched both the top and bottom of the
+  256-pixel region, slightly clipping hair and boots. The diagnostic projected
+  Renderer-bounds target is therefore reduced from `340` to `260` pixels. It
+  targets an approximately `224`-pixel visible full-body silhouette with
+  about `16` pixels of head/foot margin while preserving Character scale,
+  the 256-pixel mascot path, Camera isolation, and the `156 x 64` card. This
+  margin-based full-body framing is the accepted M-048 UI evaluation baseline;
+  broader VRM accessory coverage remains required before production sizing.
+  The accepted automated framing candidate computes `48.32` degrees and
+  measures alpha bounds `x=73, y=17, width=85, height=224`, leaving `17`
+  pixels above and `15` below. Against that full-body height, the unchanged
+  `156 x 64` card measures `69.6% x 28.6%`; the actual silhouette overlap
+  remains `31` pixels (`48.4%` of card height).
+- Follow-up isolation identified Speech Layer 30 World-Space Canvas/TMP as the
+  source of the white glyph geometry in production Camera and Player Preview.
+  `message-window-diagnostic` now saves `0xFFFFFFFF`, applies `0xBFFFFFFF`
+  before Preview Camera cloning, verifies the complete Speech hierarchy is
+  Layer 30, and restores the original mask during idempotent cleanup. The
+  corrected mascot region is `left=56, top=0, right=168, bottom=256`; Speech
+  positioning reads that applied region with `GetWindowRgnBox`, producing a
+  true 31-pixel silhouette overlap instead of a window-rectangle overlap.
+- Permanent normal-runtime Speech Camera isolation remains future work; the
+  diagnostic-only culling-mask path must not be enabled unconditionally.
+- M-048 supplies only one fixed diagnostic greeting; it is not a production
+  conversation source.
+- Follow-up manual validation accepted the diagnostic full-body framing
+  (`224 px`, head/foot margins `17/15 px`, FOV `48.32` degrees), but rejected
+  body readability and the left-heavy fixed-overlap placement. A 12-pixel
+  body-font trial required about `180 px` for the longer Japanese line and did
+  not safely fit the 156-pixel surface. The correction uses body `11 px`, a
+  `170 x 64` card, a `166 x 37` body rect, two rendered lines at `31.42 px`,
+  no overflow, and center alignment to the applied silhouette. Split manual
+  revalidation passed.
+- The message-window Settings regression was traced to the diagnostic
+  Bootstrap not constructing a `RuntimeCharacterSelectionController`; the
+  button was disabled before a click could be routed. The diagnostic now uses
+  an isolated character-persistence manager, disables startup restore, and
+  records button, controller, owner-resolution, STA, COM, Show HRESULT, and
+  picker-result stages without logging a path or exception message.
+- Manual validation is divided into `hold` (click/drag/transparency), a fixed
+  `15`-second `timeout`, and `shutdown` (Tray orderly exit). These Development
+  controls do not add F10/Escape or modify product close policy.
+- The Speech window uses a fixed 170 x 64 presentation size and one normal
+  theme. Responsive layout, localization variants, decoration, transitions,
+  queuing, priority, and persistence are future work.
+- Anchor quality depends on the active character's Humanoid bones. The
+  deterministic mascot-relative fallback is used when the observation is not
+  available.
+- Final user verification passed across three separate launches. Manual Hold
+  confirmed readable Japanese, center-aligned waist/thigh placement, full-body
+  framing, drag following, transparent-area click-through, and card-body
+  click close. The 15-second Timeout launch closed once without reappearing
+  and retained mascot input. The Shutdown launch confirmed Tray and mascot
+  Settings routes, `IFileOpenDialog` open/cancel, Settings close behavior, and
+  Tray orderly exit while Speech remained visible.
+- Final shutdown evidence:
+  `development-player-20260808-182638-967-94517f0c.log`. Picker click/route,
+  owner resolution, STA start, COM initialization, Dialog Show, and Cancel all
+  completed. Native Speech cleanup/live resources/window destroyed/HRGN
+  live-owned was `True/0/1/0`; active/retired handles were `0/0`; pending
+  owned region was `0`; Present/device removed were `S_OK/S_OK`; readback
+  errors and continuous/region failures were `0` and `0/0`; Tray and aggregate
+  cleanup were `True`; fatal failure stage was `0`; and no process or visible
+  surface remained.
+
+M-048 is complete. Automated validation and user visual verification passed.
+As an additive Speech implementation, it retains architecture baseline M-046
+and design baseline M-047.5.
