@@ -25,18 +25,19 @@ rewrites milestone evidence.
 - Architecture baseline: M-046.
 - Active design baseline: M-047.5 where Speech-specific; M-049 Conversation
   Domain is additive and does not advance the architecture baseline.
-- Latest completed milestone: M-049 - Conversation Domain Contracts
-  Foundation.
-- Next product milestone: M-050 - Not Started.
+- Latest completed milestone: M-050 - Conversation Evaluation Result
+  Contracts Foundation.
+- Next product milestone: M-051 - Design Ready / Not Started.
 
 Do not store an exact HEAD hash, upstream relation, or working-tree/index
 state here. Obtain them from Git at the start of each task.
 
 ## Current Objective
 
-Use this handoff workflow to plan, instruct, investigate, implement, and
-review future work without beginning M-050 or any other product milestone.
-Workflow infrastructure is separate from product-milestone design.
+M-050 is complete. Use this handoff workflow to plan, instruct, investigate,
+and review M-051 as the next candidate; do not begin M-051 implementation
+until its scope is explicitly approved. Workflow infrastructure is separate
+from product-milestone design.
 
 ## Known Blockers
 
@@ -63,7 +64,7 @@ one item into a feature without an explicitly scoped milestone.
 
 ## Validation Snapshot
 
-M-049:
+M-050:
 
 - Automated Validation: Passed.
 - Visual Verification: Not Applicable.
@@ -80,6 +81,8 @@ Detailed validation evidence and the retained headless-license note belong in
 - `ProjectPrinciples.md`: product and design principles.
 - `RepositoryStructureDesign.md`: repository ownership and layout.
 - `ConversationDomainDesign.md`: M-049 Conversation Domain contract.
+- `ConversationEvaluationResultDesign.md`: M-050 Conversation Evaluation
+  Result contract.
 - `SpeechPresentationDesign.md`: M-047.5/M-048 Speech contract.
 - `DevelopmentHandoff.md`: current intent only.
 - `README.md`: documentation index.

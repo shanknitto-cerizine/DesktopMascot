@@ -3603,3 +3603,56 @@ M-049 is complete and committed as
 Automated validation is passed; visual verification is not applicable and
 manual interaction verification is not required. The architecture baseline
 remains M-046.
+
+## M-050 — Conversation Evaluation Result Contracts Foundation
+
+Status: Completed
+
+Automated Validation: Passed
+
+Visual Verification: Not Applicable
+
+Manual Interaction Verification: Not Required
+
+Architecture baseline: M-046
+
+### Scope
+
+M-050 adds only the immutable, pure-managed outcome contract for one future
+conversation evaluation: `ConversationEvaluationResult` records either
+`ResponseProduced` with a correlated `ConversationResponse`, or `NoMatch`
+without a response. It does not evaluate requests or invoke a service.
+
+Evaluator/provider interfaces and implementations, Rule Engine, Script
+Engine, Conversation Pack, Character or VRM binding, Speech integration,
+production event wiring, Busy handling, queuing, retry, priority, scheduling,
+AI, networking, filesystem work, persistence, Unity runtime behavior, native
+code, D3D12, and DirectComposition changes remain out of scope.
+
+Detailed design:
+`NativePlugin/docs/ConversationEvaluationResultDesign.md`
+
+### Automated validation evidence
+
+- deterministic evaluation diagnostics verified `ResponseProduced`, `NoMatch`,
+  invalid request/response combinations, correlation, and repeated
+  construction;
+- the Editor-only dependency audit verified prohibited Evaluation dependencies
+  and that Domain has no Evaluation reference;
+- the Unity Editor batch entry point passed;
+- the same deterministic diagnostic body passed through Roslyn alongside Unity
+  Development Player compilation and runtime-smoke evidence.
+
+Visual Verification: Not Applicable — M-050 changes no visual, input, native,
+or production behavior.
+
+Manual Interaction Verification: Not Required.
+
+### Completion and remote protection
+
+M-050 is complete and committed as
+`b85d30a630c9e6f5c22503887d67681c3fffdeba`
+(`M-050 establish conversation evaluation result contracts`). Remote
+protection is completed. Automated validation passed; visual verification is
+not applicable and manual interaction verification is not required. The
+architecture baseline remains M-046.

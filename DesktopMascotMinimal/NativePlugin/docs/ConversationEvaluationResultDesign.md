@@ -2,7 +2,19 @@
 
 Milestone: M-050
 
-Status: Automated Validation Passed — commit pending
+Status: Completed
+
+Automated Validation: Passed
+
+Visual Verification: Not Applicable
+
+Manual Interaction Verification: Not Required
+
+Commit: `b85d30a630c9e6f5c22503887d67681c3fffdeba`
+
+Commit message: `M-050 establish conversation evaluation result contracts`
+
+Remote protection: Completed
 
 Architecture baseline: M-046
 
