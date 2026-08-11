@@ -25,20 +25,20 @@ rewrites milestone evidence.
 - Architecture baseline: M-046.
 - Active design baseline: M-047.5 where Speech-specific; M-049 Conversation
   Domain is additive and does not advance the architecture baseline.
-- Latest implementation-ready milestone: M-053 - Single-Entry Exact-Match
-  Local Conversation Evaluator.
-- Active product milestone: M-053 final repository audit passed; commit is
-  pending explicit authorization.
-- Next candidate milestone: M-054 Not Started; do not select its scope here.
+- Latest completed milestone: M-053 - Single-Entry Exact-Match Local
+  Conversation Evaluator.
+- Active product milestone: None.
+- Next candidate milestone: M-054 - Design Investigation Not Started.
 
 Do not store an exact HEAD hash, upstream relation, or working-tree/index
 state here. Obtain them from Git at the start of each task.
 
 ## Current Objective
 
-M-053 implementation, automated validation, and final repository/staged audit
-are complete. Commit and push remain pending explicit authorization. M-054 is
-not started. Workflow infrastructure is separate from product-milestone design.
+M-053 implementation, automated validation, final repository/staged audit,
+commit, and remote protection are complete. M-054 design investigation remains
+not started and requires explicit scope authorization. Workflow infrastructure
+is separate from product-milestone design.
 
 ## Known Blockers
 
@@ -90,8 +90,9 @@ M-053:
 - Final repository/staged audit: Passed with exactly 10 M-053 intended files;
   `git diff --check` and `git diff --cached --check` passed, and no unexpected
   or generated files were present.
-- Commit: Pending explicit authorization. Push / remote protection: Pending;
-  not performed.
+- Commit: `171c3a28f773765742c51d8e800ef0b32ed6ab74`
+  (`M-053 establish single-entry exact-match local conversation evaluator`).
+- Push / remote protection: Completed.
 
 M-052:
 
