@@ -3524,3 +3524,78 @@ Dispose failure is `0`, aggregate cleanup is `True`, fatal failure stage is
 M-048 is complete. Automated validation and user visual verification passed.
 As an additive Speech implementation, it retains architecture baseline M-046
 and design baseline M-047.5.
+
+## M-049 — Conversation Domain Contracts Foundation
+
+Status: Automated Validation Passed
+
+Automated Validation: Passed
+
+Visual Verification: Not Applicable
+
+Manual Interaction Verification: Not Required
+
+Architecture baseline: M-046
+
+### Scope
+
+M-049 introduces only the immutable, platform-neutral `ConversationEvent`,
+`ConversationRequest`, and `ConversationResponse` contracts together with
+strict identifier/text validation and deterministic Editor batch diagnostics.
+It does not add a production conversation, event wiring, Rule/Script Engine,
+Conversation Pack, Speech adapter, AI provider, Settings, persistence, native
+code, D3D12, DirectComposition, or M-048 modification.
+
+`ConversationLogicalId` is a stable semantic ID; caller-supplied
+`ConversationRequestId` is a per-evaluation correlation ID. The one supported
+presentation intent is `CharacterUtterance`, which does not imply Speech
+acceptance. M-048 `Busy` remains presentation semantics.
+
+Detailed design:
+`NativePlugin/docs/ConversationDomainDesign.md`
+
+Project decision principles:
+`NativePlugin/docs/ProjectPrinciples.md`
+
+### Automated validation evidence
+
+- deterministic domain diagnostics through Roslyn execution;
+- Unity Development Player compile;
+- runtime-smoke regression;
+- `git diff --check`;
+- source audit showing no Unity, Windows, native, Speech, Character, AI, or
+  persistence dependency in the domain.
+
+Visual Verification: Not Applicable — M-049 changes no visual, input, native,
+or production behavior.
+
+Manual Interaction Verification: Not Required.
+
+### Current implementation and validation state
+
+- immutable domain contracts, strict validation, built-in trigger constants,
+  pure focused diagnostics, separate Editor-only dependency audit, and the
+  Editor batch entry point: Implemented;
+- focused deterministic diagnostic compiled and passed through an in-memory
+  Roslyn execution: Passed;
+- Unity Development Player build: Passed with the established
+  `TransparentWindowController.borderless` CS0414 warning only;
+- runtime-smoke: Passed with cleanup `True`, fatal failure stage `0`, and
+  native continuous/region failure stages `0/0`;
+- domain source dependency audit, `.meta`/duplicate-GUID audit, and
+  `git diff --check`: Passed;
+- direct Unity Editor `-executeMethod` harness: Blocked before execution by
+  local headless-license validation (`com.unity.editor.headless` could not be
+  resolved; `No valid Unity Editor license found`).
+
+The direct Editor batch entry point remains available as an optional execution
+host. M-049 accepts the Roslyn execution of the same deterministic diagnostic
+body, Unity project compilation, runtime-smoke, dependency audit, `.meta`/
+duplicate-GUID audit, and `git diff --check` as equivalent automated validation
+evidence. This pure-managed milestone does not require successful Editor batch
+host execution as unique proof of correctness. The environment limitation is
+preserved as validation history.
+
+M-049 is uncommitted. Automated validation is passed; visual verification is
+not applicable and manual interaction verification is not required. Commit is
+pending.

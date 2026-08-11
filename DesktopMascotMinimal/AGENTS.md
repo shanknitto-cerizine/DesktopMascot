@@ -552,6 +552,41 @@ mascot runtime, but it fails `message-window-diagnostic`. Do not add a
 conversation pack, schema, provider, AI integration, persistence, variable
 timeout, queue, or production greeting without a later explicit milestone.
 
+## Conversation domain contract
+
+M-049 establishes only the platform-neutral Conversation Domain Contracts
+Foundation. `ConversationEvent`, `ConversationRequest`, and
+`ConversationResponse` are immutable managed data and own no Character,
+Speech, Unity, native, filesystem, network, or GPU resource.
+
+The domain uses stable lowercase ASCII `ConversationLogicalId` values for
+trigger, character, response, and speaker identity, and a distinct
+caller-supplied `ConversationRequestId` for evaluation correlation. Do not
+trim, lowercase, normalize, or generate either identifier in the domain.
+Expected invalid input must use stable non-localized validation results and
+must not create a valid domain object or throw an expected exception.
+
+The only M-049 `ConversationPresentationIntent` is `CharacterUtterance`.
+It expresses character intent, not acceptance by Speech or any other
+presentation. `SpeechShowResult.Busy` remains M-048 presentation semantics;
+do not add Busy, queue, priority, retry, scheduling, timestamp, sequence,
+animation, expression, audio, Text SE, provider, pack, persistence, or
+platform fields to the M-049 domain types.
+
+Domain source may use basic `System` types only. It must not reference
+UnityEngine, MonoBehaviour, GameObject, Camera, RenderTexture, Win32, HWND,
+HRGN, D3D12, DirectComposition, DXGI, Android lifecycle, AI SDKs,
+CharacterDescriptor, SpeechMessage, filesystem paths, or VRM paths. It has no
+Update/LateUpdate, polling, worker, timer, network, filesystem, history,
+queue, retry, cache, or native/GPU resource.
+
+The built-in trigger taxonomy is stable logical IDs, not an enum. M-049 does
+not create a registry, aliases, wildcard matching, hierarchy, pack-defined
+trigger loading, production event wiring, Rule/Script Engine, Conversation
+Pack, Speech adapter, AI provider, typing, Text SE, Settings, persistence, or
+schema change. See `NativePlugin/docs/ConversationDomainDesign.md` and
+`NativePlugin/docs/ProjectPrinciples.md`.
+
 ## Transparency and pixel interaction
 
 - Transparency uses a premultiplied-alpha DirectComposition composition swap

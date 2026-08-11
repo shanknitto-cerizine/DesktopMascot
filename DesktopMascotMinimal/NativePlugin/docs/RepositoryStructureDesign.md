@@ -25,6 +25,8 @@ Assets/_Project/Runtime/
   Core/
   Character/
     Selection/
+  Conversation/
+    Domain/
   Persistence/
     CharacterSelection/
     WindowPosition/
@@ -46,6 +48,9 @@ Assets/_Project/Runtime/
 - `Core` owns bootstrap, runtime orchestration, configuration, and the Camera
   source pipeline.
 - `Character` owns active/runtime character behavior and selection.
+- `Conversation/Domain` owns platform-neutral immutable conversation contracts
+  only. It owns no provider, pack, event wiring, presentation, persistence, or
+  character resource.
 - `Persistence` contains the dedicated character-selection and window-position
   records and stores.
 - `Settings/Foundation` contains the settings defaults, serialization, store,
@@ -65,6 +70,7 @@ Assets/_Project/Diagnostics/
   Runtime/
   Presentation/
   Character/
+  Conversation/
   Persistence/
   Windows/
 ```
