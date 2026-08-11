@@ -25,18 +25,18 @@ rewrites milestone evidence.
 - Architecture baseline: M-046.
 - Active design baseline: M-047.5 where Speech-specific; M-049 Conversation
   Domain is additive and does not advance the architecture baseline.
-- Latest completed milestone: M-051 - Synchronous Local Conversation Evaluator
+- Latest completed milestone: M-052 - Local Conversation Response Entry
   Contract Foundation.
-- Active milestone: M-052 - Local Conversation Response Entry Contract
-  Foundation.
+- Active product milestone: None.
+- Next candidate milestone: M-053 - Design Ready / Not Started.
 
 Do not store an exact HEAD hash, upstream relation, or working-tree/index
 state here. Obtain them from Git at the start of each task.
 
 ## Current Objective
 
-Implement and validate the M-052 Local Conversation Response Entry Contract
-Foundation. Workflow infrastructure is separate from product-milestone design.
+M-053 design investigation only after explicit scope approval. Workflow
+infrastructure is separate from product-milestone design.
 
 ## Known Blockers
 
@@ -78,7 +78,8 @@ M-052:
   environment limitation; not recorded as passed.
 - Visual Verification: Not Applicable.
 - Manual Interaction Verification: Not Required.
-- Final repository audit, commit, and remote protection: Pending.
+- Final repository audit: Passed.
+- Commit and remote protection: Completed.
 
 M-051:
 
