@@ -860,6 +860,10 @@ Do not invent unverified build commands.
 ## Git policy
 
 - Inspect `git status` and relevant diffs before broad edits.
+- Codex execution approvals and repository Git authorization are separate; a
+  terminal or auto-review approval never authorizes commit, push, force-push,
+  rebase, merge, history rewriting, or destructive cleanup, each of which
+  requires explicit task scope.
 - Do not commit or create tags automatically.
 - Do not force-push or rewrite history.
 - Do not discard or overwrite unrelated user changes.
