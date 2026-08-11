@@ -1,302 +1,149 @@
 # Development Handoff
 
-## Purpose and Authority
+## Purpose and authority
 
-This document gives a new ChatGPT or Codex thread the current development
-intent and the shortest path to the relevant authoritative records. It is not
-a milestone history, architecture-contract copy, or execution-log archive.
+This document gives a new ChatGPT or Codex thread current development intent
+and the shortest path to authoritative records. It is not milestone history,
+an architecture-contract copy, an execution-log archive, or authority for live
+Git state.
 
-When sources disagree, use this precedence order:
+Use this precedence:
 
-1. Current Git state obtained read-only.
-2. `AGENTS.md`.
-3. `Milestones.md`.
-4. Relevant subsystem design documents.
-5. `ProjectPrinciples.md`.
-6. This document.
+1. live Git state obtained read-only for Git facts;
+2. `AGENTS.md` for operative repository rules;
+3. `Milestones.md` for milestone state and validation history;
+4. relevant subsystem design documents for detailed contracts;
+5. `ProjectPrinciples.md` for future design guidance;
+6. this document for current intent and navigation.
 
-This document never overrides `AGENTS.md`, replaces a design contract, or
-rewrites milestone evidence.
+This handoff never overrides live Git, `AGENTS.md`, `Milestones.md`, or a
+relevant design contract. At each task start, read `AGENTS.md` and this file,
+then verify branch, HEAD, upstream, ahead/behind, worktree, index, and any
+merge/rebase/cherry-pick state read-only. Do not store volatile Git facts here.
 
-## Current Development Line
+## Current development line
 
-- Expected branch: `m045-complete-safety` (advisory; verify the actual branch
-  through Git).
-- Architecture baseline: M-046.
-- Active design baseline: M-047.5 where Speech-specific; M-049 Conversation
-  Domain is additive and does not advance the architecture baseline.
-- Latest completed milestone: M-053 - Single-Entry Exact-Match Local
-  Conversation Evaluator.
-- Active product milestone: None.
-- Next candidate milestone: M-054 - Design Investigation Not Started.
+- Expected branch: `m045-complete-safety` (advisory; verify live Git).
+- Architecture baseline: **M-046**.
+- Speech-specific design baseline: **M-047.5**.
+- M-048 and M-049 through M-053 are additive and do not advance M-046.
+- Latest completed milestone: **M-053 — Single-Entry Exact-Match Local
+  Conversation Evaluator**.
+- Active product milestone: **None**.
+- Next candidate: **M-054 — Design Investigation: Not Started**.
 
-Do not store an exact HEAD hash, upstream relation, or working-tree/index
-state here. Obtain them from Git at the start of each task.
+M-054 requires explicit scope authorization. Do not begin its design,
+planning, or implementation as workflow/documentation maintenance.
 
-## Current Objective
+## Current objective and blockers
 
-M-053 implementation, automated validation, final repository/staged audit,
-commit, and remote protection are complete. M-054 design investigation remains
-not started and requires explicit scope authorization. Workflow infrastructure
-is separate from product-milestone design.
+M-049 through M-053 are complete under architecture baseline M-046. Detailed
+scope, validation, commits, and environment limitations are recorded in
+`Milestones.md` and their design documents.
 
-## Known Blockers
+There is no active product blocker. The Unity Editor batch Licensing Client
+limitation is preserved as validation history in M-049 through M-053; it did
+not block the accepted pure-managed focused diagnostics. Resolved serializer
+or other transient validation incidents belong only in `Milestones.md`.
 
-No active product blocker. The Unity Editor batch Licensing Client issue is an
-environment limitation; it did not block the completed pure-managed focused
-diagnostics or automated validation.
+Deferred Conversation Pack/VRM binding, Rule/Script Engine, production wiring,
+runtime concurrency/Speech Busy policy, cadence/trust/schema, history/AI,
+animation/expression/audio, typing, and Text SE remain outside scope. See
+`ConversationDomainDesign.md` and `ProjectPrinciples.md`; no item authorizes a
+feature without an explicitly scoped milestone.
 
-The local Unity headless-license limitation recorded for M-049 is preserved in
-`Milestones.md` as validation history. It is not an active product-development
-blocker.
+## Authoritative document map
 
-The M-053 Unity build temporarily caused a trailing-whitespace-only Speech
-font serializer rewrite. It was verified to have no semantic/YAML/reference/
-glyph/atlas/font-data change and restored to HEAD before the final audit; it
-is resolved validation history, not a current blocker.
-
-## Deferred and Explicitly Out of Scope
-
-The following M-049 deferred work remains outside the current scope:
-
-- Conversation Pack and VRM binding;
-- Rule Engine and Script Engine;
-- runtime concurrency policy and Speech Busy handling;
-- cadence, pack schema, and pack trust;
-- conversation history and AI fallback;
-- animation, expression, and sound intents;
-- Text SE and typing.
-
-See `ConversationDomainDesign.md` for the detailed boundary. Do not expand
-one item into a feature without an explicitly scoped milestone.
-
-## Validation Snapshot
-
-M-053:
-
-- Implementation: Complete.
-- Focused M-053 and M-049 through M-052 regression diagnostics: Passed
-  through Unity Mono `mono.exe` with `lib/mono/4.5/csc.exe`; no network or
-  restore was used.
-- M-053 dependency, single-entry, and Domain reverse-reference audit: Passed.
-- Unity Development Player managed build: Passed with the established
-  `TransparentWindowController.borderless` CS0414 warning only.
-- Unity Editor batch diagnostic: Blocked by the known Licensing Client
-  environment limitation; not recorded as passed.
-- Visual Verification: Not Applicable.
-- Manual Interaction Verification: Not Required.
-- Speech font serializer rewrite: verified whitespace-only and restored to
-  HEAD; the asset matches HEAD and was not staged.
-- Final repository/staged audit: Passed with exactly 10 M-053 intended files;
-  `git diff --check` and `git diff --cached --check` passed, and no unexpected
-  or generated files were present.
-- Commit: `171c3a28f773765742c51d8e800ef0b32ed6ab74`
-  (`M-053 establish single-entry exact-match local conversation evaluator`).
-- Push / remote protection: Completed.
-
-M-052:
-
-- Implementation: Complete.
-- Automated Validation: Passed.
-- Focused M-052 and M-049, M-050, and M-051 regression diagnostics: Passed
-  through Unity Mono `mono.exe` with `lib/mono/4.5/csc.exe`; no network or
-  restore was used.
-- Unity Development Player managed build and dependency/.meta/GUID audits:
-  Passed.
-- Unity Editor batch diagnostic: Blocked by the known Licensing Client
-  environment limitation; not recorded as passed.
-- Visual Verification: Not Applicable.
-- Manual Interaction Verification: Not Required.
-- Final repository audit: Passed.
-- Commit and remote protection: Completed.
-
-M-051:
-
-- Implementation: Complete.
-- Automated Validation: Passed.
-- Focused M-051, M-049, and M-050 diagnostics: Passed through Unity Mono
-  `mono.exe` with `lib/mono/4.5/csc.exe`; no network or restore was used.
-- Unity Development Player managed build and dependency/.meta/GUID audits:
-  Passed.
-- Unity Editor batch diagnostic: Blocked by the known Licensing Client
-  environment limitation; not recorded as passed.
-- Visual Verification: Not Applicable.
-- Manual Interaction Verification: Not Required.
-- Final repository audit: Passed.
-- Commit and remote protection: Completed.
-
-M-050:
-
-- Automated Validation: Passed.
-- Visual Verification: Not Applicable.
-- Manual Interaction Verification: Not Required.
-- Commit and remote tracking: Completed.
-
-Detailed validation evidence and the retained headless-license note belong in
-`Milestones.md`.
-
-## Authoritative Document Map
-
-- `AGENTS.md`: non-negotiable development and architecture rules.
-- `Milestones.md`: milestone history and validation evidence.
-- `ProjectPrinciples.md`: product and design principles.
-- `RepositoryStructureDesign.md`: repository ownership and layout.
-- `ConversationDomainDesign.md`: M-049 Conversation Domain contract.
-- `ConversationEvaluationResultDesign.md`: M-050 Conversation Evaluation
-  Result contract.
-- `SpeechPresentationDesign.md`: M-047.5/M-048 Speech contract.
-- `DevelopmentHandoff.md`: current intent only.
+- `AGENTS.md`: operative repository-wide rules, ownership, safety, validation,
+  approval, and Git policy.
+- `Milestones.md`: completed/in-progress scope, validation, commits, and
+  historical evidence.
 - `README.md`: documentation index.
+- `RepositoryStructureDesign.md`: current source/layout/tool/generated-output
+  boundary.
+- `ProjectPrinciples.md`: adopted future product/design guidance.
+- `SettingsPresentationDesign.md`: M-045 Settings presentation.
+- `SpeechPresentationDesign.md`: M-047.5/M-048 Speech contract.
+- `ConversationDomainDesign.md`: M-049 Conversation Domain.
+- `ConversationEvaluationResultDesign.md`: M-050 evaluation result.
+- `LocalConversationEvaluatorDesign.md`: M-051 local evaluator interface.
+- `LocalConversationResponseEntryDesign.md`: M-052 response entry.
+- `SingleEntryLocalConversationEvaluatorDesign.md`: M-053 exact-match
+  evaluator.
+- Other subsystem designs named by `AGENTS.md`: their detailed current
+  ownership, lifecycle, implementation, and validation contracts.
+- This file: current intent, model guidance, thread lifecycle, and navigation.
 
-## Responsibility Split
+## Responsibility split
 
-ChatGPT owns product and architecture discussion, milestone planning, Codex
-instruction generation, result review, and major design decisions.
+ChatGPT owns product/architecture discussion, milestone planning, major design
+decisions, Codex instruction generation, and result review. Codex owns bounded
+repository inspection/implementation, diagnostics, builds, validation, Git
+inspection, and technical reporting. The user owns final product/design
+decisions, required manual/visual verification, authorization for consequential
+Git operations, and bridging separate threads.
 
-Codex owns repository inspection, bounded implementation, diagnostics, builds,
-validation, Git inspection, and structured technical reports.
+## Model selection and escalation
 
-The user owns final product and design decisions, manual or visual
-verification, permission for risky Git operations, and bridging ChatGPT and
-Codex when necessary.
+Use GPT-5.6 Sol for architecture or milestone design, ambiguous/root-cause
+investigation, ownership/lifetime/shutdown or cross-system reasoning, final
+architecture audit, and ambiguous Git-history meaning.
 
-## Model Selection and Escalation
-
-Use GPT-5.6 Sol for architecture design, milestone planning, ambiguous or
-root-cause investigation, ownership/lifetime/shutdown reasoning, cross-system
-reasoning, final architecture audit, and ambiguous Git-history meaning.
-
-Use Terra for approved bounded implementation, mechanical corrections,
-build/run work, known validation, routine Git cleanup or normal push, and
+Use Terra for explicitly approved bounded implementation, mechanical changes,
+known build/run validation, routine Git cleanup or normal push, and
 straightforward documentation edits.
 
-Escalate Terra to Sol when architecture contracts conflict, a production
-regression is unexpected, ownership or lifetime is unclear, Git history and
-documentation conflict, validation repeatedly fails without explanation, scope
-must expand, evidence contradicts the expected contract, or more than one safe
-architectural option remains.
+Escalate Terra to Sol when contracts conflict, an unexpected production
+regression occurs, ownership/lifetime is unclear, Git history conflicts with
+documentation, validation repeatedly fails without explanation, scope must
+expand, evidence contradicts the expected contract, or multiple safe
+architectural options remain. Return to Terra only after root cause, scope,
+affected invariants, files/subsystems, and validation are known and no design
+decision remains. This is workflow guidance, not an architecture/security
+contract or operation authorization.
 
-De-escalate Sol to Terra once the root cause, change boundary, affected
-invariants, exact file or subsystem scope, and validation procedure are known
-and no architectural decision remains.
-
-This is workflow guidance, not a security or architecture contract.
-
-## Thread Lifecycle
+## Thread lifecycle
 
 - Start a new thread for a new milestone.
-- Use a focused Sol thread for architecture or design work.
-- Use a Terra thread for bounded implementation.
-- Use a dedicated Sol investigation for an unexpected complex failure.
-- Use a short Sol thread for a final audit only when justified.
+- Use focused Sol for architecture/design or an unexpected complex failure.
+- Use Terra for bounded implementation and known validation.
+- Use a short Sol final-audit thread only when justified.
 
-Keep one thread when its objective, scope, and validation loop are unchanged.
-Start another thread when the objective or phase changes, the current decision
-is buried in long history, the same context must be repeated, or the objective
-cannot be stated concisely.
+Keep one thread while objective, scope, and validation loop remain unchanged.
+Start another when the phase/objective changes, the current decision is buried,
+repeated context dominates, or the objective cannot be stated concisely.
 
-## Final Audit Gate
+## Final audit linkage
 
-Use a complete staged audit for milestone completion, a commit gate,
-new/untracked files, rename/move/delete work, generated-artifact risk,
-multi-thread or multi-phase changes, and release/tag/push preparation.
+Follow `AGENTS.md` under “Git authorization, safety, and final staged audit”. A
+complete temporary staged audit is mandatory at milestone/commit gates and the
+other risk conditions listed there. If the index is not clean before an audit,
+do not modify it: inspect and stop for direction. Audit-only staging must be
+limited to the intended files and immediately undone afterward. Commit/push
+remain separately authorized operations.
 
-1. Verify Git safety.
-2. Confirm the intended file set.
-3. Confirm the index is clean.
-4. Temporarily stage only the exact intended files.
-5. Run `git diff --cached --check`.
-6. Inspect `git diff --cached --name-status`.
-7. Review the staged diff.
-8. Reject generated artifacts and secrets.
-9. For an audit-only task, unstage exactly those files.
-10. Commit only after the gate passes and authorization is explicit.
+## Instruction and report essentials
 
-Use ordinary `git diff --check` as an early check for tracked worktree
-changes. Use the staged gate to include untracked files. If the index is not
-clean before the audit, do not change it; inspect and stop for direction.
+New task instructions should state model, task type/mode, objective, required
+entry-document/Git inspection, scope, allowed/prohibited changes, preserved
+invariants, investigation/validation, Git authorization, stop conditions, and
+required report. Reference architecture contracts instead of copying them.
 
-## ChatGPT to Codex Instruction Template
+Routine reports should identify status, scope, changed files, architecture
+impact, validation/manual verification, known issues, live Git state, decisions
+needed, and next step. Failure reports must additionally identify observed
+versus expected behavior, reproduced evidence, investigated/ruled-out scope,
+contract risk, changes made, and safe options. Do not omit decisive evidence
+when an architecture decision depends on it.
 
-```text
-Recommended model:
-Task type:
-Mode:
+## Update rules
 
-Objective:
+Update this file only for milestone completion, next-milestone selection,
+material active-blocker change, deliberate thread handoff, or architecture/
+design-baseline change. Do not update it for an ordinary turn, build, or
+transient result.
 
-Repository Context:
-Read AGENTS.md and DevelopmentHandoff.md first.
-Verify Git baseline read-only.
-
-Scope:
-
-Allowed Changes:
-
-Prohibited Changes:
-
-Preserved Invariants:
-
-Required Investigation:
-
-Validation:
-
-Git Authorization:
-
-Stop Conditions:
-
-Required Report:
-```
-
-Reference the relevant architecture contract rather than copying it. State
-only task-specific invariants in the instruction.
-
-## Codex to ChatGPT Routine Report Template
-
-```text
-Status:
-Scope:
-Changed Files:
-Architecture Impact:
-Validation:
-Manual Verification Needed:
-Known Issues:
-Git State:
-- Branch:
-- HEAD:
-- Working tree:
-- Index:
-- Commit/push performed:
-Decision Needed:
-Recommended Next Step:
-```
-
-## Failure and Escalation Report Template
-
-```text
-Status:
-Failed Objective:
-Observed Evidence:
-Expected Behavior:
-Scope Already Investigated:
-Ruled Out:
-Contract at Risk:
-Changes Made:
-Git State:
-Decision Needed:
-Safe Next Options:
-```
-
-Include reproducible evidence and decisive failure details. Do not omit them
-for brevity when an architectural decision depends on the report.
-
-## Update Rules
-
-Update this document only at milestone completion, next-milestone selection,
-a material active-blocker change, a deliberate thread handoff, or an
-architecture/design-baseline change.
-
-Do not update it for an ordinary turn, build, or transient validation result.
-Do not add exact HEAD hashes, dirty state, ahead/behind state, detailed logs,
+Do not add exact HEAD hashes, dirty/ahead/behind state, detailed logs,
 screenshots, generated artifacts, credentials/tokens, private file paths, or
-chat transcripts. Git remains authoritative for Git state.
+chat transcripts. Live Git and the referenced authoritative documents remain
+the source of truth.
