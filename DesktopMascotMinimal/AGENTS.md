@@ -857,6 +857,33 @@ Players may lock `DesktopMascotNative.dll`. When diagnosing stale binaries,
 close the Player and compare the Assets and Player DLL timestamps or hashes.
 Do not invent unverified build commands.
 
+## Approval Request Language
+
+When explicit user approval is required for a terminal, Git, filesystem,
+build, or other consequential operation, write the user-facing approval
+request in Japanese.
+
+Each approval request must clearly state:
+
+- the operation to be performed;
+- why it is needed;
+- the files or repository state that may change; and
+- the related operations that will not be performed.
+
+Keep technical identifiers in their original form when that improves clarity,
+including command names, Git commands, branch names, commit hashes, file
+paths, error codes, and API/type/function names. Japanese wording must not
+weaken, bypass, or imply approval.
+
+This rule controls Codex-authored approval wording only. Do not attempt to
+modify fixed client UI text or global settings that cannot be localized by
+repository instructions.
+
+Existing authorization rules remain unchanged: commit and push require
+explicit task authorization; force push remains prohibited unless separately
+and explicitly authorized; and rebase, merge, history rewriting, and
+destructive cleanup require explicit scope.
+
 ## Git policy
 
 - Inspect `git status` and relevant diffs before broad edits.
