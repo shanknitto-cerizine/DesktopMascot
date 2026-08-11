@@ -25,27 +25,23 @@ rewrites milestone evidence.
 - Architecture baseline: M-046.
 - Active design baseline: M-047.5 where Speech-specific; M-049 Conversation
   Domain is additive and does not advance the architecture baseline.
-- Latest completed milestone: M-050 - Conversation Evaluation Result
-  Contracts Foundation.
-- Active milestone: M-051 - Synchronous Local Conversation Evaluator Contract
-  Foundation.
-- M-051 implementation and automated validation are complete; final
-  repository audit and commit remain pending.
+- Latest completed milestone: M-051 - Synchronous Local Conversation Evaluator
+  Contract Foundation.
+- Next candidate milestone: M-052 - Design Ready / Not Started.
 
 Do not store an exact HEAD hash, upstream relation, or working-tree/index
 state here. Obtain them from Git at the start of each task.
 
 ## Current Objective
 
-Complete the M-051 repository cleanup and final audit. M-052 must not begin
-until M-051 is committed and a later scope is explicitly approved. Workflow
+M-052 bounded implementation only after scope approval. Workflow
 infrastructure is separate from product-milestone design.
 
 ## Known Blockers
 
-No active M-051 product blocker. The Unity Editor batch Licensing Client issue
-is an environment limitation; it does not block the completed pure-managed
-focused diagnostics or automated validation.
+No active product blocker. The Unity Editor batch Licensing Client issue is an
+environment limitation; it did not block the completed pure-managed focused
+diagnostics or automated validation.
 
 The local Unity headless-license limitation recorded for M-049 is preserved in
 `Milestones.md` as validation history. It is not an active product-development
@@ -80,7 +76,8 @@ M-051:
   environment limitation; not recorded as passed.
 - Visual Verification: Not Applicable.
 - Manual Interaction Verification: Not Required.
-- Final repository audit and commit: Pending.
+- Final repository audit: Passed.
+- Commit and remote protection: Completed.
 
 M-050:
 

@@ -3659,13 +3659,13 @@ architecture baseline remains M-046.
 
 ## M-051 — Synchronous Local Conversation Evaluator Contract Foundation
 
-Status: Implementation Complete — Automated Validation Passed
+Status: Completed
 
-Final repository audit: Pending
+Final repository audit: Passed
 
-Commit: Pending
+Commit: `340294c50ac5d6fba69fe9d634190e3fa69a60e8`
 
-Push: Not Performed
+Push / Remote protection: Completed
 
 Architecture baseline: M-046
 
@@ -3703,4 +3703,13 @@ visual, input, native, or presentation behavior.
 
 Manual Interaction Verification: Not Required.
 
-M-052 is not started. M-051 final repository audit and commit remain pending.
+### Completion and remote protection
+
+M-051 is complete and committed as
+`340294c50ac5d6fba69fe9d634190e3fa69a60e8`
+(`M-051 establish synchronous local conversation evaluator contract`). Remote
+protection is completed. Automated validation passed; visual verification is
+not applicable and manual interaction verification is not required. The
+architecture baseline remains M-046.
+
+M-052 is Design Ready / Not Started.
