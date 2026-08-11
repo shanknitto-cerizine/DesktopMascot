@@ -27,21 +27,25 @@ rewrites milestone evidence.
   Domain is additive and does not advance the architecture baseline.
 - Latest completed milestone: M-050 - Conversation Evaluation Result
   Contracts Foundation.
-- Next product milestone: M-051 - Design Ready / Not Started.
+- Active milestone: M-051 - Synchronous Local Conversation Evaluator Contract
+  Foundation.
+- M-051 implementation and automated validation are complete; final
+  repository audit and commit remain pending.
 
 Do not store an exact HEAD hash, upstream relation, or working-tree/index
 state here. Obtain them from Git at the start of each task.
 
 ## Current Objective
 
-M-050 is complete. Use this handoff workflow to plan, instruct, investigate,
-and review M-051 as the next candidate; do not begin M-051 implementation
-until its scope is explicitly approved. Workflow infrastructure is separate
-from product-milestone design.
+Complete the M-051 repository cleanup and final audit. M-052 must not begin
+until M-051 is committed and a later scope is explicitly approved. Workflow
+infrastructure is separate from product-milestone design.
 
 ## Known Blockers
 
-None.
+No active M-051 product blocker. The Unity Editor batch Licensing Client issue
+is an environment limitation; it does not block the completed pure-managed
+focused diagnostics or automated validation.
 
 The local Unity headless-license limitation recorded for M-049 is preserved in
 `Milestones.md` as validation history. It is not an active product-development
@@ -63,6 +67,20 @@ See `ConversationDomainDesign.md` for the detailed boundary. Do not expand
 one item into a feature without an explicitly scoped milestone.
 
 ## Validation Snapshot
+
+M-051:
+
+- Implementation: Complete.
+- Automated Validation: Passed.
+- Focused M-051, M-049, and M-050 diagnostics: Passed through Unity Mono
+  `mono.exe` with `lib/mono/4.5/csc.exe`; no network or restore was used.
+- Unity Development Player managed build and dependency/.meta/GUID audits:
+  Passed.
+- Unity Editor batch diagnostic: Blocked by the known Licensing Client
+  environment limitation; not recorded as passed.
+- Visual Verification: Not Applicable.
+- Manual Interaction Verification: Not Required.
+- Final repository audit and commit: Pending.
 
 M-050:
 

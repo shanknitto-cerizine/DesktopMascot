@@ -34,6 +34,7 @@ recovery prerequisite have completed automated and manual validation.
 - [`SpeechPresentationDesign.md`](SpeechPresentationDesign.md)
 - [`ConversationDomainDesign.md`](ConversationDomainDesign.md)
 - [`ConversationEvaluationResultDesign.md`](ConversationEvaluationResultDesign.md)
+- [`LocalConversationEvaluatorDesign.md`](LocalConversationEvaluatorDesign.md)
 
 The remaining files in this directory are focused design records for earlier
 native composition, interaction, and diagnostic milestones. They remain

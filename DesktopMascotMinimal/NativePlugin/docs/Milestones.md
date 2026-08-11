@@ -3656,3 +3656,51 @@ M-050 is complete and committed as
 protection is completed. Automated validation passed; visual verification is
 not applicable and manual interaction verification is not required. The
 architecture baseline remains M-046.
+
+## M-051 — Synchronous Local Conversation Evaluator Contract Foundation
+
+Status: Implementation Complete — Automated Validation Passed
+
+Final repository audit: Pending
+
+Commit: Pending
+
+Push: Not Performed
+
+Architecture baseline: M-046
+
+### Scope
+
+M-051 adds only the local, synchronous, bounded
+`ILocalConversationEvaluator` invocation contract and diagnostic-only
+implementations for the existing M-050 `NoMatch` and `ResponseProduced`
+results. It adds no production evaluator, dialogue, runtime event wiring,
+Speech adapter, Character binding, Rule/Script/Pack behavior, provider,
+network, persistence, scheduling, or asynchronous interface.
+
+M-049 Conversation Domain contracts and M-050 Evaluation Result contracts
+are preserved unchanged. The synchronous local-only interface does not impose
+requirements on any future asynchronous or network-backed provider.
+
+### Automated validation evidence
+
+- focused M-051 diagnostics: Passed, including correlated `NoMatch`,
+  correlated `ResponseProduced`, request-ID correlation, response invariants,
+  and deterministic repeated evaluation;
+- focused M-049 Domain and M-050 Evaluation Result regression diagnostics:
+  Passed;
+- successful pure-managed host: Unity Mono `mono.exe` with
+  `lib/mono/4.5/csc.exe`; network and restore were not used;
+- dependency/prohibited-reference audit and Domain-to-Evaluation
+  reverse-reference audit: Passed;
+- Unity Development Player managed build: Passed;
+- required `.meta` and duplicate-GUID audit: Passed;
+- Unity Editor batch diagnostic: Blocked by the known Unity Licensing Client
+  environment limitation; it is not recorded as passed.
+
+Visual Verification: Not Applicable — M-051 changes no production runtime,
+visual, input, native, or presentation behavior.
+
+Manual Interaction Verification: Not Required.
+
+M-052 is not started. M-051 final repository audit and commit remain pending.
