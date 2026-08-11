@@ -3712,4 +3712,52 @@ protection is completed. Automated validation passed; visual verification is
 not applicable and manual interaction verification is not required. The
 architecture baseline remains M-046.
 
-M-052 is Design Ready / Not Started.
+M-052 was subsequently started; its current status is recorded below.
+
+## M-052 — Local Conversation Response Entry Contract Foundation
+
+Status: Automated Validation Passed
+
+Final repository audit: Pending
+
+Commit: Pending
+
+Push / Remote protection: Pending
+
+Architecture baseline: M-046
+
+### Scope
+
+M-052 adds only immutable, request-independent local response material for a
+future evaluator: valid trigger, response, and speaker logical IDs, text, and
+the existing `CharacterUtterance` presentation intent. It does not implement
+an evaluator, matching, a collection, dialogue, runtime event wiring, or a
+Speech adapter.
+
+Text and presentation-intent validation reuse the existing
+`ConversationResponse` semantics. M-049, M-050, M-051, M-048, and M-046
+contracts remain unchanged.
+
+Detailed design:
+`NativePlugin/docs/LocalConversationResponseEntryDesign.md`
+
+### Automated validation evidence
+
+- focused M-052 diagnostics: Passed, including valid construction and value
+  preservation, invalid IDs, text and intent validation, no repair, ordinal
+  logical-ID semantics, and deterministic repeated construction;
+- focused M-049 Domain, M-050 Evaluation Result, and M-051 Local Evaluator
+  regression diagnostics: Passed;
+- successful pure-managed host: Unity Mono `mono.exe` with
+  `lib/mono/4.5/csc.exe`; network and restore were not used;
+- Evaluation dependency and entry request-independence audits: Passed;
+- Domain-to-Evaluation reverse-reference audit: Passed;
+- required `.meta` and duplicate-GUID audit: Passed;
+- Unity Development Player managed build: Passed;
+- Unity Editor batch diagnostic: Blocked by the known Unity Licensing Client
+  environment limitation; it is not recorded as passed.
+
+Visual Verification: Not Applicable — M-052 changes no production runtime,
+visual, input, native, or presentation behavior.
+
+Manual Interaction Verification: Not Required.

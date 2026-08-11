@@ -61,8 +61,7 @@ namespace DesktopMascot.Runtime.Conversation.Domain
             if (!TryValidateText(text, out failure))
                 return false;
 
-            if (presentationIntent
-                != ConversationPresentationIntent.CharacterUtterance)
+            if (!IsSupportedPresentationIntent(presentationIntent))
             {
                 failure = ConversationContractFailure
                     .UnsupportedPresentationIntent;
@@ -78,7 +77,7 @@ namespace DesktopMascot.Runtime.Conversation.Domain
             return true;
         }
 
-        private static bool TryValidateText(
+        internal static bool TryValidateText(
             string text,
             out ConversationContractFailure failure)
         {
@@ -129,6 +128,13 @@ namespace DesktopMascot.Runtime.Conversation.Domain
             }
 
             return true;
+        }
+
+        internal static bool IsSupportedPresentationIntent(
+            ConversationPresentationIntent presentationIntent)
+        {
+            return presentationIntent
+                == ConversationPresentationIntent.CharacterUtterance;
         }
     }
 }
