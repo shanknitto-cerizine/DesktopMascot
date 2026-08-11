@@ -753,6 +753,25 @@ evidence, never a source dependency. Keep the canonical
 See `NativePlugin/docs/RepositoryStructureDesign.md` for the current layout,
 intentional no-move decisions, and future cleanup candidates.
 
+## Development handoff workflow
+
+At the start of a new Codex thread, read `AGENTS.md` and
+`NativePlugin/docs/DevelopmentHandoff.md`, then verify the Git baseline
+read-only. `DevelopmentHandoff.md` records current development intent only;
+it does not replace architecture contracts, milestone history, or Git as the
+authority for current branch, commit, upstream, working-tree, or index state.
+
+Update the handoff only for a milestone completion, next-milestone selection,
+material blocker change, deliberate thread handoff, or architecture/design
+baseline change. Model selection and thread-lifecycle guidance belongs there.
+
+At a milestone final commit gate, include untracked intended files in a
+complete temporary staged audit and run `git diff --cached --check`. If the
+index was not clean before the audit, do not modify it; inspect and stop for
+direction. After an audit-only gate, unstage only the files staged for that
+audit. Existing Git, build, milestone, generated-artifact, and validation
+rules remain authoritative.
+
 ## Mandatory milestone workflow
 
 Before implementation:

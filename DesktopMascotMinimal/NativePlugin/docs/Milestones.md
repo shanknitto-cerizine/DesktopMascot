@@ -3596,6 +3596,10 @@ evidence. This pure-managed milestone does not require successful Editor batch
 host execution as unique proof of correctness. The environment limitation is
 preserved as validation history.
 
-M-049 is uncommitted. Automated validation is passed; visual verification is
-not applicable and manual interaction verification is not required. Commit is
-pending.
+M-049 is complete and committed as
+`215105068efdf6f0df41bf4785657386a911f2fd`
+(`M-049 establish conversation domain contracts`) on
+`m045-complete-safety`; `origin/m045-complete-safety` tracks the same commit.
+Automated validation is passed; visual verification is not applicable and
+manual interaction verification is not required. The architecture baseline
+remains M-046.

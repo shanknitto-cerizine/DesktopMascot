@@ -9,6 +9,9 @@ recovery prerequisite have completed automated and manual validation.
 
 - [`../../AGENTS.md`](../../AGENTS.md) defines the current development and
   ownership contracts.
+- [`DevelopmentHandoff.md`](DevelopmentHandoff.md) records current development
+  intent, workflow templates, and handoff guidance. It does not replace Git,
+  architecture contracts, or milestone history.
 - [`Milestones.md`](Milestones.md) records completed and in-progress
   milestone history. Historical paths and contracts in older entries are
   evidence of those milestones, not a description of the current tree.
