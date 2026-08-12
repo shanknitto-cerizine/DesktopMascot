@@ -600,6 +600,8 @@ extern "C"
         DMN_GetNativeMascotDragCaptureReleasedCount();
     UNITY_INTERFACE_EXPORT unsigned long long
         DMN_GetNativeMascotCompletedDragGeneration();
+    UNITY_INTERFACE_EXPORT unsigned long long
+        DMN_GetNativeMascotCompletedClickGeneration();
     UNITY_INTERFACE_EXPORT int DMN_TryGetNativeMascotWindowPosition(
         int* x,
         int* y);

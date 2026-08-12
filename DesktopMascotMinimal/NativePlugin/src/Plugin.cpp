@@ -2937,6 +2937,9 @@ extern "C"
     DMN_EXPORT_DRAG_U64(
         DMN_GetNativeMascotCompletedDragGeneration,
         GetNativeMascotCompletedDragGeneration)
+    DMN_EXPORT_DRAG_U64(
+        DMN_GetNativeMascotCompletedClickGeneration,
+        GetNativeMascotCompletedClickGeneration)
     int UNITY_INTERFACE_EXPORT DMN_TryGetNativeMascotWindowPosition(
         int* x,
         int* y)

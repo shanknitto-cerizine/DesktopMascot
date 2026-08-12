@@ -67,6 +67,7 @@ namespace DesktopMascot.Runtime
                 DesktopMascotSingleInstanceDiagnostics.RunFocusedTests();
                 DesktopMascotCharacterPersistenceDiagnostics
                     .RunFocusedTests();
+                NativeMascotClickCompletionDiagnostics.RunFocusedTests();
             }
             settingsManager = selectedMode == "runtime"
                 ? SettingsManager.CreateProduction()

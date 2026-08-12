@@ -74,6 +74,7 @@ namespace DesktopMascotNative
     std::uint32_t GetNativeMascotDragCaptureAcquiredCount();
     std::uint32_t GetNativeMascotDragCaptureReleasedCount();
     std::uint64_t GetNativeMascotCompletedDragGeneration();
+    std::uint64_t GetNativeMascotCompletedClickGeneration();
     bool TryGetNativeMascotWindowPosition(
         std::int32_t& x,
         std::int32_t& y);

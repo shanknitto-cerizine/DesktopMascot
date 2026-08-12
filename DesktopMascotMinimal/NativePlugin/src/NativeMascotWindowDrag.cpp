@@ -34,6 +34,7 @@ namespace
     std::atomic<std::uint32_t> g_captureAcquiredCount{0};
     std::atomic<std::uint32_t> g_captureReleasedCount{0};
     std::atomic<std::uint64_t> g_completedDragGeneration{0};
+    std::atomic<std::uint64_t> g_completedClickGeneration{0};
     std::atomic<std::int32_t> g_lastWindowX{0};
     std::atomic<std::int32_t> g_lastWindowY{0};
     POINT g_dragStartCursor{};
@@ -118,7 +119,16 @@ namespace
         return regionType != ERROR && regionType != NULLREGION;
     }
 
-    bool EndPointerOperation(HWND window, bool releaseCapture)
+    enum class PointerOperationCompletion
+    {
+        None,
+        NonDragClick,
+        Drag
+    };
+
+    PointerOperationCompletion EndPointerOperation(
+        HWND window,
+        bool releaseCapture)
     {
         const bool wasPressed = g_pointerPressed.exchange(false);
         const bool wasDragging = g_dragging.exchange(false);
@@ -132,7 +142,13 @@ namespace
         {
             g_endCount.fetch_add(1);
         }
-        return wasDragging;
+        if (!wasPressed)
+        {
+            return PointerOperationCompletion::None;
+        }
+        return wasDragging
+            ? PointerOperationCompletion::Drag
+            : PointerOperationCompletion::NonDragClick;
     }
 
     bool PublishCompletedDrag(HWND window)
@@ -413,6 +429,7 @@ namespace DesktopMascotNative
         g_captureAcquiredCount.store(0);
         g_captureReleasedCount.store(0);
         g_completedDragGeneration.store(0);
+        g_completedClickGeneration.store(0);
         g_lastWindowX.store(0);
         g_lastWindowY.store(0);
         g_diagnosticDeltaX.store(0);
@@ -469,12 +486,28 @@ namespace DesktopMascotNative
                 result = 0;
                 return true;
             case WM_LBUTTONUP:
-                if (EndPointerOperation(window, true))
+            {
+                const bool normalButtonUp = !g_shutdownRequested.load(
+                    std::memory_order_acquire);
+                switch (EndPointerOperation(window, true))
                 {
-                    PublishCompletedDrag(window);
+                    case PointerOperationCompletion::NonDragClick:
+                        if (normalButtonUp)
+                        {
+                            g_completedClickGeneration.fetch_add(
+                                1,
+                                std::memory_order_release);
+                        }
+                        break;
+                    case PointerOperationCompletion::Drag:
+                        PublishCompletedDrag(window);
+                        break;
+                    case PointerOperationCompletion::None:
+                        break;
                 }
                 result = 0;
                 return true;
+            }
             case WM_CANCELMODE:
                 EndPointerOperation(window, true);
                 result = 0;
@@ -633,6 +666,10 @@ namespace DesktopMascotNative
     std::uint64_t GetNativeMascotCompletedDragGeneration()
     {
         return g_completedDragGeneration.load(std::memory_order_acquire);
+    }
+    std::uint64_t GetNativeMascotCompletedClickGeneration()
+    {
+        return g_completedClickGeneration.load(std::memory_order_acquire);
     }
     bool TryGetNativeMascotWindowPosition(
         std::int32_t& x,

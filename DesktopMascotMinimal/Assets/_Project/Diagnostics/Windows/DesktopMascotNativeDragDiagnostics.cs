@@ -11,6 +11,8 @@ namespace DesktopMascot.Diagnostics
         private const string Dll = "DesktopMascotNative";
         private const string Prefix =
             "[DesktopMascotDragDiagnostics]";
+        private const string ManualHoldEnvironmentVariable =
+            "DESKTOP_MASCOT_CLICK_MANUAL_HOLD";
         private const int DiagnosticMoved = 2;
         private const int DiagnosticCompleted = 4;
         private const int DiagnosticFailed = 5;
@@ -26,6 +28,8 @@ namespace DesktopMascot.Diagnostics
             DMN_GetProductionSizedAnimatedSilhouetteRegionBuildCount();
         [DllImport(Dll, CallingConvention=CallingConvention.Cdecl)]
         private static extern int DMN_IsNativeMascotWindowDragging();
+        [DllImport(Dll, CallingConvention=CallingConvention.Cdecl)]
+        private static extern int DMN_IsNativeMascotWindowCaptureOwned();
         [DllImport(Dll, CallingConvention=CallingConvention.Cdecl)]
         private static extern int DMN_StartNativeMascotWindowDragDiagnostic(
             int deltaX,
@@ -119,6 +123,12 @@ namespace DesktopMascot.Diagnostics
                 yield return null;
             }
 
+            if (IsManualHoldRequested())
+            {
+                yield return HoldForManualClickVerification();
+                yield break;
+            }
+
             var startResult =
                 DMN_StartNativeMascotWindowDragDiagnostic(48, 32);
             Log($"Start result: {startResult}");
@@ -176,12 +186,85 @@ namespace DesktopMascot.Diagnostics
                 && B(DMN_DidNativeMascotDragDiagnosticRestoreInitialPosition())
                 && !B(DMN_IsNativeMascotWindowDragging())
                 && DesktopMascotWindowPositionPersistenceDiagnostics.Passed
+                && NativeMascotClickCompletionDiagnostics.Passed
                 && DesktopMascotNativeContextMenuDiagnostics.Passed
                 && DesktopMascotSystemTrayDiagnostics.Passed
                 && DesktopMascotSettingsUiPresentationDiagnostics.Passed;
             LogFinal(passed);
             yield return null;
             RequestOrderlyQuit();
+        }
+
+        private static bool IsManualHoldRequested() =>
+            string.Equals(
+                Environment.GetEnvironmentVariable(
+                    ManualHoldEnvironmentVariable),
+                "hold",
+                StringComparison.Ordinal);
+
+        private static IEnumerator HoldForManualClickVerification()
+        {
+            Log("Manual click verification hold ready: True");
+            Log("Manual hold auto-completion disabled: True");
+            var observedClickGeneration =
+                NativeMascotClickCompletionBridge.GetCompletedClickGeneration();
+            var observedDragGeneration =
+                DMN_GetNativeMascotCompletedDragGeneration();
+            var observedDragging = B(DMN_IsNativeMascotWindowDragging());
+            var observedCaptureOwned =
+                B(DMN_IsNativeMascotWindowCaptureOwned());
+            var observedFailureStage = DMN_GetNativeMascotDragFailureStage();
+            LogManualHoldSnapshot(
+                observedClickGeneration,
+                observedDragGeneration,
+                observedDragging,
+                observedCaptureOwned,
+                observedFailureStage);
+
+            while (true)
+            {
+                var clickGeneration =
+                    NativeMascotClickCompletionBridge
+                        .GetCompletedClickGeneration();
+                var dragGeneration =
+                    DMN_GetNativeMascotCompletedDragGeneration();
+                var dragging = B(DMN_IsNativeMascotWindowDragging());
+                var captureOwned = B(DMN_IsNativeMascotWindowCaptureOwned());
+                var failureStage = DMN_GetNativeMascotDragFailureStage();
+                if (clickGeneration != observedClickGeneration
+                    || dragGeneration != observedDragGeneration
+                    || dragging != observedDragging
+                    || captureOwned != observedCaptureOwned
+                    || failureStage != observedFailureStage)
+                {
+                    LogManualHoldSnapshot(
+                        clickGeneration,
+                        dragGeneration,
+                        dragging,
+                        captureOwned,
+                        failureStage);
+                    observedClickGeneration = clickGeneration;
+                    observedDragGeneration = dragGeneration;
+                    observedDragging = dragging;
+                    observedCaptureOwned = captureOwned;
+                    observedFailureStage = failureStage;
+                }
+                yield return null;
+            }
+        }
+
+        private static void LogManualHoldSnapshot(
+            ulong clickGeneration,
+            ulong dragGeneration,
+            bool dragging,
+            bool captureOwned,
+            int failureStage)
+        {
+            Log(
+                "Manual hold click/drag generation: " +
+                $"{clickGeneration}/{dragGeneration}");
+            Log($"Manual hold dragging/capture owned: {dragging}/{captureOwned}");
+            Log($"Manual hold native drag failure stage: {failureStage}");
         }
 
         private static void LogFinal(bool passed)
@@ -205,9 +288,13 @@ namespace DesktopMascot.Diagnostics
             Log($"Capture acquired/released counts: {DMN_GetNativeMascotDragCaptureAcquiredCount()}/{DMN_GetNativeMascotDragCaptureReleasedCount()}");
             Log(
                 $"Completed drag generation: {DMN_GetNativeMascotCompletedDragGeneration()}");
+            Log(
+                $"Completed click generation: {NativeMascotClickCompletionBridge.GetCompletedClickGeneration()}");
             Log($"Last window X/Y: {DMN_GetNativeMascotDragLastWindowX()}/{DMN_GetNativeMascotDragLastWindowY()}");
             Log(
                 $"Position persistence diagnostics passed: {DesktopMascotWindowPositionPersistenceDiagnostics.Passed}");
+            Log(
+                $"Click completion diagnostics passed: {NativeMascotClickCompletionDiagnostics.Passed}");
             Log(
                 $"Settings UI presentation diagnostics passed: " +
                 DesktopMascotSettingsUiPresentationDiagnostics.Passed);

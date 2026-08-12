@@ -3847,3 +3847,54 @@ The complete final staged audit used exactly the 10 M-053 intended files.
 `git diff --check` and `git diff --cached --check` passed; no unexpected or
 generated files were present. M-053 was committed and pushed with remote
 protection completed. M-054 is not started.
+
+## M-055 — Native Mascot Click Completion Signal Foundation
+
+Status: Completed
+
+Automated Validation: Passed
+
+Physical/Manual Verification: Passed
+
+Remaining Manual Verification: None
+
+Final Repository/Staged Audit: Passed
+
+### Scope
+
+M-055 adds a native monotonic completed-click generation, its non-destructive
+C export, and a Windows-only managed snapshot bridge. It does not add a
+production observer, Conversation request/evaluation, Speech, Character
+binding, persistence wiring, Unity input/raycast handling, a native queue,
+callback, or event bus.
+
+`WM_LBUTTONUP` publishes exactly one click generation only for an eligible
+pressed operation that never became a drag. The existing drag generation and
+native capture/movement/shutdown contracts remain unchanged. See
+`NativeMascotClickCompletionDesign.md`.
+
+### Validation state
+
+Native build, `dumpbin /exports`, Unity Development Player build, focused
+delta/debt diagnostics, `drag-diagnostic`, and `runtime-smoke` have passed.
+Physical verification has passed: an opaque click published only completed-
+click, a physical drag published only completed-drag with position persistence,
+and multiple transparent-region clicks passed through without capture or either
+completion publication. All three runs reported native drag failure stage zero,
+no visual or interaction anomaly, and orderly tray-exit cleanup.
+
+### Manual verification hold support
+
+`DESKTOP_MASCOT_CLICK_MANUAL_HOLD=hold` is diagnostic-only support used for
+the M-055 physical verification. It holds the existing `drag-diagnostic`
+path after readiness and logs completed-click/completed-drag generations,
+dragging, capture ownership, and native drag failure state whenever values
+change. It does not alter normal runtime or the flag-absent automatic drag
+diagnostic lifecycle. This support remains diagnostic-only and introduces no
+production observer or input path.
+
+M-055 implementation and required validation complete.
+
+Commit: Pending / Not Performed
+
+Push / Remote Protection: Pending / Not Performed
