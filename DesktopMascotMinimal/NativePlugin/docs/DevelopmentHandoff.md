@@ -26,18 +26,18 @@ merge/rebase/cherry-pick state read-only. Do not store volatile Git facts here.
 - Expected branch: `m045-complete-safety` (advisory; verify live Git).
 - Architecture baseline: **M-046**.
 - Speech-specific design baseline: **M-047.5**.
-- M-048 and M-049 through M-053 are additive and do not advance M-046.
-- Latest completed milestone: **M-053 — Single-Entry Exact-Match Local
-  Conversation Evaluator**.
+- M-048 and M-049 through M-055 are additive and do not advance M-046.
+- Latest completed milestone: **M-055 — Native Mascot Click Completion Signal
+  Foundation**.
 - Active product milestone: **None**.
-- Next candidate: **M-054 — Design Investigation: Not Started**.
+- Next candidate: **M-056 — Design Investigation: Not Started**.
 
-M-054 requires explicit scope authorization. Do not begin its design,
+M-056 requires explicit scope authorization. Do not begin its design,
 planning, or implementation as workflow/documentation maintenance.
 
 ## Current objective and blockers
 
-M-049 through M-053 are complete under architecture baseline M-046. Detailed
+M-049 through M-055 are complete under architecture baseline M-046. Detailed
 scope, validation, commits, and environment limitations are recorded in
 `Milestones.md` and their design documents.
 
