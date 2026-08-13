@@ -3846,7 +3846,55 @@ to HEAD before final audit, currently matches HEAD, and was not staged.
 The complete final staged audit used exactly the 10 M-053 intended files.
 `git diff --check` and `git diff --cached --check` passed; no unexpected or
 generated files were present. M-053 was committed and pushed with remote
-protection completed. M-054 is not started.
+protection completed. M-054 followed as a design-only gate.
+
+## M-054 — Conversation Runtime Request Identity and Character Binding Design Gate
+
+Status: Completed
+
+Implementation/source changes: None
+
+Visual Verification: Not Applicable
+
+Manual Interaction Verification: Not Required
+
+Architecture baseline: M-046
+
+Speech-specific design baseline: M-047.5
+
+### Scope and decisions
+
+M-054 completed the identity design gate for a future production Conversation
+integration without adding runtime wiring or changing M-049 through M-053.
+The permanent default Conversation persona identity is
+`desktop-mascot.character.default`. It is independent of visual Character
+identity and remains the same for bundled and runtime-imported visuals, across
+Character changes, VRM reimports, and process restarts.
+
+No path, filename, display name, content hash,
+`CharacterDescriptor.InternalId`, or Character generation flows into
+Conversation. `CharacterAssetManager` gains no Conversation responsibility,
+and future explicit Conversation Pack binding remains a separate milestone.
+
+Production request IDs use `request-<unsigned-decimal>`, beginning with
+`request-1`. The future production Conversation integration owner privately
+owns the `ulong` counter and allocates only at the main-thread request-
+acceptance boundary. IDs are unique within one normal-runtime process, may
+restart at `request-1` in a later process, are not reused after downstream
+failure, and are not persisted. `ulong.MaxValue` may be issued once; later
+requests are rejected without wrap. Event sources and native code do not
+generate request IDs, and M-054 adds no generator interface or global/static
+allocator.
+
+Detailed design:
+`NativePlugin/docs/ConversationRuntimeIdentityDesign.md`
+
+### Architecture consequences
+
+M-054 was a design gate only. It added no implementation, new type,
+persistence, `CharacterAssetManager` change, Conversation Domain change, or
+Speech change. Architecture baseline M-046 and Speech-specific design baseline
+M-047.5 remain unchanged.
 
 ## M-055 — Native Mascot Click Completion Signal Foundation
 

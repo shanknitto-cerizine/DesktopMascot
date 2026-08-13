@@ -27,6 +27,8 @@ merge/rebase/cherry-pick state read-only. Do not store volatile Git facts here.
 - Architecture baseline: **M-046**.
 - Speech-specific design baseline: **M-047.5**.
 - M-048 and M-049 through M-055 are additive and do not advance M-046.
+- M-054 is a completed design gate for production Conversation request and
+  default-persona identity policy; it added no implementation.
 - Latest completed milestone: **M-055 — Native Mascot Click Completion Signal
   Foundation**.
 - Active product milestone: **None**.
@@ -70,6 +72,8 @@ feature without an explicitly scoped milestone.
 - `LocalConversationResponseEntryDesign.md`: M-052 response entry.
 - `SingleEntryLocalConversationEvaluatorDesign.md`: M-053 exact-match
   evaluator.
+- `ConversationRuntimeIdentityDesign.md`: M-054 production request identity
+  and default Conversation persona binding policy.
 - Other subsystem designs named by `AGENTS.md`: their detailed current
   ownership, lifecycle, implementation, and validation contracts.
 - This file: current intent, model guidance, thread lifecycle, and navigation.

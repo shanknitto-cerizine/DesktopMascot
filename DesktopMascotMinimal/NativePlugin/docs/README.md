@@ -37,6 +37,7 @@ recovery prerequisite have completed automated and manual validation.
 - [`LocalConversationEvaluatorDesign.md`](LocalConversationEvaluatorDesign.md)
 - [`LocalConversationResponseEntryDesign.md`](LocalConversationResponseEntryDesign.md)
 - [`SingleEntryLocalConversationEvaluatorDesign.md`](SingleEntryLocalConversationEvaluatorDesign.md)
+- [`ConversationRuntimeIdentityDesign.md`](ConversationRuntimeIdentityDesign.md)
 - [`NativeMascotClickCompletionDesign.md`](NativeMascotClickCompletionDesign.md)
 
 The remaining files in this directory are focused design records for earlier
