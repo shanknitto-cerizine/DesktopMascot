@@ -3948,3 +3948,90 @@ Commit: `d1222948e55a3279b2552dfae7e81c00656ca440`
 Commit message: `M-055 establish native mascot click completion signal`
 
 Push / Remote Protection: Completed
+
+## M-056 — Single Mascot-Click Conversation Request Evaluation Source
+
+Status: Completed
+
+Automated Validation: Passed
+
+Visual Verification: Passed
+
+Manual Interaction Verification: Passed
+
+### Implemented scope
+
+M-056 adds the Windows normal-runtime-only
+`MascotClickConversationController`. After the native pointer lifecycle is
+enabled, its initial completed-click snapshot becomes the observer cursor and
+is never replayed. Each later unsigned-modulo delta becomes retained pending
+debt; it accepts and synchronously evaluates at most 64 clicks per frame with
+no active-runtime drop or coalescing.
+
+The controller privately allocates `request-1`, `request-2`, and so on at the
+main-thread acceptance boundary, using the fixed M-054 CharacterId
+`desktop-mascot.character.default` and the fixed mascot-click TriggerId. It
+creates exactly one compiled-in `LocalConversationResponseEntry` and evaluates
+each request through `SingleEntryLocalConversationEvaluator`. The result ends
+at `ConversationEvaluationResult`; M-056 does not connect Speech or another
+presentation path. `ulong.MaxValue` is issued once, then later requests are
+rejected without counter wrap or ID reuse.
+
+Orderly-shutdown entry points close controller acceptance before any later
+snapshot can become a request. Cleanup is idempotent. No native input/drag,
+Character ownership, persistence, M-049 through M-055 contract, or Speech
+implementation changed.
+
+### Automated validation
+
+Focused M-056 diagnostics and M-049 through M-053 pure-managed regressions
+passed through the established Unity `mono.exe` plus `lib/mono/4.5/csc.exe`
+host. Unity Development Player build and runtime-smoke passed. The canonical
+native build/deploy and Player rebuild restored native/managed export parity;
+`DMN_GetNativeTrayNimAddAttemptCount` and
+`DMN_GetNativeMascotCompletedClickGeneration` were verified in both the
+Assets and Player DLLs with matching SHA-256 values.
+
+The M-055 `drag-diagnostic` regression passed: drag completion, click
+generation regression, tray-mediated orderly shutdown, owned-resource cleanup,
+and zero native/runtime failure stages were observed. Required M-056
+dependency/composition, `.meta`, duplicate-GUID, and `git diff --check`
+audits passed.
+
+After removal of temporary native window/UI-loop diagnostic instrumentation,
+the canonical native build and Unity Development Player build passed again.
+The rebuilt Assets and Player native DLLs have matching SHA-256 values and
+retain both required click-generation and tray diagnostic exports. The
+post-cleanup `runtime-smoke` and M-055 `drag-diagnostic` regressions passed with
+zero native/runtime failure stages, balanced native ownership, and orderly
+shutdown.
+
+### Manual interaction verification
+
+The user verified normal runtime with one click followed by three additional
+clicks, a drag, and a click after the drag. Clicks caused no unintended mascot
+movement; drag behavior remained normal; no Speech, speech bubble, audio, or
+Settings presentation was produced; and no display anomaly or error dialog
+appeared. Tray `終了` removed the mascot and tray icon and terminated the Player.
+The corresponding log recorded `system tray exit selected`, successful cleanup,
+zero native/runtime failure stages, no remaining drag/capture ownership, and
+the final managed `UnityWndClass` close plus `Application.Quit` request.
+
+Manual interaction and orderly-shutdown log:
+`NativePlugin/out/development-player-20260815-012448-860-2ed08b62.log`
+
+The temporary diagnostic-only instrumentation used to investigate an earlier
+non-reproducing display-startup incident was removed before the final rebuild
+and regressions. It is not part of M-056.
+
+Final Repository / Staged Audit: Passed — the unrelated Speech font serializer
+whitespace and canonical-build generated native artifacts were restored to
+HEAD, and validation-created untracked native objects were removed. Exactly the
+eight M-056 intended source and documentation files were temporarily staged;
+the staged file set, complete diff, dependency/prohibited-reference/secret and
+generated-artifact checks, and `git diff --cached --check` passed. The audit
+set was immediately unstaged after review.
+
+Commit: Pending
+
+Push / Remote Protection: Pending

@@ -10,6 +10,7 @@ using DesktopMascot.Runtime.CharacterSelection;
 using DesktopMascot.Runtime.CharacterPersistence;
 using DesktopMascot.Runtime.Settings.UI;
 using DesktopMascot.Runtime.Presentation.Speech;
+using DesktopMascot.Runtime.Conversation;
 using DesktopMascot.Diagnostics;
 using Debug = UnityEngine.Debug;
 
@@ -74,6 +75,7 @@ namespace DesktopMascot.Runtime
             speechCameraIsolationDiagnostics;
         private bool speechCameraIsolationCleanupComplete = true;
         private bool characterPersistenceCleanupComplete = true;
+        private MascotClickConversationController mascotClickConversationController;
 
         internal int NativeTransferWidth =>
             cameraPipeline?.NormalizedTransferTexture?.width ?? 0;
@@ -234,6 +236,7 @@ namespace DesktopMascot.Runtime
             singleInstanceController?.BeginShutdown();
             playerVisibilityController?.BeginShutdown();
             speechPresentationController?.BeginShutdown();
+            mascotClickConversationController?.BeginShutdown();
             if (!shutdownStarted)
                 StartCoroutine(Shutdown(reason, true));
 #endif
@@ -307,6 +310,12 @@ namespace DesktopMascot.Runtime
         {
             speechCameraIsolationDiagnostics = diagnostics;
             speechCameraIsolationCleanupComplete = diagnostics == null;
+        }
+
+        internal void AttachMascotClickConversationController(
+            MascotClickConversationController controller)
+        {
+            mascotClickConversationController = controller;
         }
 
 #if UNITY_STANDALONE_WIN && !UNITY_EDITOR
@@ -441,6 +450,7 @@ namespace DesktopMascot.Runtime
                 yield return Shutdown("startup failure", smokeTest);
                 yield break;
             }
+            mascotClickConversationController?.Initialize();
             pinnedAlphaMask = GCHandle.Alloc(
                 alphaMask, GCHandleType.Pinned);
             presentCommandBuffer = new CommandBuffer
@@ -488,6 +498,7 @@ namespace DesktopMascot.Runtime
                 yield return new WaitForEndOfFrame();
                 if (shutdownStarted)
                     yield break;
+                mascotClickConversationController?.Pump();
                 if (!cameraPipeline.Normalize(Time.frameCount))
                 {
                     Fail(8, "Camera-source normalization guard failed.");
@@ -673,6 +684,7 @@ namespace DesktopMascot.Runtime
             systemTrayController?.BeginShutdown();
             contextMenuController?.BeginShutdown();
             speechPresentationController?.BeginShutdown();
+            mascotClickConversationController?.BeginShutdown();
             Log($"Shutdown reason: {reason}");
             if (characterSelectionController != null)
             {
@@ -1083,6 +1095,11 @@ namespace DesktopMascot.Runtime
                 if (characterPersistenceCleanupComplete)
                     characterSelectionPersistence = null;
             }
+            if (mascotClickConversationController != null)
+            {
+                mascotClickConversationController.Cleanup();
+                mascotClickConversationController = null;
+            }
             Application.runInBackground = previousRunInBackground;
             runInBackgroundRestored =
                 Application.runInBackground == previousRunInBackground;
@@ -1105,6 +1122,7 @@ namespace DesktopMascot.Runtime
             systemTrayController?.BeginShutdown();
             contextMenuController?.BeginShutdown();
             speechPresentationController?.BeginShutdown();
+            mascotClickConversationController?.BeginShutdown();
             try
             {
                 if (regionStarted)

@@ -26,22 +26,23 @@ merge/rebase/cherry-pick state read-only. Do not store volatile Git facts here.
 - Expected branch: `m045-complete-safety` (advisory; verify live Git).
 - Architecture baseline: **M-046**.
 - Speech-specific design baseline: **M-047.5**.
-- M-048 and M-049 through M-055 are additive and do not advance M-046.
+- M-048 and M-049 through M-056 are additive and do not advance M-046.
 - M-054 is a completed design gate for production Conversation request and
   default-persona identity policy; it added no implementation.
-- Latest completed milestone: **M-055 — Native Mascot Click Completion Signal
-  Foundation**.
+- Latest completed milestone: **M-056 — Single Mascot-Click Conversation
+  Request Evaluation Source**.
 - Active product milestone: **None**.
-- Next candidate: **M-056 — Design Investigation: Not Started**.
+- Next candidate: **M-057 — Not Started**.
 
-M-056 requires explicit scope authorization. Do not begin its design,
+M-057 requires explicit scope authorization. Do not begin its design,
 planning, or implementation as workflow/documentation maintenance.
 
 ## Current objective and blockers
 
-M-049 through M-055 are complete under architecture baseline M-046. Detailed
-scope, validation, commits, and environment limitations are recorded in
-`Milestones.md` and their design documents.
+M-056 is complete under architecture baseline M-046. Its implementation,
+automated validation, user-performed manual interaction verification, and final
+repository/staged audit are recorded in `Milestones.md`. Commit and push remain
+separate explicit authorizations.
 
 There is no active product blocker. The Unity Editor batch Licensing Client
 limitation is preserved as validation history in M-049 through M-053; it did

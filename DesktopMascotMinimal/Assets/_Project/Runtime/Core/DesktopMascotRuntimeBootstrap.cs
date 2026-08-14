@@ -7,6 +7,7 @@ using DesktopMascot.Runtime.CharacterPersistence;
 using DesktopMascot.Runtime.Settings;
 using DesktopMascot.Runtime.Settings.UI;
 using DesktopMascot.Runtime.Presentation.Speech;
+using DesktopMascot.Runtime.Conversation;
 using UnityEngine;
 
 namespace DesktopMascot.Runtime
@@ -270,6 +271,11 @@ namespace DesktopMascot.Runtime
                 selectedMode == "runtime-smoke",
                 positionPersistence,
                 playerPresentation);
+            if (selectedMode == "runtime")
+            {
+                runtime.AttachMascotClickConversationController(
+                    new MascotClickConversationController());
+            }
             if (selectedMode == "message-window-diagnostic")
             {
                 var speech = owner.AddComponent<SpeechPresentationController>();
