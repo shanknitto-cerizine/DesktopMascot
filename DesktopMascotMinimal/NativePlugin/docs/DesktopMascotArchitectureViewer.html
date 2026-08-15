@@ -1,0 +1,1099 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Desktop Mascot Architecture Viewer — M-056</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --page: #0b1020;
+      --surface: #111827;
+      --surface-2: #172033;
+      --surface-3: #202b41;
+      --text: #eef2ff;
+      --muted: #aab5cc;
+      --border: #334155;
+      --connected: #35c779;
+      --connected-bg: #123728;
+      --not-connected: #f59e42;
+      --not-connected-bg: #452b15;
+      --future: #9aa7ba;
+      --future-bg: #293244;
+      --current-end: #ff6376;
+      --current-end-bg: #4a1722;
+      --roadmap-current: #60a5fa;
+      --roadmap-current-bg: #163659;
+      --roadmap-partial: #f59e42;
+      --roadmap-partial-bg: #452b15;
+      --roadmap-planned: #9aa7ba;
+      --roadmap-planned-bg: #293244;
+      --roadmap-tbd: #c084fc;
+      --roadmap-tbd-bg: #382052;
+      --native: #67b7ff;
+      --managed: #ae8cff;
+      --focus: #f8d56b;
+      font-family: Inter, "Segoe UI", system-ui, sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body { height: 100%; }
+
+    body {
+      margin: 0;
+      overflow: hidden;
+      background: var(--page);
+      color: var(--text);
+    }
+
+    button { font: inherit; }
+
+    .app {
+      height: 100%;
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr);
+    }
+
+    header {
+      z-index: 4;
+      display: grid;
+      grid-template-columns: minmax(320px, 1fr) auto;
+      gap: 24px;
+      align-items: center;
+      padding: 14px 20px;
+      background: #0d1425;
+      border-bottom: 1px solid var(--border);
+      box-shadow: 0 8px 24px rgb(0 0 0 / 22%);
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 21px;
+      font-weight: 700;
+      letter-spacing: .01em;
+    }
+
+    .baseline {
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .baseline strong { color: var(--text); }
+
+    .frontier {
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .frontier strong { color: var(--roadmap-current); }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    .legend-item {
+      display: grid;
+      grid-template-columns: 10px auto;
+      gap: 7px;
+      align-items: center;
+      padding: 6px 9px;
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      background: var(--surface);
+    }
+
+    .legend-dot { width: 9px; height: 9px; border-radius: 50%; }
+    .legend-item strong { display: block; font-size: 11px; letter-spacing: .04em; }
+    .legend-item small { display: block; color: var(--muted); font-size: 10px; }
+
+    .workspace {
+      min-height: 0;
+      display: grid;
+      grid-template-columns: 210px minmax(560px, 1fr) 330px;
+    }
+
+    nav {
+      overflow-y: auto;
+      padding: 16px 12px;
+      background: #0e1628;
+      border-right: 1px solid var(--border);
+    }
+
+    .nav-label {
+      margin: 0 8px 10px;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+    }
+
+    .nav-button {
+      width: 100%;
+      margin: 0 0 5px;
+      padding: 10px 11px;
+      border: 1px solid transparent;
+      border-radius: 7px;
+      color: var(--muted);
+      background: transparent;
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .nav-button:hover { color: var(--text); background: var(--surface-2); }
+
+    .nav-button[aria-current="page"] {
+      color: var(--text);
+      background: var(--surface-3);
+      border-color: #53627a;
+      box-shadow: inset 3px 0 0 var(--focus);
+    }
+
+    main {
+      min-width: 0;
+      min-height: 0;
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr) auto;
+      background:
+        radial-gradient(circle at 18% 10%, rgb(103 183 255 / 7%), transparent 34%),
+        var(--page);
+    }
+
+    .view-heading {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      min-height: 70px;
+      padding: 14px 18px 10px;
+    }
+
+    .view-heading h2 { margin: 0 0 5px; font-size: 20px; }
+    .view-heading p { margin: 0; color: var(--muted); font-size: 13px; }
+
+    .tools { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+
+    .tool-button {
+      min-width: 38px;
+      padding: 7px 10px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      background: var(--surface-2);
+      cursor: pointer;
+    }
+
+    .tool-button:hover { border-color: #718096; background: var(--surface-3); }
+    .tool-button:focus-visible, .nav-button:focus-visible, .node:focus-visible {
+      outline: 3px solid var(--focus);
+      outline-offset: 2px;
+    }
+
+    .graph-shell {
+      min-height: 0;
+      margin: 0 18px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+      background: rgb(13 20 37 / 80%);
+      position: relative;
+    }
+
+    #architecture-graph {
+      width: 100%;
+      height: 100%;
+      display: block;
+      min-height: 420px;
+      cursor: grab;
+      touch-action: none;
+      user-select: none;
+    }
+
+    #architecture-graph.is-panning { cursor: grabbing; }
+
+    .graph-hint {
+      position: absolute;
+      right: 10px;
+      bottom: 8px;
+      padding: 5px 8px;
+      border-radius: 5px;
+      background: rgb(11 16 32 / 82%);
+      color: var(--muted);
+      font-size: 11px;
+      pointer-events: none;
+    }
+
+    .roadmap-legend {
+      position: absolute;
+      z-index: 2;
+      top: 10px;
+      left: 10px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      max-width: 520px;
+      padding: 7px;
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      background: rgb(11 16 32 / 92%);
+    }
+
+    .roadmap-legend[hidden] { display: none; }
+
+    .roadmap-legend span {
+      padding: 4px 6px;
+      border: 1px solid currentColor;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: .03em;
+    }
+
+    .roadmap-legend strong {
+      width: 100%;
+      color: var(--muted);
+      font-size: 10px;
+      letter-spacing: .08em;
+    }
+
+    .facts {
+      min-height: 58px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 18px 14px;
+      overflow-x: auto;
+    }
+
+    .fact {
+      flex: 0 0 auto;
+      padding: 7px 9px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--muted);
+      background: var(--surface);
+      font-size: 11px;
+    }
+
+    aside {
+      min-height: 0;
+      overflow-y: auto;
+      padding: 18px;
+      background: #0e1628;
+      border-left: 1px solid var(--border);
+    }
+
+    .detail-kicker {
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+    }
+
+    #detail-title { margin: 8px 0 10px; font-size: 20px; line-height: 1.25; }
+
+    .detail-status-heading {
+      margin: 0 0 5px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .status-badge {
+      display: inline-block;
+      margin-bottom: 16px;
+      padding: 5px 8px;
+      border: 1px solid currentColor;
+      border-radius: 5px;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: .05em;
+    }
+
+    .status-connected { color: var(--connected); }
+    .status-not-connected { color: var(--not-connected); }
+    .status-future { color: var(--future); }
+    .status-current-end { color: var(--current-end); }
+    .status-completed { color: var(--connected); }
+    .status-current { color: var(--roadmap-current); }
+    .status-partial { color: var(--roadmap-partial); }
+    .status-planned { color: var(--roadmap-planned); }
+    .status-tbd { color: var(--roadmap-tbd); }
+
+    .detail-section { margin: 0 0 16px; }
+    .detail-section h3 { margin: 0 0 6px; color: var(--muted); font-size: 12px; }
+    .detail-section p { margin: 0; font-size: 13px; line-height: 1.5; }
+    .detail-section ul { margin: 0; padding-left: 18px; }
+    .detail-section li { margin: 0 0 5px; font-size: 13px; line-height: 1.4; }
+
+    .milestone {
+      padding: 10px;
+      border-left: 3px solid var(--managed);
+      background: var(--surface-2);
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .node { cursor: pointer; }
+    .node rect { stroke-width: 2; rx: 9; }
+    .node:hover rect, .node.is-selected rect { stroke-width: 3; filter: brightness(1.16); }
+    .node-title { fill: var(--text); font-size: 15px; font-weight: 700; text-anchor: middle; }
+    .node-status { font-size: 11px; font-weight: 800; text-anchor: middle; letter-spacing: .04em; }
+    .node-domain { fill: var(--muted); font-size: 9px; font-weight: 700; text-anchor: end; letter-spacing: .08em; }
+
+    .node.connected rect { fill: var(--connected-bg); stroke: var(--connected); }
+    .node.connected .node-status { fill: var(--connected); }
+    .node.not-connected rect { fill: var(--not-connected-bg); stroke: var(--not-connected); stroke-dasharray: 7 4; }
+    .node.not-connected .node-status { fill: var(--not-connected); }
+    .node.future rect { fill: var(--future-bg); stroke: var(--future); stroke-dasharray: 3 5; }
+    .node.future .node-status { fill: var(--future); }
+    .node.current-end rect { fill: var(--current-end-bg); stroke: var(--current-end); stroke-width: 3; }
+    .node.current-end .node-status { fill: var(--current-end); }
+    .node.completed rect { fill: var(--connected-bg); stroke: var(--connected); }
+    .node.completed .node-status { fill: var(--connected); }
+    .node.current rect { fill: var(--roadmap-current-bg); stroke: var(--roadmap-current); stroke-width: 3; }
+    .node.current .node-status { fill: var(--roadmap-current); }
+    .node.partial rect { fill: var(--roadmap-partial-bg); stroke: var(--roadmap-partial); }
+    .node.partial .node-status { fill: var(--roadmap-partial); }
+    .node.planned rect { fill: var(--roadmap-planned-bg); stroke: var(--roadmap-planned); stroke-dasharray: 7 4; }
+    .node.planned .node-status { fill: var(--roadmap-planned); }
+    .node.tbd rect { fill: var(--roadmap-tbd-bg); stroke: var(--roadmap-tbd); stroke-dasharray: 3 5; }
+    .node.tbd .node-status { fill: var(--roadmap-tbd); }
+
+    .edge { fill: none; stroke-width: 3; }
+    .edge.connected { stroke: var(--connected); marker-end: url(#arrow-connected); }
+    .edge.not-connected { stroke: var(--not-connected); stroke-dasharray: 8 6; marker-end: url(#arrow-not-connected); }
+    .edge.future { stroke: var(--future); stroke-dasharray: 3 6; marker-end: url(#arrow-future); }
+    .edge.blocked { stroke: var(--current-end); stroke-dasharray: 3 6; marker-end: url(#bar-blocked); }
+    .edge.roadmap { stroke: var(--roadmap-current); marker-end: url(#arrow-roadmap); }
+    .edge.foundation { stroke: #41516d; stroke-width: 2; stroke-dasharray: 4 7; }
+    .edge.primary-path { stroke: var(--roadmap-current); stroke-width: 5; marker-end: url(#arrow-roadmap); }
+    .edge.blocked-primary { stroke: var(--current-end); stroke-width: 5; stroke-dasharray: 3 6; marker-end: url(#bar-blocked); }
+    .roadmap-group rect { fill: #10271e; stroke: var(--connected); stroke-width: 1.5; }
+    .roadmap-group .group-title { fill: var(--connected); font-size: 13px; font-weight: 800; letter-spacing: .08em; }
+    .roadmap-group .group-subtitle { fill: var(--muted); font-size: 12px; font-weight: 700; }
+    .edge-label {
+      fill: var(--text);
+      stroke: #0d1425;
+      stroke-width: 6px;
+      paint-order: stroke;
+      font-size: 11px;
+      font-weight: 700;
+      text-anchor: middle;
+    }
+
+    .empty-detail { color: var(--muted); font-size: 13px; line-height: 1.6; }
+
+    @media (max-width: 1350px) {
+      .workspace { grid-template-columns: 184px minmax(500px, 1fr) 290px; }
+      header { grid-template-columns: 1fr; gap: 10px; }
+      .legend { justify-content: flex-start; }
+      .legend-item small { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div>
+        <h1>Desktop Mascot Architecture Viewer</h1>
+        <div class="baseline">Current baseline: <strong>M-056 — Completed / Pushed</strong></div>
+        <div class="frontier">Current capability frontier: <strong>Mascot Click → Local Conversation Evaluation</strong></div>
+      </div>
+      <div class="legend" aria-label="Architecture status legend">
+        <div class="legend-item"><span class="legend-dot" style="background:var(--connected)"></span><span><strong>CONNECTED</strong><small>Production runtime path</small></span></div>
+        <div class="legend-item"><span class="legend-dot" style="background:var(--not-connected)"></span><span><strong>NOT CONNECTED</strong><small>Implemented, not in production path</small></span></div>
+        <div class="legend-item"><span class="legend-dot" style="background:var(--future)"></span><span><strong>FUTURE</strong><small>Not implemented / candidate</small></span></div>
+        <div class="legend-item"><span class="legend-dot" style="background:var(--current-end)"></span><span><strong>CURRENT END</strong><small>Current processing endpoint</small></span></div>
+      </div>
+    </header>
+
+    <div class="workspace">
+      <nav aria-label="Architecture views">
+        <div class="nav-label">Views</div>
+        <button class="nav-button" data-view="overview" aria-current="page">Overview</button>
+        <button class="nav-button" data-view="roadmap">Product Vision / Roadmap</button>
+        <button class="nav-button" data-view="m056">M-056 Flow</button>
+        <button class="nav-button" data-view="startup">Startup / Runtime</button>
+        <button class="nav-button" data-view="character">Character</button>
+        <button class="nav-button" data-view="rendering">Rendering</button>
+        <button class="nav-button" data-view="input">Input</button>
+        <button class="nav-button" data-view="conversation">Conversation</button>
+        <button class="nav-button" data-view="settings">Settings / Tray</button>
+        <button class="nav-button" data-view="persistence">Persistence</button>
+        <button class="nav-button" data-view="speech">Speech</button>
+        <button class="nav-button" data-view="shutdown">Shutdown</button>
+      </nav>
+
+      <main>
+        <div class="view-heading">
+          <div>
+            <h2 id="view-title">System Overview</h2>
+            <p id="view-description">Current production connections and the Conversation-to-Speech boundary.</p>
+          </div>
+          <div class="tools" aria-label="Diagram controls">
+            <button class="tool-button" id="zoom-out" aria-label="Zoom out">−</button>
+            <button class="tool-button" id="zoom-in" aria-label="Zoom in">+</button>
+            <button class="tool-button" id="reset-view">Reset View</button>
+            <button class="tool-button" id="fit-view">Fit to View</button>
+          </div>
+        </div>
+
+        <div class="graph-shell">
+          <div class="roadmap-legend" id="roadmap-legend" hidden aria-label="Product capability status legend">
+            <strong>PRODUCT CAPABILITY STATUS — Architecture接続状態とは別</strong>
+            <span class="status-completed">✓ COMPLETED</span>
+            <span class="status-current">▶ CURRENT BASELINE</span>
+            <span class="status-partial">◐ PARTIAL</span>
+            <span class="status-planned">○ PLANNED</span>
+            <span class="status-tbd">? TBD</span>
+          </div>
+          <svg id="architecture-graph" role="img" aria-labelledby="view-title view-description"></svg>
+          <div class="graph-hint">Click a node for details · drag to pan · wheel to zoom</div>
+        </div>
+        <div class="facts" id="view-facts" aria-label="Current architecture facts"></div>
+      </main>
+
+      <aside aria-live="polite">
+        <div class="detail-kicker" id="detail-kicker">コンポーネント詳細</div>
+        <div id="detail-content" class="empty-detail">
+          ノードを選択すると、役割、所有・管理、担当しないもの、関連マイルストーンを確認できます。
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <script>
+    (() => {
+      "use strict";
+
+      const SVG_NS = "http://www.w3.org/2000/svg";
+      const NODE_WIDTH = 190;
+      const NODE_HEIGHT = 86;
+
+      const details = {
+        user: detail("User", "CONNECTED", "mascotへのpointer操作とWindows entry pointの操作を開始する。", [], ["runtime resource", "application state"], "既存production interaction"),
+        windowsInput: detail("Windows / Input", "CONNECTED", "Win32 mascot inputを受け取り、native側のclick/drag分類へ渡す。", ["native pointer operation state"], ["ConversationRequest生成", "Speech表示"], "M-030 / M-055"),
+        runtime: detail("Runtime Orchestration", "CONNECTED", "production ownerを構成し、frame処理とorderly shutdownの順序を統括する。", ["runtime component構成", "frame scheduling"], ["各subsystem固有resource", "persistence record"], "M-029〜M-056"),
+        characterRendering: detail("Character / Rendering", "CONNECTED", "active Characterを公開し、検証済みCamera-to-DirectComposition経路で描画する。", ["CharacterAssetManagerによるimported Character ownership", "Camera pipeline texture"], ["Conversation identity policy", "Settings persistence"], "M-029 / M-039〜M-046"),
+        conversation: detail("Conversation", "CONNECTED", "受理したmascot clickからcorrelationされたlocal synchronous evaluationを実行する。", ["評価中のimmutable request/result value"], ["Speech admission", "presentation forwarding", "history / queue"], "M-049〜M-056"),
+        result: detail("ConversationEvaluationResult", "CONNECTED", "1件のrequestに対するResponseProducedまたはNoMatchを表す。", ["immutable outcome、RequestId、optional response"], ["Speech admission state", "presentation resource"], "M-050、M-056でproduction endpoint化"),
+        currentEnd: detail("Current processing endpoint", "CURRENT END", "M-056はRequestId correlationを確認し、domain resultで処理を終了する。", [], ["forwarding", "retry", "queue", "Speech変換"], "M-056"),
+        speechBoundary: detail("Speech / Presentation", "NOT CONNECTED", "presentation実装は存在するが、normal runtimeにConversationEvaluationResultからSpeechへ渡すadapterは存在しない。", ["明示的に生成された場合の独立したpresentation lifecycle"], ["Conversation evaluation", "mascot clickへの自動応答表示"], "M-047.5 / M-048、M-056時点ではproduction未接続"),
+        startupGate: detail("Single Instance Startup Gate", "CONNECTED", "startup cloakを適用し、primaryを取得するかprimaryへ通知してsecondaryを終了する。", ["startup coordination state"], ["Settings state", "secondary側mascot resource"], "M-037 / M-038"),
+        bootstrap: detail("DesktopMascotRuntimeBootstrap", "CONNECTED", "runtime modeを選択し、Character構造検証後にnormal-runtime ownerを構成する。", ["runtime owner GameObjectとcomponent構成"], ["frame scheduling", "native GPU resource"], "M-029〜M-056"),
+        prerequisites: detail("Diagnostic-named startup prerequisites", "CONNECTED", "runtime pipeline開始前にcomposition、destination texture、readback orientationのready状態を成立させる。", ["focused startup diagnostic lifetime"], ["production architecture policyの決定"], "既存validated baseline。名称・配置は今回変更しない"),
+        pipeline: detail("DesktopMascotRuntimePipeline", "CONNECTED", "render、readback、region publication、click evaluation、retired disposal、shutdownをframe単位でpumpする。", ["mask buffer", "pinned handle", "Present command buffer", "Camera source pipeline"], ["Character selection policy", "native COM resource", "Settings edit"], "M-029〜M-056"),
+        characterManager: detail("CharacterAssetManager", "CONNECTED", "normal runtimeでactive Character公開とactive/retired imported handleを一元管理する。", ["active/retired runtime-import handle", "Character generation"], ["bundled Scene root", "Persistence", "Conversation persona"], "M-039〜M-044"),
+        selection: detail("RuntimeCharacterSelectionController", "CONNECTED", "picker、import、restore、Bundled切替、persistence、shutdownの操作排他を管理する。", ["Character operation state", "operation exclusion"], ["active Character公開", "Settings edit"], "M-041〜M-043"),
+        vrmImport: detail("RuntimeVrmCharacterSource", "CONNECTED", "activation前にsize/hash preflightとUniVRM importを実行する。", ["import-in-progress", "activation前のimported root"], ["ownership transfer後のactivated handle", "Persistence"], "M-040"),
+        cameraPipeline: detail("Camera Source Pipeline", "CONNECTED", "Camera source textureとnormalized transfer texture、および唯一のY-normalization境界を管理する。", ["2個のRenderTexture", "一時的なCamera設定"], ["native destination texture", "swap chain"], "M-029"),
+        nativePlugin: detail("DesktopMascotNative", "CONNECTED", "Unity D3D12 render eventをWin32、DXGI、DirectComposition、alpha region、native interactionへ接続する。", ["plugin-owned COM object", "HWND", "HRGN queue ownership", "native thread"], ["Unity-borrowed device / queue / fence / source texture"], "M-056までのvalidated native baseline"),
+        nativePointer: detail("Native Pointer Classification", "CONNECTED", "press、capture、drag threshold、移動、click/drag completionのauthoritative publicationを管理する。", ["native pointer state", "capture lifecycle", "completion generation"], ["Conversation RequestId", "Speech", "persistence file"], "M-030 / M-055"),
+        clickGeneration: detail("Completed Click Generation", "CONNECTED", "eligibleなnon-drag WM_LBUTTONUPごとにnon-destructiveなmonotonic uint64 snapshotを公開する。", ["native atomic generation"], ["observer cursor", "pending debt", "request identity"], "M-055"),
+        clickController: detail("MascotClickConversationController", "CONNECTED", ["completed-click generationを監視する", "未処理clickをpending debtとして保持する", "RequestIdを割り当てる", "ConversationRequestを生成する", "local evaluatorを同期評価する"], ["observer cursor", "pending debt", "request counter", "evaluator参照"], ["native pointer capture", "Character管理", "Speech表示", "Persistence", "presentation result history"], "M-056"),
+        request: detail("ConversationRequest", "CONNECTED", "caller-supplied RequestId、mascot-click event、固定default Conversation character identityを保持する。", ["immutable domain value"], ["CharacterDescriptor", "VRM identity", "presentation state"], "M-049 / M-054 / M-056"),
+        evaluatorInterface: detail("ILocalConversationEvaluator", "CONNECTED", "1件のbounded synchronous local evaluation境界を定義する。", [], ["I/O", "queue", "retry", "Speech"], "M-051"),
+        singleEntry: detail("SingleEntryLocalConversationEvaluator", "CONNECTED", "request TriggerIdを1件のcompiled-in response entryへordinal exact-matchする。", ["borrowed immutable entry参照"], ["CharacterId matching", "collection", "presentation"], "M-053、M-056でproduction接続"),
+        correlation: detail("RequestId Correlation", "CONNECTED", "evaluator resultのRequestIdが受理したrequestと一致することを検証する。", [], ["result forwarding", "result storage"], "M-056"),
+        settings: detail("Settings Presentation", "CONNECTED", "Settings lifecycle、ViewModel編集、validation、Player presentationを管理する。", ["Settings UI", "editable state"], ["UI controlからのfilesystem操作", "window-position persistence"], "M-033 / M-034 / M-045"),
+        entryPoints: detail("Tray / Context Menu", "CONNECTED", "共通managed dispatcherへOpenSettingsまたはRequestExitを公開する。", ["native tray thread/icon/menu", "context popup lifetime"], ["Settings instance", "processの直接終了"], "M-035 / M-036 / M-046"),
+        visibility: detail("Player Visibility Host", "CONNECTED", "exact UnityWndClass探索とPlayer cloak/show stateを一元管理する。", ["cached/revalidated Player HWND state"], ["mascot/tray HWND", "Settings persistence"], "M-037 / M-045"),
+        settingsStore: detail("SettingsManager / settings.json", "CONNECTED", "versioned application settingsの唯一のpersistence owner。", ["settings.json"], ["window-position.json", "character-selection.json"], "M-033"),
+        positionStore: detail("Window Position Persistence", "CONNECTED", "initial mascot positionを読み込み、completed dragだけを保存する。", ["window-position.json"], ["Settings record", "Character record"], "M-031"),
+        characterStore: detail("Character Selection Persistence", "CONNECTED", "activation成功後のexternal VRM restore pathとcontent hashをprivateに保存する。", ["character-selection.json"], ["external VRM file", "Settings record"], "M-042 / M-043"),
+        nativeSpeech: detail("Native Speech Substrate", "CONNECTED", "独立したSpeech HWND、swap chain、D3D12 copy、DirectComposition visual、cleanup substrateを提供する。", ["Speech-native HWND/GPU/region resource"], ["Conversation evaluation", "mascot swap chain / HRGN"], "M-048"),
+        speechController: detail("SpeechPresentationController", "NOT CONNECTED", "生成された場合は1件のcurrent messageを管理するが、M-056のnormal runtimeでは生成されない。", ["1件のcurrent SpeechMessage", "presentation generation"], ["Conversation result", "queue", "Character resource"], "M-048。M-056時点ではdiagnostic-only生成"),
+        speechAdapter: detail("Conversation-to-Speech Adapter", "FUTURE", "ConversationEvaluationResultをSpeechへ変換・admitする実装は現在存在しない。", [], ["現在のcodebase内resource"], "未実装。将来milestone番号は未定"),
+        shutdown: detail("Orderly Shutdown", "CONNECTED", "acceptance barrierを閉じ、cooperative workをdrainし、presentation停止後にmanaged ownerを解放して最終Player closeを行う。", ["shutdown sequencing"], ["各subsystem resourceの横断所有"], "M-056までのvalidated production lifecycle")
+      };
+
+      const roadmapDetails = {
+        productGoal: capability("Desktop Mascot Product Vision", "TBD", "characterを中心とした自然で静かなdesktop presenceを、local-firstかつnon-activatingな体験として目指す。", "これは最終完成判定ではない。completion判定はProduct Ready Conditionsで扱い、conversation content、presentation behavior、release/acceptance条件は未確定。", "ProjectPrinciples（M-049以降のdesign guidance）", "Overview / Speech / Shutdown"),
+        baseline: capability("Current Baseline", "COMPLETED", "M-056はCompleted / Pushed。Mascot ClickからConversationEvaluationResultまでproduction接続済み。", "active product milestoneはなく、M-057 scopeは未開始・未確定。", "M-056", "M-056 Flow / Conversation"),
+        coreCapability: capability("Core Runtime", "COMPLETED", "normal runtime orchestration、Single Instance、Tray、Player visibility、orderly shutdownのvalidated foundationがある。", "製品完成条件としての追加scopeは要件未確定。", "M-029 / M-035〜M-038 / M-046", "Startup / Runtime / Settings / Tray / Shutdown"),
+        characterCapability: capability("Character", "COMPLETED", "bundled Character、runtime VRM import/selection/restore、atomic activation、render-safe disposalがある。", "Conversation Pack等との将来bindingは別scopeで未定。", "M-039〜M-044", "Character / Persistence"),
+        renderingCapability: capability("Rendering", "COMPLETED", "D3D12、DirectComposition、premultiplied alpha、HRGN interactionを含むproduction rendering pathが検証済み。", "追加renderer/platform scopeは要件未確定。", "M-029 / M-046", "Rendering"),
+        interactionCapability: capability("Interaction", "COMPLETED", "native click/drag、context menu、tray、position persistence、Single Instance activationが接続済み。", "追加interaction taxonomyのproduction sourceは未スケジュール。", "M-030 / M-031 / M-035〜M-038 / M-055", "Input / Settings / Tray"),
+        settingsCapability: capability("Settings", "COMPLETED", "versioned settings、ViewModel editing、Player presentation、Character selection entryが接続済み。", "将来のautomatic conversation、sound、network controlはproduct scope確定後の別設計。", "M-033 / M-034 / M-041 / M-045", "Settings / Tray"),
+        persistenceCapability: capability("Persistence", "COMPLETED", "settings.json、window-position.json、character-selection.jsonが独立ownerで運用される。", "将来機能のschema追加やmigrationは未定。", "M-031 / M-033 / M-042 / M-043", "Persistence"),
+        conversationCapability: capability("Conversation", "CURRENT", "Mascot ClickからConversationRequestを生成し、SingleEntryLocalConversationEvaluatorで同期評価してConversationEvaluationResultまで到達する。", "評価結果をpresentationへ渡すproduction経路は存在しない。CURRENTはactive milestoneではなく現在の能力frontierを示す。", "M-049〜M-056", "M-056 Flow / Conversation / Speech"),
+        presentationConnection: capability("Conversation → Presentation Path", "PLANNED", "ConversationEvaluationResult、managed Speech implementation、native Speech substrateはそれぞれ存在する。", "resultをpresentationへ渡すproduction adapter/admission pathは未実装で、milestoneも未スケジュール。", "Not yet scheduled。将来milestone番号は未定", "M-056 Flow / Conversation / Speech"),
+        speechCapability: capability("Speech / Presentation", "PARTIAL", "managed Speech implementationとnative Speech substrateは存在し、focused diagnostic pathで検証されている。", "normal runtimeはSpeechPresentationControllerを生成せず、Conversation result adapterも存在しない。", "M-047.5 / M-048", "Speech / M-056 Flow"),
+        integrationCapability: capability("Product Integration", "TBD", "response coordination、user control、local-first/provider-independent境界のprinciplesは採用済み。", "production wiring、Busy/concurrency policy、cadence、pack/provider等のscopeと順序は未スケジュール。", "ProjectPrinciples / DevelopmentHandoff deferred scope", "Conversation / Speech / Settings"),
+        productReady: capability(
+          "Product Ready Conditions",
+          "TBD",
+          ["Single Instance", "Settings", "Character selection/import", "Rendering / transparency", "Click / drag interaction", "3つの独立Persistence", "Orderly shutdown", "Local Conversation evaluation"],
+          ["ConversationEvaluationResult → Speech / Presentationのproduction接続"],
+          "Goal definition pending",
+          "全Architecture view",
+          ["final conversation content scope", "final presentation behavior / admission policy", "animation・expression・audio・Text SEを製品要件に含めるか", "packaging / release criteria", "product acceptance criteria"]
+        )
+      };
+
+      function detail(title, status, responsibility, owns, doesNotOwn, milestone) {
+        return { title, status, responsibility, owns, doesNotOwn, milestone };
+      }
+
+      function capability(title, status, current, remaining, milestone, architectureViews, tbd = []) {
+        return { kind: "capability", title, status, current, remaining, milestone, architectureViews, tbd };
+      }
+
+      const views = {
+        overview: view(
+          "System Overview",
+          "Current production connections and the Conversation-to-Speech boundary.",
+          1180, 620,
+          [
+            node("user", 35, 235, ["User"], "CONNECTED", "native", "user"),
+            node("windows", 255, 235, ["Windows / Input"], "CONNECTED", "native", "windowsInput"),
+            node("runtime", 485, 95, ["Runtime", "Orchestration"], "CONNECTED", "managed", "runtime"),
+            node("char-render", 755, 95, ["Character / Rendering"], "CONNECTED", "managed", "characterRendering"),
+            node("conversation", 485, 330, ["Conversation"], "CONNECTED", "managed", "conversation"),
+            node("result", 720, 330, ["Conversation", "Evaluation Result"], "CONNECTED", "managed", "result"),
+            node("end", 955, 330, ["Processing Endpoint"], "CURRENT END", "managed", "currentEnd"),
+            node("speech", 955, 485, ["Speech / Presentation"], "NOT CONNECTED", "managed", "speechBoundary")
+          ],
+          [
+            edge("user", "windows"), edge("windows", "runtime"), edge("runtime", "char-render"),
+            edge("windows", "conversation", "Mascot Click"), edge("runtime", "conversation", "frame pump"),
+            edge("conversation", "result"), edge("result", "end"), edge("end", "speech", "NO ADAPTER", "blocked")
+          ],
+          ["Mascot Click → Conversation: connected", "ConversationEvaluationResult: current endpoint", "Conversation → Speech: not connected", "Orderly shutdown remains connected"]
+        ),
+
+        roadmap: view(
+          "Product Vision / Roadmap",
+          "Milestone countではなく、製品能力の状態と現在のcapability frontierを示します。数値進捗率は使用しません。",
+          1300, 650,
+          [
+            node("g-goal", 555, 75, ["Desktop Mascot", "PRODUCT VISION"], "TBD", "vision", "productGoal"),
+            node("g-core", 20, 220, ["Core Runtime"], "COMPLETED", "capability", "coreCapability"),
+            node("g-character", 230, 220, ["Character"], "COMPLETED", "capability", "characterCapability"),
+            node("g-rendering", 440, 220, ["Rendering"], "COMPLETED", "capability", "renderingCapability"),
+            node("g-interaction", 650, 220, ["Interaction"], "COMPLETED", "capability", "interactionCapability"),
+            node("g-settings", 860, 220, ["Settings"], "COMPLETED", "capability", "settingsCapability"),
+            node("g-persistence", 1070, 220, ["Persistence"], "COMPLETED", "capability", "persistenceCapability"),
+            node("g-baseline", 20, 445, ["M-056", "Completed / Pushed"], "COMPLETED", "baseline", "baseline"),
+            node("g-conversation", 230, 445, ["Conversation", "Current Frontier"], "CURRENT", "capability", "conversationCapability"),
+            node("g-presentation-path", 440, 445, ["Result → Presentation", "Not yet scheduled"], "PLANNED", "capability", "presentationConnection"),
+            node("g-speech", 650, 445, ["Speech /", "Presentation"], "PARTIAL", "capability", "speechCapability"),
+            node("g-integration", 860, 445, ["Product Integration"], "TBD", "capability", "integrationCapability"),
+            node("g-ready", 1070, 445, ["★ PRODUCT READY", "Goal definition pending"], "TBD", "goal", "productReady")
+          ],
+          [
+            edge("g-goal", "g-core", "", "foundation"),
+            edge("g-goal", "g-character", "", "foundation"),
+            edge("g-goal", "g-rendering", "", "foundation"),
+            edge("g-goal", "g-interaction", "", "foundation"),
+            edge("g-goal", "g-settings", "", "foundation"),
+            edge("g-goal", "g-persistence", "", "foundation"),
+            edge("g-baseline", "g-conversation", "CURRENT CAPABILITY", "primary-path"),
+            edge("g-conversation", "g-presentation-path", "NOT YET CONNECTED", "blocked-primary"),
+            edge("g-presentation-path", "g-speech", "TARGET SUBSYSTEM", "primary-path"),
+            edge("g-speech", "g-integration", "SCOPE TBD", "primary-path"),
+            edge("g-integration", "g-ready", "GOAL TBD", "primary-path")
+          ],
+          [
+            "Current Capability Frontier: User interaction → Mascot Click → Local Conversation Evaluation → ConversationEvaluationResult",
+            "Remaining Major Capability: Conversation result → presentation path [NOT YET CONNECTED]",
+            "Product Ready Conditions: confirmed foundations + disconnected presentation + final goal definition TBD",
+            "M-057 scope: Not started / not defined"
+          ],
+          [{ kind: "group", x: 20, y: 180, width: 1240, label: "COMPLETED FOUNDATIONS", subtitle: "validated through M-056" }]
+        ),
+
+        m056: view(
+          "M-056 Flow",
+          "One completed mascot click becomes one synchronous local evaluation and stops at the correlated domain result.",
+          1300, 650,
+          [
+            node("m-user", 25, 75, ["1 · User Click"], "CONNECTED", "native", "user"),
+            node("m-native", 240, 75, ["2 · Native Pointer", "Classification"], "CONNECTED", "native", "nativePointer"),
+            node("m-decision", 455, 75, ["3 · Click or Drag?"], "CONNECTED", "native", "nativePointer"),
+            node("m-generation", 670, 75, ["4 · Completed Click", "Generation"], "CONNECTED", "native", "clickGeneration"),
+            node("m-controller", 885, 75, ["5 · Click Conversation", "Controller"], "CONNECTED", "managed", "clickController"),
+            node("m-request", 1100, 75, ["6 · Conversation", "Request"], "CONNECTED", "managed", "request"),
+            node("m-interface", 1100, 285, ["7 · Local Evaluator", "Interface"], "CONNECTED", "managed", "evaluatorInterface"),
+            node("m-single", 885, 285, ["8 · Single-Entry", "Evaluator"], "CONNECTED", "managed", "singleEntry"),
+            node("m-result", 670, 285, ["9 · Conversation", "Evaluation Result"], "CONNECTED", "managed", "result"),
+            node("m-correlation", 455, 285, ["10 · RequestId", "Correlation"], "CONNECTED", "managed", "correlation"),
+            node("m-end", 240, 285, ["11 · Processing Endpoint"], "CURRENT END", "managed", "currentEnd"),
+            node("m-speech", 240, 475, ["Speech / Presentation"], "NOT CONNECTED", "managed", "speechBoundary"),
+            node("m-drag", 455, 475, ["Completed Drag", "No click generation"], "CONNECTED", "native", "nativePointer"),
+            node("m-position", 670, 475, ["Position Persistence"], "CONNECTED", "managed", "positionStore")
+          ],
+          [
+            edge("m-user", "m-native"), edge("m-native", "m-decision"),
+            edge("m-decision", "m-generation", "CLICK"), edge("m-generation", "m-controller"), edge("m-controller", "m-request"),
+            edge("m-request", "m-interface"), edge("m-interface", "m-single"), edge("m-single", "m-result"),
+            edge("m-result", "m-correlation"), edge("m-correlation", "m-end"),
+            edge("m-end", "m-speech", "X · NOT FORWARDED", "blocked"),
+            edge("m-decision", "m-drag", "DRAG"), edge("m-drag", "m-position")
+          ],
+          ["First snapshot = observer cursor", "Generation delta = retained pending debt", "Maximum 64 accepted clicks per frame", "No drop or coalesce", "1 click → 1 request → 1 synchronous evaluation"]
+        ),
+
+        startup: view("Startup / Runtime", "Normal-runtime composition and the prerequisite readiness boundary.", 1120, 590, [
+          node("s-player", 35, 220, ["Unity Player"], "CONNECTED", "managed", "runtime"),
+          node("s-gate", 260, 220, ["Single Instance", "Startup Gate"], "CONNECTED", "native", "startupGate"),
+          node("s-secondary", 485, 400, ["Secondary", "Orderly Exit"], "CONNECTED", "managed", "startupGate"),
+          node("s-bootstrap", 485, 150, ["Runtime Bootstrap"], "CONNECTED", "managed", "bootstrap"),
+          node("s-owners", 710, 150, ["Production Owners"], "CONNECTED", "managed", "runtime"),
+          node("s-prereq", 710, 360, ["Diagnostic-Named", "Prerequisites"], "CONNECTED", "managed", "prerequisites"),
+          node("s-pipeline", 935, 245, ["Runtime Pipeline"], "CONNECTED", "managed", "pipeline")
+        ], [
+          edge("s-player", "s-gate"), edge("s-gate", "s-bootstrap", "PRIMARY"), edge("s-gate", "s-secondary", "SECONDARY"),
+          edge("s-bootstrap", "s-owners"), edge("s-owners", "s-pipeline"), edge("s-prereq", "s-pipeline", "ready")
+        ], ["Production launch waits for composition, destination texture, and readback-orientation readiness", "No production source movement or rename is represented"]),
+
+        character: view("Character Lifecycle", "Scene borrowing, runtime import, atomic activation, and render-safe retirement.", 1120, 590, [
+          node("c-scene", 35, 125, ["Bundled Scene", "Character"], "CONNECTED", "managed", "characterManager"),
+          node("c-selection", 35, 350, ["Character Selection"], "CONNECTED", "managed", "selection"),
+          node("c-import", 270, 350, ["VRM Import"], "CONNECTED", "managed", "vrmImport"),
+          node("c-activate", 505, 350, ["Atomic Activation"], "CONNECTED", "managed", "characterManager"),
+          node("c-manager", 505, 125, ["Active Character", "Owner"], "CONNECTED", "managed", "characterManager"),
+          node("c-camera", 750, 125, ["Camera observes", "active root"], "CONNECTED", "managed", "characterRendering"),
+          node("c-retired", 750, 350, ["Retired Disposal"], "CONNECTED", "managed", "characterManager")
+        ], [
+          edge("c-scene", "c-manager", "BORROWED"), edge("c-selection", "c-import"), edge("c-import", "c-activate"),
+          edge("c-activate", "c-manager"), edge("c-manager", "c-camera"), edge("c-manager", "c-retired")
+        ], ["Bundled TEST_MODEL remains Scene-owned", "Imported handles transfer to CharacterAssetManager exactly once"]),
+
+        rendering: view("Rendering / DirectComposition", "The validated single-normalization production rendering path.", 1280, 570, [
+          node("r-camera", 25, 190, ["Unity Camera"], "CONNECTED", "managed", "cameraPipeline"),
+          node("r-source", 230, 190, ["Camera Source", "Texture"], "CONNECTED", "managed", "cameraPipeline"),
+          node("r-normal", 435, 190, ["One Y-Normalization"], "CONNECTED", "managed", "cameraPipeline"),
+          node("r-event", 640, 190, ["Native Render Event"], "CONNECTED", "managed", "pipeline"),
+          node("r-copy", 845, 190, ["D3D12 Copy"], "CONNECTED", "native", "nativePlugin"),
+          node("r-dcomp", 1050, 190, ["DirectComposition"], "CONNECTED", "native", "nativePlugin"),
+          node("r-region", 640, 390, ["Readback → HRGN", "SetWindowRgn"], "CONNECTED", "native", "nativePlugin")
+        ], [
+          edge("r-camera", "r-source"), edge("r-source", "r-normal"), edge("r-normal", "r-event"), edge("r-event", "r-copy"),
+          edge("r-copy", "r-dcomp"), edge("r-normal", "r-region", "alpha"), edge("r-region", "r-dcomp", "interaction region")
+        ], ["Normalized transfer is the only downstream texture", "Premultiplied-alpha swap chain", "SetWindowRgn defines mascot hit behavior"]),
+
+        input: view("Mascot Input", "Native Win32 classification keeps click and drag completion distinct.", 1120, 580, [
+          node("i-user", 35, 230, ["User Pointer"], "CONNECTED", "native", "user"),
+          node("i-window", 260, 230, ["Mascot HWND"], "CONNECTED", "native", "nativePlugin"),
+          node("i-native", 485, 230, ["Native Pointer", "Classification"], "CONNECTED", "native", "nativePointer"),
+          node("i-drag", 710, 95, ["Completed Drag"], "CONNECTED", "native", "nativePointer"),
+          node("i-position", 935, 95, ["Position Persistence"], "CONNECTED", "managed", "positionStore"),
+          node("i-click", 710, 360, ["Completed Click", "Generation"], "CONNECTED", "native", "clickGeneration"),
+          node("i-controller", 935, 360, ["M-056 Observer"], "CONNECTED", "managed", "clickController")
+        ], [
+          edge("i-user", "i-window"), edge("i-window", "i-native"), edge("i-native", "i-drag", "DRAG"), edge("i-drag", "i-position"),
+          edge("i-native", "i-click", "CLICK"), edge("i-click", "i-controller")
+        ], ["A drag never publishes completed-click", "Cancellation and capture loss publish neither synthetic completion"]),
+
+        conversation: view("Conversation", "The production-connected M-056 request and evaluation path.", 1260, 560, [
+          node("v-signal", 25, 190, ["Click Generation"], "CONNECTED", "native", "clickGeneration"),
+          node("v-controller", 230, 190, ["Click Controller"], "CONNECTED", "managed", "clickController"),
+          node("v-request", 435, 190, ["ConversationRequest"], "CONNECTED", "managed", "request"),
+          node("v-interface", 640, 190, ["Local Evaluator", "Interface"], "CONNECTED", "managed", "evaluatorInterface"),
+          node("v-single", 845, 190, ["Single-Entry", "Evaluator"], "CONNECTED", "managed", "singleEntry"),
+          node("v-result", 1050, 190, ["Evaluation Result"], "CONNECTED", "managed", "result"),
+          node("v-end", 1050, 380, ["Processing Endpoint"], "CURRENT END", "managed", "currentEnd")
+        ], [
+          edge("v-signal", "v-controller"), edge("v-controller", "v-request"), edge("v-request", "v-interface"),
+          edge("v-interface", "v-single"), edge("v-single", "v-result"), edge("v-result", "v-end")
+        ], ["Fixed default Conversation persona identity", "RequestIds allocated only at acceptance", "Result is not stored or forwarded"]),
+
+        settings: view("Settings / Tray / Single Instance", "Shared Windows entry points route to one Settings presentation host or orderly exit.", 1180, 590, [
+          node("t-user", 35, 235, ["User"], "CONNECTED", "native", "user"),
+          node("t-entry", 260, 120, ["Tray / Context Menu"], "CONNECTED", "native", "entryPoints"),
+          node("t-secondary", 260, 360, ["Secondary Activation"], "CONNECTED", "native", "startupGate"),
+          node("t-host", 505, 235, ["Player Visibility", "Host"], "CONNECTED", "managed", "visibility"),
+          node("t-settings", 750, 235, ["Settings Window"], "CONNECTED", "managed", "settings"),
+          node("t-selection", 975, 120, ["Character Selection"], "CONNECTED", "managed", "selection"),
+          node("t-quit", 975, 360, ["Orderly Quit"], "CONNECTED", "managed", "shutdown")
+        ], [
+          edge("t-user", "t-entry"), edge("t-entry", "t-host", "SETTINGS"), edge("t-secondary", "t-host"), edge("t-host", "t-settings"),
+          edge("t-settings", "t-selection"), edge("t-entry", "t-quit", "EXIT")
+        ], ["Tray/context commands share OpenSettings and RequestExit semantics", "Ordinary Player close cloaks instead of terminating"]),
+
+        persistence: view("Persistence", "Three production stores remain separate and have sole owners.", 1080, 570, [
+          node("p-settings-client", 35, 90, ["Settings UI"], "CONNECTED", "managed", "settings"),
+          node("p-settings", 340, 90, ["SettingsManager", "settings.json"], "CONNECTED", "managed", "settingsStore"),
+          node("p-drag", 35, 240, ["Completed Drag"], "CONNECTED", "native", "nativePointer"),
+          node("p-position", 340, 240, ["Position Owner", "window-position.json"], "CONNECTED", "managed", "positionStore"),
+          node("p-selection", 35, 390, ["Character Selection"], "CONNECTED", "managed", "selection"),
+          node("p-character", 340, 390, ["Selection Owner", "character-selection.json"], "CONNECTED", "managed", "characterStore")
+        ], [
+          edge("p-settings-client", "p-settings"), edge("p-drag", "p-position"), edge("p-selection", "p-character")
+        ], ["No merged store", "No cross-read between owners", "Runtime-smoke and diagnostics avoid production settings/character stores"]),
+
+        speech: view("Speech / Presentation", "Native Speech infrastructure exists, while normal-runtime Conversation presentation remains disconnected.", 1160, 600, [
+          node("h-native-comp", 35, 115, ["Native Composition"], "CONNECTED", "native", "nativePlugin"),
+          node("h-native-speech", 300, 115, ["Native Speech", "Substrate"], "CONNECTED", "native", "nativeSpeech"),
+          node("h-diagnostic", 35, 350, ["Message Diagnostic"], "NOT CONNECTED", "managed", "speechController"),
+          node("h-controller", 300, 350, ["Managed Speech", "Controller"], "NOT CONNECTED", "managed", "speechController"),
+          node("h-result", 610, 225, ["Conversation Result"], "CONNECTED", "managed", "result"),
+          node("h-adapter", 875, 225, ["Conversation → Speech", "Adapter"], "FUTURE", "managed", "speechAdapter")
+        ], [
+          edge("h-native-comp", "h-native-speech"), edge("h-diagnostic", "h-controller", "DIAGNOSTIC", "not-connected"),
+          edge("h-controller", "h-native-speech", "HOST", "not-connected"), edge("h-result", "h-adapter", "NOT IMPLEMENTED", "blocked")
+        ], ["Native substrate existence ≠ Conversation presentation connection", "SpeechPresentationController is not created by normal-runtime bootstrap"]),
+
+        shutdown: view("Orderly Shutdown", "Acceptance barriers close before cooperative drain and owned teardown.", 1280, 560, [
+          node("q-request", 25, 190, ["Exit / Quit Request"], "CONNECTED", "managed", "shutdown"),
+          node("q-barrier", 230, 190, ["Close Acceptance", "Barriers"], "CONNECTED", "managed", "shutdown"),
+          node("q-wait", 435, 190, ["Wait Picker / Import"], "CONNECTED", "managed", "selection"),
+          node("q-input", 640, 190, ["Disable Drag", "Release Capture"], "CONNECTED", "native", "nativePointer"),
+          node("q-render", 845, 190, ["Drain Readback", "Region / Present"], "CONNECTED", "managed", "pipeline"),
+          node("q-native", 1050, 190, ["Native Teardown"], "CONNECTED", "native", "nativePlugin"),
+          node("q-final", 1050, 380, ["Managed Cleanup", "Final Player Quit"], "CONNECTED", "managed", "shutdown")
+        ], [
+          edge("q-request", "q-barrier"), edge("q-barrier", "q-wait"), edge("q-wait", "q-input"),
+          edge("q-input", "q-render"), edge("q-render", "q-native"), edge("q-native", "q-final")
+        ], ["Speech drains before mascot composition teardown", "Imported handles release only after GPU presentation stops", "One final UnityWndClass WM_CLOSE"])
+      };
+
+      function view(title, description, width, height, nodes, edges, facts, annotations = []) {
+        return { title, description, width, height, nodes, edges, facts, annotations };
+      }
+
+      function node(id, x, y, lines, status, domain, detailKey) {
+        return { id, x, y, lines, status, domain, detailKey };
+      }
+
+      function edge(from, to, label = "", type = "connected") {
+        return { from, to, label, type };
+      }
+
+      const svg = document.getElementById("architecture-graph");
+      const viewTitle = document.getElementById("view-title");
+      const viewDescription = document.getElementById("view-description");
+      const facts = document.getElementById("view-facts");
+      const detailContent = document.getElementById("detail-content");
+      const detailKicker = document.getElementById("detail-kicker");
+      const roadmapLegend = document.getElementById("roadmap-legend");
+      let currentViewName = "overview";
+      let selectedNodeId = null;
+      let viewport = { x: 0, y: 0, width: 1180, height: 620 };
+      let dragState = null;
+
+      function renderView(name) {
+        const definition = views[name];
+        currentViewName = name;
+        selectedNodeId = null;
+        viewTitle.textContent = definition.title;
+        viewDescription.textContent = definition.description;
+        roadmapLegend.hidden = name !== "roadmap";
+        detailKicker.textContent = name === "roadmap" ? "能力詳細" : "コンポーネント詳細";
+        document.querySelectorAll(".nav-button").forEach(button => {
+          if (button.dataset.view === name) button.setAttribute("aria-current", "page");
+          else button.removeAttribute("aria-current");
+        });
+
+        svg.replaceChildren();
+        addDefinitions();
+        const edgeLayer = createSvg("g", { class: "edge-layer" });
+        const nodeLayer = createSvg("g", { class: "node-layer" });
+        svg.append(edgeLayer, nodeLayer);
+
+        const lookup = new Map(definition.nodes.map(value => [value.id, value]));
+        definition.edges.forEach(value => renderEdge(edgeLayer, value, lookup));
+        definition.annotations.forEach(value => renderAnnotation(edgeLayer, value));
+        definition.nodes.forEach(value => renderNode(nodeLayer, value));
+
+        facts.replaceChildren(...definition.facts.map(text => {
+          const element = document.createElement("div");
+          element.className = "fact";
+          element.textContent = text;
+          return element;
+        }));
+
+        detailContent.className = "empty-detail";
+        detailContent.textContent = name === "roadmap"
+          ? "能力カードを選択すると、現在できること、残っていること、関連マイルストーン、関連Architecture viewを確認できます。"
+          : "ノードを選択すると、役割、所有・管理、担当しないもの、関連マイルストーンを確認できます。";
+        resetView();
+      }
+
+      function addDefinitions() {
+        const defs = createSvg("defs");
+        defs.append(
+          marker("arrow-connected", "var(--connected)", "M0,0 L10,5 L0,10 z"),
+          marker("arrow-not-connected", "var(--not-connected)", "M0,0 L10,5 L0,10 z"),
+          marker("arrow-future", "var(--future)", "M0,0 L10,5 L0,10 z"),
+          marker("arrow-roadmap", "var(--roadmap-current)", "M0,0 L10,5 L0,10 z"),
+          marker("bar-blocked", "var(--current-end)", "M2,0 L2,10 L5,10 L5,0 z")
+        );
+        svg.append(defs);
+      }
+
+      function marker(id, fill, pathData) {
+        const value = createSvg("marker", { id, viewBox: "0 0 10 10", refX: "9", refY: "5", markerWidth: "8", markerHeight: "8", orient: "auto-start-reverse" });
+        value.append(createSvg("path", { d: pathData, fill }));
+        return value;
+      }
+
+      function renderEdge(layer, value, lookup) {
+        const source = lookup.get(value.from);
+        const target = lookup.get(value.to);
+        if (!source || !target) return;
+        const points = edgeBoundaryPoints(source, target);
+        const path = createSvg("path", {
+          d: `M ${points.sx} ${points.sy} L ${points.tx} ${points.ty}`,
+          class: `edge ${statusClass(value.type)}`
+        });
+        layer.append(path);
+        if (value.label) {
+          layer.append(createSvg("text", {
+            x: (points.sx + points.tx) / 2,
+            y: (points.sy + points.ty) / 2 - 7,
+            class: "edge-label"
+          }, value.label));
+        }
+      }
+
+      function renderAnnotation(layer, value) {
+        if (value.kind !== "group") return;
+        const group = createSvg("g", { class: "roadmap-group" });
+        group.append(createSvg("rect", { x: value.x, y: value.y, width: value.width, height: 30, rx: 7 }));
+        group.append(createSvg("text", { x: value.x + 14, y: value.y + 19, class: "group-title" }, value.label));
+        group.append(createSvg("text", { x: value.x + 270, y: value.y + 19, class: "group-subtitle" }, value.subtitle));
+        layer.append(group);
+      }
+
+      function edgeBoundaryPoints(source, target) {
+        const scx = source.x + NODE_WIDTH / 2;
+        const scy = source.y + NODE_HEIGHT / 2;
+        const tcx = target.x + NODE_WIDTH / 2;
+        const tcy = target.y + NODE_HEIGHT / 2;
+        const dx = tcx - scx;
+        const dy = tcy - scy;
+        const sourceScale = Math.min(
+          dx === 0 ? Infinity : (NODE_WIDTH / 2) / Math.abs(dx),
+          dy === 0 ? Infinity : (NODE_HEIGHT / 2) / Math.abs(dy)
+        );
+        const targetScale = sourceScale;
+        return {
+          sx: scx + dx * sourceScale,
+          sy: scy + dy * sourceScale,
+          tx: tcx - dx * targetScale,
+          ty: tcy - dy * targetScale
+        };
+      }
+
+      function renderNode(layer, value) {
+        const group = createSvg("g", {
+          class: `node ${statusClass(value.status)}`,
+          transform: `translate(${value.x} ${value.y})`,
+          tabindex: "0",
+          role: "button",
+          "aria-label": `${value.lines.join(" ")}, ${value.status}`,
+          "data-node-id": value.id
+        });
+        group.append(createSvg("rect", { width: NODE_WIDTH, height: NODE_HEIGHT }));
+        const lineStart = value.lines.length === 1 ? 31 : 23;
+        value.lines.forEach((line, index) => {
+          group.append(createSvg("text", { x: NODE_WIDTH / 2, y: lineStart + index * 18, class: "node-title" }, line));
+        });
+        group.append(createSvg("text", { x: NODE_WIDTH / 2, y: 70, class: "node-status" }, statusLabel(value.status)));
+        group.append(createSvg("text", { x: NODE_WIDTH - 8, y: 12, class: "node-domain" }, value.domain.toUpperCase()));
+        group.addEventListener("click", event => {
+          event.stopPropagation();
+          selectNode(value);
+        });
+        group.addEventListener("keydown", event => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            selectNode(value);
+          }
+        });
+        layer.append(group);
+      }
+
+      function selectNode(value) {
+        selectedNodeId = value.id;
+        svg.querySelectorAll(".node").forEach(element => element.classList.toggle("is-selected", element.dataset.nodeId === value.id));
+        const data = details[value.detailKey] || roadmapDetails[value.detailKey];
+        if (!data) return;
+        detailContent.className = "";
+        detailContent.replaceChildren();
+        const title = document.createElement("h2");
+        title.id = "detail-title";
+        title.textContent = data.title;
+        const badge = document.createElement("div");
+        badge.className = `status-badge status-${statusClass(data.status)}`;
+        badge.textContent = statusLabel(data.status);
+        const statusHeading = document.createElement("div");
+        statusHeading.className = "detail-status-heading";
+        statusHeading.textContent = "状態:";
+        detailContent.append(title, statusHeading, badge);
+        if (data.kind === "capability") {
+          detailContent.append(detailSection("現在できること", data.current));
+          detailContent.append(detailSection("残っていること", data.remaining));
+          if (data.tbd.length) {
+            detailContent.append(detailSection("要件未確定 / TBD", data.tbd));
+          }
+          detailContent.append(detailSection("関連Architecture view", data.architectureViews));
+        } else {
+          detailContent.append(detailSection("役割", data.responsibility));
+          detailContent.append(detailList("所有・管理", data.owns, "独立したresource ownershipはありません。"));
+          detailContent.append(detailList("担当しないもの", data.doesNotOwn, "追加の責任外項目は記録されていません。"));
+        }
+        const milestone = document.createElement("div");
+        milestone.className = "milestone";
+        milestone.textContent = `関連マイルストーン: ${data.milestone}`;
+        detailContent.append(milestone);
+      }
+
+      function detailSection(title, content) {
+        const section = document.createElement("section");
+        section.className = "detail-section";
+        const heading = document.createElement("h3");
+        heading.textContent = title;
+        section.append(heading);
+        if (Array.isArray(content)) {
+          const list = document.createElement("ul");
+          content.forEach(value => {
+            const item = document.createElement("li");
+            item.textContent = value;
+            list.append(item);
+          });
+          section.append(list);
+        } else {
+          const body = document.createElement("p");
+          body.textContent = content;
+          section.append(body);
+        }
+        return section;
+      }
+
+      function detailList(title, values, emptyText) {
+        const section = document.createElement("section");
+        section.className = "detail-section";
+        const heading = document.createElement("h3");
+        heading.textContent = title;
+        section.append(heading);
+        if (!values.length) {
+          const body = document.createElement("p");
+          body.textContent = emptyText;
+          section.append(body);
+          return section;
+        }
+        const list = document.createElement("ul");
+        values.forEach(value => {
+          const item = document.createElement("li");
+          item.textContent = value;
+          list.append(item);
+        });
+        section.append(list);
+        return section;
+      }
+
+      function statusClass(value) {
+        return value.toLowerCase().replaceAll(" ", "-");
+      }
+
+      function statusLabel(value) {
+        if (value === "CONNECTED") return "✓ CONNECTED";
+        if (value === "NOT CONNECTED") return "△ NOT CONNECTED";
+        if (value === "FUTURE") return "○ FUTURE";
+        if (value === "CURRENT END") return "X CURRENT END";
+        if (value === "COMPLETED") return "✓ COMPLETED";
+        if (value === "CURRENT") return "▶ CURRENT BASELINE";
+        if (value === "PARTIAL") return "◐ PARTIAL";
+        if (value === "PLANNED") return "○ PLANNED";
+        if (value === "TBD") return "? TBD";
+        return value;
+      }
+
+      function createSvg(name, attributes = {}, text = "") {
+        const element = document.createElementNS(SVG_NS, name);
+        Object.entries(attributes).forEach(([key, value]) => element.setAttribute(key, value));
+        if (text) element.textContent = text;
+        return element;
+      }
+
+      function applyViewport() {
+        svg.setAttribute("viewBox", `${viewport.x} ${viewport.y} ${viewport.width} ${viewport.height}`);
+      }
+
+      function resetView() {
+        const definition = views[currentViewName];
+        viewport = { x: 0, y: 0, width: definition.width, height: definition.height };
+        applyViewport();
+      }
+
+      function fitView() {
+        const definition = views[currentViewName];
+        const minX = Math.min(...definition.nodes.map(value => value.x)) - 35;
+        const minY = Math.min(...definition.nodes.map(value => value.y)) - 35;
+        const maxX = Math.max(...definition.nodes.map(value => value.x + NODE_WIDTH)) + 35;
+        const maxY = Math.max(...definition.nodes.map(value => value.y + NODE_HEIGHT)) + 35;
+        viewport = { x: minX, y: minY, width: maxX - minX, height: maxY - minY };
+        applyViewport();
+      }
+
+      function zoom(factor, clientX = null, clientY = null) {
+        const rect = svg.getBoundingClientRect();
+        const px = clientX == null ? .5 : (clientX - rect.left) / rect.width;
+        const py = clientY == null ? .5 : (clientY - rect.top) / rect.height;
+        const newWidth = Math.max(420, Math.min(2200, viewport.width * factor));
+        const newHeight = newWidth * (viewport.height / viewport.width);
+        const anchorX = viewport.x + viewport.width * px;
+        const anchorY = viewport.y + viewport.height * py;
+        viewport = {
+          x: anchorX - newWidth * px,
+          y: anchorY - newHeight * py,
+          width: newWidth,
+          height: newHeight
+        };
+        applyViewport();
+      }
+
+      document.querySelectorAll(".nav-button").forEach(button => button.addEventListener("click", () => renderView(button.dataset.view)));
+      document.getElementById("zoom-in").addEventListener("click", () => zoom(.82));
+      document.getElementById("zoom-out").addEventListener("click", () => zoom(1.22));
+      document.getElementById("reset-view").addEventListener("click", resetView);
+      document.getElementById("fit-view").addEventListener("click", fitView);
+
+      svg.addEventListener("wheel", event => {
+        event.preventDefault();
+        zoom(event.deltaY < 0 ? .88 : 1.14, event.clientX, event.clientY);
+      }, { passive: false });
+
+      svg.addEventListener("pointerdown", event => {
+        if (event.target.closest(".node")) return;
+        svg.setPointerCapture(event.pointerId);
+        dragState = { x: event.clientX, y: event.clientY, viewport: { ...viewport } };
+        svg.classList.add("is-panning");
+      });
+
+      svg.addEventListener("pointermove", event => {
+        if (!dragState) return;
+        const rect = svg.getBoundingClientRect();
+        viewport.x = dragState.viewport.x - (event.clientX - dragState.x) * dragState.viewport.width / rect.width;
+        viewport.y = dragState.viewport.y - (event.clientY - dragState.y) * dragState.viewport.height / rect.height;
+        applyViewport();
+      });
+
+      function endPan() {
+        dragState = null;
+        svg.classList.remove("is-panning");
+      }
+      svg.addEventListener("pointerup", endPan);
+      svg.addEventListener("pointercancel", endPan);
+      svg.addEventListener("click", event => {
+        if (event.target === svg) {
+          selectedNodeId = null;
+          svg.querySelectorAll(".node").forEach(element => element.classList.remove("is-selected"));
+        }
+      });
+
+      renderView("overview");
+    })();
+  </script>
+</body>
+</html>

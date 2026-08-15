@@ -21,6 +21,10 @@ recovery prerequisite have completed automated and manual validation.
 
 ## Current design documents
 
+- [`DesktopMascotArchitectureViewer.html`](DesktopMascotArchitectureViewer.html)
+  is a standalone, developer-facing visual index of the production architecture
+  as connected through M-056. It is documentation only and is not a runtime
+  dependency or architecture authority.
 - [`SettingsPresentationDesign.md`](SettingsPresentationDesign.md)
 - [`RuntimeRetiredCharacterDisposalDesign.md`](RuntimeRetiredCharacterDisposalDesign.md)
 - [`RuntimeBundledCharacterRestorationDesign.md`](RuntimeBundledCharacterRestorationDesign.md)
