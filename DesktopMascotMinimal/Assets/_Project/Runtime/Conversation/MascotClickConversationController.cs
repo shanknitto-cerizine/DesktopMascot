@@ -17,6 +17,7 @@ namespace DesktopMascot.Runtime.Conversation
 
         private readonly Func<ulong> generationSnapshot;
         private readonly ILocalConversationEvaluator evaluator;
+        private readonly ConversationSpeechPresentationAdapter presentationAdapter;
         private ulong observedGeneration;
         private ulong pendingClickCount;
         private ulong nextRequestNumber;
@@ -29,14 +30,26 @@ namespace DesktopMascot.Runtime.Conversation
             : this(
                 NativeMascotClickCompletionBridge.GetCompletedClickGeneration,
                 CreateDefaultEvaluator(),
-                1)
+                1,
+                null)
+        {
+        }
+
+        internal MascotClickConversationController(
+            ConversationSpeechPresentationAdapter presentationAdapter)
+            : this(
+                NativeMascotClickCompletionBridge.GetCompletedClickGeneration,
+                CreateDefaultEvaluator(),
+                1,
+                presentationAdapter)
         {
         }
 
         internal MascotClickConversationController(
             Func<ulong> generationSnapshot,
             ILocalConversationEvaluator evaluator,
-            ulong nextRequestNumber = 1)
+            ulong nextRequestNumber = 1,
+            ConversationSpeechPresentationAdapter presentationAdapter = null)
         {
             this.generationSnapshot = generationSnapshot
                 ?? throw new ArgumentNullException(nameof(generationSnapshot));
@@ -46,6 +59,7 @@ namespace DesktopMascot.Runtime.Conversation
                 throw new ArgumentOutOfRangeException(nameof(nextRequestNumber));
 
             this.nextRequestNumber = nextRequestNumber;
+            this.presentationAdapter = presentationAdapter;
         }
 
         internal bool Accepting => accepting;
@@ -86,13 +100,15 @@ namespace DesktopMascot.Runtime.Conversation
                  ++accepted)
             {
                 var request = CreateRequest(AllocateRequestId());
-                // Evaluation ends at the domain result; it has no presentation path.
+                // Offer the correlated domain result to the optional presentation path.
                 var result = evaluator.Evaluate(request);
                 if (result == null || result.RequestId != request.RequestId)
                 {
                     throw new InvalidOperationException(
                         "Mascot click conversation evaluator correlation failed.");
                 }
+
+                presentationAdapter?.Present(result);
 
                 --pendingClickCount;
             }

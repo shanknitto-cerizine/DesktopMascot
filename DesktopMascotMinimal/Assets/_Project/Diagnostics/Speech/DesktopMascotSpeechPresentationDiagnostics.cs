@@ -12,6 +12,7 @@ namespace DesktopMascot.Diagnostics
         private const string Prefix = "[DesktopMascotSpeechDiagnostics]";
         private SpeechPresentationController controller;
         private DesktopMascotRuntimePipeline runtime;
+        private SpeechCameraIsolationController cameraIsolation;
         private DesktopMascotSpeechMascotScaleDiagnostics isolation;
         private DesktopMascotPlayerPreviewPresentation playerPreview;
         private string manualCheck;
@@ -19,12 +20,14 @@ namespace DesktopMascot.Diagnostics
         internal void Configure(
             SpeechPresentationController speechController,
             DesktopMascotRuntimePipeline runtimePipeline,
+            SpeechCameraIsolationController productionCameraIsolation,
             DesktopMascotSpeechMascotScaleDiagnostics isolationDiagnostics,
             DesktopMascotPlayerPreviewPresentation preview,
             string requestedManualCheck)
         {
             controller = speechController;
             runtime = runtimePipeline;
+            cameraIsolation = productionCameraIsolation;
             isolation = isolationDiagnostics;
             playerPreview = preview;
             manualCheck = NormalizeManualCheck(requestedManualCheck);
@@ -95,8 +98,9 @@ namespace DesktopMascot.Diagnostics
                 && controller.View.TextRegionsSeparated
                 && controller.View.BodyLineCount == 2
                 && controller.View.SpeechHierarchyUsesDedicatedLayer
-                && isolation != null
-                && isolation.ProductionCameraStillIsolated
+                && cameraIsolation != null
+                && cameraIsolation.Configured
+                && cameraIsolation.SpeechLayerExcluded
                 && playerPreview != null
                 && (playerPreview.PresentationCullingMask
                     & (1 << SpeechPresentationView.SpeechLayer)) == 0
@@ -151,14 +155,14 @@ namespace DesktopMascot.Diagnostics
             Debug.Log($"{Prefix} Speech hierarchy Layer 30 only: " +
                 controller.View.SpeechHierarchyUsesDedicatedLayer);
             Debug.Log($"{Prefix} Production Camera Speech Layer excluded: " +
-                (isolation?.ProductionCameraStillIsolated ?? false));
+                (cameraIsolation?.SpeechLayerExcluded ?? false));
             Debug.Log($"{Prefix} Player Preview Speech Layer excluded: " +
                 (playerPreview != null
                     && (playerPreview.PresentationCullingMask
                         & (1 << SpeechPresentationView.SpeechLayer)) == 0));
             Debug.Log($"{Prefix} Production Camera original/applied mask: " +
-                $"0x{(isolation?.OriginalCullingMask ?? 0):X8}/" +
-                $"0x{(isolation?.AppliedCullingMask ?? 0):X8}");
+                $"0x{(cameraIsolation?.OriginalCullingMask ?? 0):X8}/" +
+                $"0x{(cameraIsolation?.AppliedCullingMask ?? 0):X8}");
             Debug.Log($"{Prefix} Production Camera mask restoration: " +
                 "Pending orderly shutdown");
             Debug.Log($"{Prefix} Speech RT dimensions/format: " +

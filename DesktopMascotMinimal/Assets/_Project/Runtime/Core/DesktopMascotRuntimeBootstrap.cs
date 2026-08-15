@@ -221,6 +221,21 @@ namespace DesktopMascot.Runtime
             var owner = new GameObject(nameof(DesktopMascotRuntimePipeline));
             UnityEngine.Object.DontDestroyOnLoad(owner);
             runtimeOwner = owner;
+            SpeechCameraIsolationController speechCameraIsolation = null;
+            if (selectedMode == "runtime"
+                || selectedMode == "message-window-diagnostic")
+            {
+                speechCameraIsolation = owner.AddComponent<
+                    SpeechCameraIsolationController>();
+                if (!speechCameraIsolation.Configure(Camera.main))
+                {
+                    Debug.LogError(
+                        "[DesktopMascotSpeech] Production Camera isolation " +
+                        "failed; Speech presentation is disabled.");
+                    UnityEngine.Object.Destroy(speechCameraIsolation);
+                    speechCameraIsolation = null;
+                }
+            }
             DesktopMascotSpeechMascotScaleDiagnostics scaleDiagnostics = null;
             if (selectedMode == "message-window-diagnostic")
             {
@@ -236,7 +251,8 @@ namespace DesktopMascot.Runtime
                 }
             }
             var runtime = owner.AddComponent<DesktopMascotRuntimePipeline>();
-            runtime.AttachSpeechCameraIsolationDiagnostics(scaleDiagnostics);
+            runtime.AttachSpeechCameraIsolationController(speechCameraIsolation);
+            runtime.AttachSpeechScaleDiagnostics(scaleDiagnostics);
             runtime.AttachCharacterAssetManager(characterAssetManager);
             runtime.AttachCharacterSelectionPersistenceManager(
                 characterPersistence);
@@ -271,32 +287,49 @@ namespace DesktopMascot.Runtime
                 selectedMode == "runtime-smoke",
                 positionPersistence,
                 playerPresentation);
-            if (selectedMode == "runtime")
+            SpeechPresentationController speech = null;
+            var speechInitialized = false;
+            if (selectedMode == "runtime"
+                || selectedMode == "message-window-diagnostic")
             {
-                runtime.AttachMascotClickConversationController(
-                    new MascotClickConversationController());
-            }
-            if (selectedMode == "message-window-diagnostic")
-            {
-                var speech = owner.AddComponent<SpeechPresentationController>();
-                if (!speech.Initialize(characterAssetManager, Camera.main))
+                speech = owner.AddComponent<SpeechPresentationController>();
+                runtime.AttachSpeechPresentationController(speech);
+                speechInitialized = speechCameraIsolation != null
+                    && speech.Initialize(characterAssetManager, Camera.main);
+                if (!speechInitialized)
                 {
-                    Debug.LogError(
-                        "[DesktopMascotSpeechDiagnostics] Initialization failed.");
+                    Debug.LogError(selectedMode == "message-window-diagnostic"
+                        ? "[DesktopMascotSpeechDiagnostics] Initialization failed."
+                        : "[DesktopMascotSpeech] Initialization failed; " +
+                          "Conversation presentation is disabled.");
                 }
-                else
+                else if (selectedMode == "message-window-diagnostic")
                 {
-                    runtime.AttachSpeechPresentationController(speech);
                     var speechDiagnostics = owner.AddComponent<
                         DesktopMascotSpeechPresentationDiagnostics>();
                     speechDiagnostics.Configure(
                         speech,
                         runtime,
+                        speechCameraIsolation,
                         scaleDiagnostics,
                         playerPresentation,
                         Environment.GetEnvironmentVariable(
                             SpeechManualCheckEnvironmentVariable));
                 }
+            }
+            if (selectedMode == "runtime")
+            {
+                ConversationSpeechPresentationAdapter adapter = null;
+                if (speechInitialized)
+                {
+                    adapter = new ConversationSpeechPresentationAdapter(
+                        speech.TryShow);
+                    runtime.AttachConversationSpeechPresentationAdapter(adapter);
+                }
+                runtime.AttachMascotClickConversationController(
+                    adapter == null
+                        ? new MascotClickConversationController()
+                        : new MascotClickConversationController(adapter));
             }
             SettingsWindowController settingsWindow = null;
             UnityPlayerWindowVisibilityController playerVisibility = null;

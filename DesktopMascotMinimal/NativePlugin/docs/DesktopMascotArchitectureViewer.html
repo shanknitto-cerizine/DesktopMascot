@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Desktop Mascot Architecture Viewer — M-056</title>
+  <title>Desktop Mascot Architecture Viewer — M-057</title>
   <style>
     :root {
       color-scheme: dark;
@@ -403,8 +403,8 @@
     <header>
       <div>
         <h1>Desktop Mascot Architecture Viewer</h1>
-        <div class="baseline">Current baseline: <strong>M-056 — Completed / Pushed</strong></div>
-        <div class="frontier">Current capability frontier: <strong>Mascot Click → Local Conversation Evaluation</strong></div>
+        <div class="baseline">Current baseline: <strong>M-057 — Completed / Commit Pending</strong></div>
+        <div class="frontier">Current capability frontier: <strong>Mascot Click → Visible Local Speech Response</strong></div>
       </div>
       <div class="legend" aria-label="Architecture status legend">
         <div class="legend-item"><span class="legend-dot" style="background:var(--connected)"></span><span><strong>CONNECTED</strong><small>Production runtime path</small></span></div>
@@ -419,7 +419,7 @@
         <div class="nav-label">Views</div>
         <button class="nav-button" data-view="overview" aria-current="page">Overview</button>
         <button class="nav-button" data-view="roadmap">Product Vision / Roadmap</button>
-        <button class="nav-button" data-view="m056">M-056 Flow</button>
+        <button class="nav-button" data-view="m056">M-057 Click → Speech</button>
         <button class="nav-button" data-view="startup">Startup / Runtime</button>
         <button class="nav-button" data-view="character">Character</button>
         <button class="nav-button" data-view="rendering">Rendering</button>
@@ -480,16 +480,16 @@
       const details = {
         user: detail("User", "CONNECTED", "mascotへのpointer操作とWindows entry pointの操作を開始する。", [], ["runtime resource", "application state"], "既存production interaction"),
         windowsInput: detail("Windows / Input", "CONNECTED", "Win32 mascot inputを受け取り、native側のclick/drag分類へ渡す。", ["native pointer operation state"], ["ConversationRequest生成", "Speech表示"], "M-030 / M-055"),
-        runtime: detail("Runtime Orchestration", "CONNECTED", "production ownerを構成し、frame処理とorderly shutdownの順序を統括する。", ["runtime component構成", "frame scheduling"], ["各subsystem固有resource", "persistence record"], "M-029〜M-056"),
+        runtime: detail("Runtime Orchestration", "CONNECTED", "production ownerを構成し、click evaluation、Speech admission、frame処理、orderly shutdownの順序を統括する。", ["runtime component構成", "frame scheduling"], ["各subsystem固有resource", "persistence record"], "M-029〜M-057"),
         characterRendering: detail("Character / Rendering", "CONNECTED", "active Characterを公開し、検証済みCamera-to-DirectComposition経路で描画する。", ["CharacterAssetManagerによるimported Character ownership", "Camera pipeline texture"], ["Conversation identity policy", "Settings persistence"], "M-029 / M-039〜M-046"),
-        conversation: detail("Conversation", "CONNECTED", "受理したmascot clickからcorrelationされたlocal synchronous evaluationを実行する。", ["評価中のimmutable request/result value"], ["Speech admission", "presentation forwarding", "history / queue"], "M-049〜M-056"),
-        result: detail("ConversationEvaluationResult", "CONNECTED", "1件のrequestに対するResponseProducedまたはNoMatchを表す。", ["immutable outcome、RequestId、optional response"], ["Speech admission state", "presentation resource"], "M-050、M-056でproduction endpoint化"),
-        currentEnd: detail("Current processing endpoint", "CURRENT END", "M-056はRequestId correlationを確認し、domain resultで処理を終了する。", [], ["forwarding", "retry", "queue", "Speech変換"], "M-056"),
-        speechBoundary: detail("Speech / Presentation", "NOT CONNECTED", "presentation実装は存在するが、normal runtimeにConversationEvaluationResultからSpeechへ渡すadapterは存在しない。", ["明示的に生成された場合の独立したpresentation lifecycle"], ["Conversation evaluation", "mascot clickへの自動応答表示"], "M-047.5 / M-048、M-056時点ではproduction未接続"),
+        conversation: detail("Conversation", "CONNECTED", "受理したmascot clickをlocal synchronous evaluationし、correlated resultをM-057 adapterへ渡す。", ["評価中のimmutable request/result value"], ["Speech lifecycle/resource", "history / queue"], "M-049〜M-057"),
+        result: detail("ConversationEvaluationResult", "CONNECTED", "1件のrequestに対するResponseProducedまたはNoMatchを表し、M-057 adapterの入力になる。", ["immutable outcome、RequestId、optional response"], ["Speech admission state", "presentation resource"], "M-050 / M-056 / M-057"),
+        currentEnd: detail("Current processing endpoint", "CONNECTED", "M-057はcorrelated domain resultを1件のlocal Speech presentationへ接続する。", [], ["retry", "queue", "provider"], "M-057"),
+        speechBoundary: detail("Speech / Presentation", "CONNECTED", "normal runtimeはM-057 adapterを介してConversationEvaluationResultを独立Speech presentationへ渡す。", ["独立したpresentation lifecycle"], ["queue", "retry", "provider"], "M-047.5 / M-048 / M-057"),
         startupGate: detail("Single Instance Startup Gate", "CONNECTED", "startup cloakを適用し、primaryを取得するかprimaryへ通知してsecondaryを終了する。", ["startup coordination state"], ["Settings state", "secondary側mascot resource"], "M-037 / M-038"),
         bootstrap: detail("DesktopMascotRuntimeBootstrap", "CONNECTED", "runtime modeを選択し、Character構造検証後にnormal-runtime ownerを構成する。", ["runtime owner GameObjectとcomponent構成"], ["frame scheduling", "native GPU resource"], "M-029〜M-056"),
         prerequisites: detail("Diagnostic-named startup prerequisites", "CONNECTED", "runtime pipeline開始前にcomposition、destination texture、readback orientationのready状態を成立させる。", ["focused startup diagnostic lifetime"], ["production architecture policyの決定"], "既存validated baseline。名称・配置は今回変更しない"),
-        pipeline: detail("DesktopMascotRuntimePipeline", "CONNECTED", "render、readback、region publication、click evaluation、retired disposal、shutdownをframe単位でpumpする。", ["mask buffer", "pinned handle", "Present command buffer", "Camera source pipeline"], ["Character selection policy", "native COM resource", "Settings edit"], "M-029〜M-056"),
+        pipeline: detail("DesktopMascotRuntimePipeline", "CONNECTED", "render、readback、region publication、click evaluation、Speech barrier、retired disposal、shutdownをframe単位でpumpする。", ["mask buffer", "pinned handle", "Present command buffer", "Camera source pipeline"], ["Character selection policy", "native COM resource", "Settings edit"], "M-029〜M-057"),
         characterManager: detail("CharacterAssetManager", "CONNECTED", "normal runtimeでactive Character公開とactive/retired imported handleを一元管理する。", ["active/retired runtime-import handle", "Character generation"], ["bundled Scene root", "Persistence", "Conversation persona"], "M-039〜M-044"),
         selection: detail("RuntimeCharacterSelectionController", "CONNECTED", "picker、import、restore、Bundled切替、persistence、shutdownの操作排他を管理する。", ["Character operation state", "operation exclusion"], ["active Character公開", "Settings edit"], "M-041〜M-043"),
         vrmImport: detail("RuntimeVrmCharacterSource", "CONNECTED", "activation前にsize/hash preflightとUniVRM importを実行する。", ["import-in-progress", "activation前のimported root"], ["ownership transfer後のactivated handle", "Persistence"], "M-040"),
@@ -497,7 +497,7 @@
         nativePlugin: detail("DesktopMascotNative", "CONNECTED", "Unity D3D12 render eventをWin32、DXGI、DirectComposition、alpha region、native interactionへ接続する。", ["plugin-owned COM object", "HWND", "HRGN queue ownership", "native thread"], ["Unity-borrowed device / queue / fence / source texture"], "M-056までのvalidated native baseline"),
         nativePointer: detail("Native Pointer Classification", "CONNECTED", "press、capture、drag threshold、移動、click/drag completionのauthoritative publicationを管理する。", ["native pointer state", "capture lifecycle", "completion generation"], ["Conversation RequestId", "Speech", "persistence file"], "M-030 / M-055"),
         clickGeneration: detail("Completed Click Generation", "CONNECTED", "eligibleなnon-drag WM_LBUTTONUPごとにnon-destructiveなmonotonic uint64 snapshotを公開する。", ["native atomic generation"], ["observer cursor", "pending debt", "request identity"], "M-055"),
-        clickController: detail("MascotClickConversationController", "CONNECTED", ["completed-click generationを監視する", "未処理clickをpending debtとして保持する", "RequestIdを割り当てる", "ConversationRequestを生成する", "local evaluatorを同期評価する"], ["observer cursor", "pending debt", "request counter", "evaluator参照"], ["native pointer capture", "Character管理", "Speech表示", "Persistence", "presentation result history"], "M-056"),
+        clickController: detail("MascotClickConversationController", "CONNECTED", ["completed-click generationを監視する", "未処理clickをpending debtとして保持する", "RequestIdを割り当てる", "ConversationRequestを生成する", "local evaluatorを同期評価する", "correlated resultをadapterへ渡す"], ["observer cursor", "pending debt", "request counter", "evaluator/adapter参照"], ["native pointer capture", "Character管理", "Speech resource", "Persistence", "presentation result history"], "M-056 / M-057"),
         request: detail("ConversationRequest", "CONNECTED", "caller-supplied RequestId、mascot-click event、固定default Conversation character identityを保持する。", ["immutable domain value"], ["CharacterDescriptor", "VRM identity", "presentation state"], "M-049 / M-054 / M-056"),
         evaluatorInterface: detail("ILocalConversationEvaluator", "CONNECTED", "1件のbounded synchronous local evaluation境界を定義する。", [], ["I/O", "queue", "retry", "Speech"], "M-051"),
         singleEntry: detail("SingleEntryLocalConversationEvaluator", "CONNECTED", "request TriggerIdを1件のcompiled-in response entryへordinal exact-matchする。", ["borrowed immutable entry参照"], ["CharacterId matching", "collection", "presentation"], "M-053、M-056でproduction接続"),
@@ -509,29 +509,29 @@
         positionStore: detail("Window Position Persistence", "CONNECTED", "initial mascot positionを読み込み、completed dragだけを保存する。", ["window-position.json"], ["Settings record", "Character record"], "M-031"),
         characterStore: detail("Character Selection Persistence", "CONNECTED", "activation成功後のexternal VRM restore pathとcontent hashをprivateに保存する。", ["character-selection.json"], ["external VRM file", "Settings record"], "M-042 / M-043"),
         nativeSpeech: detail("Native Speech Substrate", "CONNECTED", "独立したSpeech HWND、swap chain、D3D12 copy、DirectComposition visual、cleanup substrateを提供する。", ["Speech-native HWND/GPU/region resource"], ["Conversation evaluation", "mascot swap chain / HRGN"], "M-048"),
-        speechController: detail("SpeechPresentationController", "NOT CONNECTED", "生成された場合は1件のcurrent messageを管理するが、M-056のnormal runtimeでは生成されない。", ["1件のcurrent SpeechMessage", "presentation generation"], ["Conversation result", "queue", "Character resource"], "M-048。M-056時点ではdiagnostic-only生成"),
-        speechAdapter: detail("Conversation-to-Speech Adapter", "FUTURE", "ConversationEvaluationResultをSpeechへ変換・admitする実装は現在存在しない。", [], ["現在のcodebase内resource"], "未実装。将来milestone番号は未定"),
-        shutdown: detail("Orderly Shutdown", "CONNECTED", "acceptance barrierを閉じ、cooperative workをdrainし、presentation停止後にmanaged ownerを解放して最終Player closeを行う。", ["shutdown sequencing"], ["各subsystem resourceの横断所有"], "M-056までのvalidated production lifecycle")
+        speechController: detail("SpeechPresentationController", "CONNECTED", "M-057 normal runtimeは1件のcurrent messageを管理するSpeech controllerを生成する。", ["1件のcurrent SpeechMessage", "presentation generation"], ["queue", "Character resource"], "M-048 / M-057"),
+        speechAdapter: detail("Conversation-to-Speech Adapter", "CONNECTED", "M-057 adapterはResponseProducedをSpeechMessageへ変換し、Busyをdropする。", ["bounded admission counters"], ["queue", "retry", "Speech resource"], "M-057"),
+        shutdown: detail("Orderly Shutdown", "CONNECTED", "click acceptance、adapter acceptance、Speech Show acceptanceの順に閉じ、Speechをmascot compositionより先にdrainして最終Player closeを行う。", ["shutdown sequencing"], ["各subsystem resourceの横断所有"], "M-057 validated production lifecycle")
       };
 
       const roadmapDetails = {
         productGoal: capability("Desktop Mascot Product Vision", "TBD", "characterを中心とした自然で静かなdesktop presenceを、local-firstかつnon-activatingな体験として目指す。", "これは最終完成判定ではない。completion判定はProduct Ready Conditionsで扱い、conversation content、presentation behavior、release/acceptance条件は未確定。", "ProjectPrinciples（M-049以降のdesign guidance）", "Overview / Speech / Shutdown"),
-        baseline: capability("Current Baseline", "COMPLETED", "M-056はCompleted / Pushed。Mascot ClickからConversationEvaluationResultまでproduction接続済み。", "active product milestoneはなく、M-057 scopeは未開始・未確定。", "M-056", "M-056 Flow / Conversation"),
+        baseline: capability("Current Baseline", "COMPLETED", "M-057はMascot Clickからvisible local Speech responseまでproduction接続・検証済み。", "Product Ready、packaging、release acceptanceは別の未確定条件。", "M-057", "M-057 Click → Speech / Conversation / Speech"),
         coreCapability: capability("Core Runtime", "COMPLETED", "normal runtime orchestration、Single Instance、Tray、Player visibility、orderly shutdownのvalidated foundationがある。", "製品完成条件としての追加scopeは要件未確定。", "M-029 / M-035〜M-038 / M-046", "Startup / Runtime / Settings / Tray / Shutdown"),
         characterCapability: capability("Character", "COMPLETED", "bundled Character、runtime VRM import/selection/restore、atomic activation、render-safe disposalがある。", "Conversation Pack等との将来bindingは別scopeで未定。", "M-039〜M-044", "Character / Persistence"),
         renderingCapability: capability("Rendering", "COMPLETED", "D3D12、DirectComposition、premultiplied alpha、HRGN interactionを含むproduction rendering pathが検証済み。", "追加renderer/platform scopeは要件未確定。", "M-029 / M-046", "Rendering"),
         interactionCapability: capability("Interaction", "COMPLETED", "native click/drag、context menu、tray、position persistence、Single Instance activationが接続済み。", "追加interaction taxonomyのproduction sourceは未スケジュール。", "M-030 / M-031 / M-035〜M-038 / M-055", "Input / Settings / Tray"),
         settingsCapability: capability("Settings", "COMPLETED", "versioned settings、ViewModel editing、Player presentation、Character selection entryが接続済み。", "将来のautomatic conversation、sound、network controlはproduct scope確定後の別設計。", "M-033 / M-034 / M-041 / M-045", "Settings / Tray"),
         persistenceCapability: capability("Persistence", "COMPLETED", "settings.json、window-position.json、character-selection.jsonが独立ownerで運用される。", "将来機能のschema追加やmigrationは未定。", "M-031 / M-033 / M-042 / M-043", "Persistence"),
-        conversationCapability: capability("Conversation", "CURRENT", "Mascot ClickからConversationRequestを生成し、SingleEntryLocalConversationEvaluatorで同期評価してConversationEvaluationResultまで到達する。", "評価結果をpresentationへ渡すproduction経路は存在しない。CURRENTはactive milestoneではなく現在の能力frontierを示す。", "M-049〜M-056", "M-056 Flow / Conversation / Speech"),
-        presentationConnection: capability("Conversation → Presentation Path", "PLANNED", "ConversationEvaluationResult、managed Speech implementation、native Speech substrateはそれぞれ存在する。", "resultをpresentationへ渡すproduction adapter/admission pathは未実装で、milestoneも未スケジュール。", "Not yet scheduled。将来milestone番号は未定", "M-056 Flow / Conversation / Speech"),
-        speechCapability: capability("Speech / Presentation", "PARTIAL", "managed Speech implementationとnative Speech substrateは存在し、focused diagnostic pathで検証されている。", "normal runtimeはSpeechPresentationControllerを生成せず、Conversation result adapterも存在しない。", "M-047.5 / M-048", "Speech / M-056 Flow"),
-        integrationCapability: capability("Product Integration", "TBD", "response coordination、user control、local-first/provider-independent境界のprinciplesは採用済み。", "production wiring、Busy/concurrency policy、cadence、pack/provider等のscopeと順序は未スケジュール。", "ProjectPrinciples / DevelopmentHandoff deferred scope", "Conversation / Speech / Settings"),
+        conversationCapability: capability("Conversation", "CURRENT", "Mascot Clickからlocal evaluation、ConversationEvaluationResult、visible local Speech responseまで到達する。", "pack/provider、history、cadence、追加triggerやcontent scopeは未確定。CURRENTは現在の能力frontierを示す。", "M-049〜M-057", "M-057 Click → Speech / Conversation / Speech"),
+        presentationConnection: capability("Conversation → Presentation Path", "CONNECTED", "M-057 adapterがResponseProducedをSpeechMessageへ変換し、normal-runtime Speechへ渡す。Busyはdropし、queue/retryは持たない。", "追加presentation policyやcontent scopeは別milestone。", "M-057", "M-057 Click → Speech / Conversation / Speech"),
+        speechCapability: capability("Speech / Presentation", "CONNECTED", "normal runtimeがSpeechPresentationControllerを生成し、独立Speech HWND / D3D12 / DirectCompositionで1件を表示する。", "animation、audio、Text SE、追加admission policyは別scope。", "M-047.5 / M-048 / M-057", "Speech / M-057 Click → Speech"),
+        integrationCapability: capability("Product Integration", "PARTIAL", "M-057でsingle mascot-click local responseのproduction wiringとBusy drop policyが成立した。", "pack/provider、cadence、release readiness、最終product acceptanceは未確定。", "M-057 / ProjectPrinciples deferred scope", "Conversation / Speech / Settings"),
         productReady: capability(
           "Product Ready Conditions",
           "TBD",
-          ["Single Instance", "Settings", "Character selection/import", "Rendering / transparency", "Click / drag interaction", "3つの独立Persistence", "Orderly shutdown", "Local Conversation evaluation"],
-          ["ConversationEvaluationResult → Speech / Presentationのproduction接続"],
+          ["Single Instance", "Settings", "Character selection/import", "Rendering / transparency", "Click / drag interaction", "3つの独立Persistence", "Orderly shutdown", "Local Conversation evaluation", "Visible local Speech response"],
+          ["final conversation content / trigger scope", "packaging / release readiness", "final product acceptance"],
           "Goal definition pending",
           "全Architecture view",
           ["final conversation content scope", "final presentation behavior / admission policy", "animation・expression・audio・Text SEを製品要件に含めるか", "packaging / release criteria", "product acceptance criteria"]
@@ -558,15 +558,15 @@
             node("char-render", 755, 95, ["Character / Rendering"], "CONNECTED", "managed", "characterRendering"),
             node("conversation", 485, 330, ["Conversation"], "CONNECTED", "managed", "conversation"),
             node("result", 720, 330, ["Conversation", "Evaluation Result"], "CONNECTED", "managed", "result"),
-            node("end", 955, 330, ["Processing Endpoint"], "CURRENT END", "managed", "currentEnd"),
-            node("speech", 955, 485, ["Speech / Presentation"], "NOT CONNECTED", "managed", "speechBoundary")
+            node("end", 955, 330, ["Conversation → Speech", "Adapter"], "CONNECTED", "managed", "speechAdapter"),
+            node("speech", 955, 485, ["Visible Local", "Speech Response"], "CONNECTED", "managed", "speechBoundary")
           ],
           [
             edge("user", "windows"), edge("windows", "runtime"), edge("runtime", "char-render"),
             edge("windows", "conversation", "Mascot Click"), edge("runtime", "conversation", "frame pump"),
-            edge("conversation", "result"), edge("result", "end"), edge("end", "speech", "NO ADAPTER", "blocked")
+            edge("conversation", "result"), edge("result", "end"), edge("end", "speech", "TRY SHOW")
           ],
-          ["Mascot Click → Conversation: connected", "ConversationEvaluationResult: current endpoint", "Conversation → Speech: not connected", "Orderly shutdown remains connected"]
+          ["Mascot Click → Local Conversation Evaluation: connected", "ConversationEvaluationResult → Speech adapter: connected", "Visible local Speech response: connected", "Busy drops without queue/retry", "Orderly shutdown remains connected"]
         ),
 
         roadmap: view(
@@ -581,11 +581,11 @@
             node("g-interaction", 650, 220, ["Interaction"], "COMPLETED", "capability", "interactionCapability"),
             node("g-settings", 860, 220, ["Settings"], "COMPLETED", "capability", "settingsCapability"),
             node("g-persistence", 1070, 220, ["Persistence"], "COMPLETED", "capability", "persistenceCapability"),
-            node("g-baseline", 20, 445, ["M-056", "Completed / Pushed"], "COMPLETED", "baseline", "baseline"),
+            node("g-baseline", 20, 445, ["M-057", "Validated"], "COMPLETED", "baseline", "baseline"),
             node("g-conversation", 230, 445, ["Conversation", "Current Frontier"], "CURRENT", "capability", "conversationCapability"),
-            node("g-presentation-path", 440, 445, ["Result → Presentation", "Not yet scheduled"], "PLANNED", "capability", "presentationConnection"),
-            node("g-speech", 650, 445, ["Speech /", "Presentation"], "PARTIAL", "capability", "speechCapability"),
-            node("g-integration", 860, 445, ["Product Integration"], "TBD", "capability", "integrationCapability"),
+            node("g-presentation-path", 440, 445, ["Result → Presentation", "Connected"], "CONNECTED", "capability", "presentationConnection"),
+            node("g-speech", 650, 445, ["Speech /", "Presentation"], "CONNECTED", "capability", "speechCapability"),
+            node("g-integration", 860, 445, ["Product Integration"], "PARTIAL", "capability", "integrationCapability"),
             node("g-ready", 1070, 445, ["★ PRODUCT READY", "Goal definition pending"], "TBD", "goal", "productReady")
           ],
           [
@@ -596,23 +596,23 @@
             edge("g-goal", "g-settings", "", "foundation"),
             edge("g-goal", "g-persistence", "", "foundation"),
             edge("g-baseline", "g-conversation", "CURRENT CAPABILITY", "primary-path"),
-            edge("g-conversation", "g-presentation-path", "NOT YET CONNECTED", "blocked-primary"),
-            edge("g-presentation-path", "g-speech", "TARGET SUBSYSTEM", "primary-path"),
-            edge("g-speech", "g-integration", "SCOPE TBD", "primary-path"),
+            edge("g-conversation", "g-presentation-path", "RESPONSE PRODUCED", "primary-path"),
+            edge("g-presentation-path", "g-speech", "TRY SHOW", "primary-path"),
+            edge("g-speech", "g-integration", "M-057 PATH", "primary-path"),
             edge("g-integration", "g-ready", "GOAL TBD", "primary-path")
           ],
           [
-            "Current Capability Frontier: User interaction → Mascot Click → Local Conversation Evaluation → ConversationEvaluationResult",
-            "Remaining Major Capability: Conversation result → presentation path [NOT YET CONNECTED]",
-            "Product Ready Conditions: confirmed foundations + disconnected presentation + final goal definition TBD",
-            "M-057 scope: Not started / not defined"
+            "Current Capability Frontier: Mascot Click → Local Conversation Evaluation → ConversationEvaluationResult → Visible Local Speech Response",
+            "Conversation result → presentation path: connected and validated in M-057",
+            "Product Ready Conditions: presentation connection does not complete packaging, release, or final product acceptance",
+            "M-057 automated / manual / visual validation: passed"
           ],
-          [{ kind: "group", x: 20, y: 180, width: 1240, label: "COMPLETED FOUNDATIONS", subtitle: "validated through M-056" }]
+          [{ kind: "group", x: 20, y: 180, width: 1240, label: "VALIDATED CAPABILITIES", subtitle: "validated through M-057" }]
         ),
 
         m056: view(
-          "M-056 Flow",
-          "One completed mascot click becomes one synchronous local evaluation and stops at the correlated domain result.",
+          "M-057 Click → Speech",
+          "One completed mascot click becomes one synchronous local evaluation and one visible local Speech response candidate.",
           1300, 650,
           [
             node("m-user", 25, 75, ["1 · User Click"], "CONNECTED", "native", "user"),
@@ -625,8 +625,8 @@
             node("m-single", 885, 285, ["8 · Single-Entry", "Evaluator"], "CONNECTED", "managed", "singleEntry"),
             node("m-result", 670, 285, ["9 · Conversation", "Evaluation Result"], "CONNECTED", "managed", "result"),
             node("m-correlation", 455, 285, ["10 · RequestId", "Correlation"], "CONNECTED", "managed", "correlation"),
-            node("m-end", 240, 285, ["11 · Processing Endpoint"], "CURRENT END", "managed", "currentEnd"),
-            node("m-speech", 240, 475, ["Speech / Presentation"], "NOT CONNECTED", "managed", "speechBoundary"),
+            node("m-end", 240, 285, ["11 · Conversation → Speech", "Adapter"], "CONNECTED", "managed", "speechAdapter"),
+            node("m-speech", 240, 475, ["12 · Visible Local", "Speech Response"], "CONNECTED", "managed", "speechBoundary"),
             node("m-drag", 455, 475, ["Completed Drag", "No click generation"], "CONNECTED", "native", "nativePointer"),
             node("m-position", 670, 475, ["Position Persistence"], "CONNECTED", "managed", "positionStore")
           ],
@@ -635,10 +635,10 @@
             edge("m-decision", "m-generation", "CLICK"), edge("m-generation", "m-controller"), edge("m-controller", "m-request"),
             edge("m-request", "m-interface"), edge("m-interface", "m-single"), edge("m-single", "m-result"),
             edge("m-result", "m-correlation"), edge("m-correlation", "m-end"),
-            edge("m-end", "m-speech", "X · NOT FORWARDED", "blocked"),
+            edge("m-end", "m-speech", "TRY SHOW"),
             edge("m-decision", "m-drag", "DRAG"), edge("m-drag", "m-position")
           ],
-          ["First snapshot = observer cursor", "Generation delta = retained pending debt", "Maximum 64 accepted clicks per frame", "No drop or coalesce", "1 click → 1 request → 1 synchronous evaluation"]
+          ["First snapshot = observer cursor", "Generation delta = retained pending debt", "Maximum 64 accepted clicks per frame", "1 click → 1 request → 1 synchronous evaluation", "ResponseProduced → SpeechMessage", "Busy → drop; no queue/retry/backlog"]
         ),
 
         startup: view("Startup / Runtime", "Normal-runtime composition and the prerequisite readiness boundary.", 1120, 590, [
@@ -693,18 +693,19 @@
           edge("i-native", "i-click", "CLICK"), edge("i-click", "i-controller")
         ], ["A drag never publishes completed-click", "Cancellation and capture loss publish neither synthetic completion"]),
 
-        conversation: view("Conversation", "The production-connected M-056 request and evaluation path.", 1260, 560, [
+        conversation: view("Conversation", "The production-connected request, evaluation, and M-057 Speech handoff path.", 1260, 560, [
           node("v-signal", 25, 190, ["Click Generation"], "CONNECTED", "native", "clickGeneration"),
           node("v-controller", 230, 190, ["Click Controller"], "CONNECTED", "managed", "clickController"),
           node("v-request", 435, 190, ["ConversationRequest"], "CONNECTED", "managed", "request"),
           node("v-interface", 640, 190, ["Local Evaluator", "Interface"], "CONNECTED", "managed", "evaluatorInterface"),
           node("v-single", 845, 190, ["Single-Entry", "Evaluator"], "CONNECTED", "managed", "singleEntry"),
           node("v-result", 1050, 190, ["Evaluation Result"], "CONNECTED", "managed", "result"),
-          node("v-end", 1050, 380, ["Processing Endpoint"], "CURRENT END", "managed", "currentEnd")
+          node("v-end", 820, 380, ["Conversation → Speech", "Adapter"], "CONNECTED", "managed", "speechAdapter"),
+          node("v-speech", 1050, 380, ["Visible Local", "Speech Response"], "CONNECTED", "managed", "speechBoundary")
         ], [
           edge("v-signal", "v-controller"), edge("v-controller", "v-request"), edge("v-request", "v-interface"),
-          edge("v-interface", "v-single"), edge("v-single", "v-result"), edge("v-result", "v-end")
-        ], ["Fixed default Conversation persona identity", "RequestIds allocated only at acceptance", "Result is not stored or forwarded"]),
+          edge("v-interface", "v-single"), edge("v-single", "v-result"), edge("v-result", "v-end"), edge("v-end", "v-speech", "TRY SHOW")
+        ], ["Fixed default Conversation persona identity", "RequestIds allocated only at acceptance", "ResponseProduced is converted once", "NoMatch is a no-op", "Busy drops without queue/retry"]),
 
         settings: view("Settings / Tray / Single Instance", "Shared Windows entry points route to one Settings presentation host or orderly exit.", 1180, 590, [
           node("t-user", 35, 235, ["User"], "CONNECTED", "native", "user"),
@@ -730,17 +731,17 @@
           edge("p-settings-client", "p-settings"), edge("p-drag", "p-position"), edge("p-selection", "p-character")
         ], ["No merged store", "No cross-read between owners", "Runtime-smoke and diagnostics avoid production settings/character stores"]),
 
-        speech: view("Speech / Presentation", "Native Speech infrastructure exists, while normal-runtime Conversation presentation remains disconnected.", 1160, 600, [
+        speech: view("Speech / Presentation", "M-057 connects normal-runtime Conversation results to the independent M-048 Speech presentation.", 1160, 600, [
           node("h-native-comp", 35, 115, ["Native Composition"], "CONNECTED", "native", "nativePlugin"),
           node("h-native-speech", 300, 115, ["Native Speech", "Substrate"], "CONNECTED", "native", "nativeSpeech"),
-          node("h-diagnostic", 35, 350, ["Message Diagnostic"], "NOT CONNECTED", "managed", "speechController"),
-          node("h-controller", 300, 350, ["Managed Speech", "Controller"], "NOT CONNECTED", "managed", "speechController"),
+          node("h-diagnostic", 35, 350, ["Message Diagnostic"], "CONNECTED", "managed", "speechController"),
+          node("h-controller", 300, 350, ["Managed Speech", "Controller"], "CONNECTED", "managed", "speechController"),
           node("h-result", 610, 225, ["Conversation Result"], "CONNECTED", "managed", "result"),
-          node("h-adapter", 875, 225, ["Conversation → Speech", "Adapter"], "FUTURE", "managed", "speechAdapter")
+          node("h-adapter", 875, 225, ["Conversation → Speech", "Adapter"], "CONNECTED", "managed", "speechAdapter")
         ], [
-          edge("h-native-comp", "h-native-speech"), edge("h-diagnostic", "h-controller", "DIAGNOSTIC", "not-connected"),
-          edge("h-controller", "h-native-speech", "HOST", "not-connected"), edge("h-result", "h-adapter", "NOT IMPLEMENTED", "blocked")
-        ], ["Native substrate existence ≠ Conversation presentation connection", "SpeechPresentationController is not created by normal-runtime bootstrap"]),
+          edge("h-native-comp", "h-native-speech"), edge("h-diagnostic", "h-controller", "DIAGNOSTIC"),
+          edge("h-result", "h-adapter", "RESPONSE PRODUCED"), edge("h-adapter", "h-controller", "TRY SHOW"), edge("h-controller", "h-native-speech", "HOST")
+        ], ["Speech keeps its independent HWND / D3D12 / DirectComposition ownership", "Normal runtime creates one SpeechPresentationController", "Busy drops without queue or retry", "Camera Layer 30 isolation restores the exact original mask"]),
 
         shutdown: view("Orderly Shutdown", "Acceptance barriers close before cooperative drain and owned teardown.", 1280, 560, [
           node("q-request", 25, 190, ["Exit / Quit Request"], "CONNECTED", "managed", "shutdown"),

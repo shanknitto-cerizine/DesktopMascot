@@ -71,11 +71,14 @@ namespace DesktopMascot.Runtime
             characterSelectionPersistence;
         private SpeechPresentationController speechPresentationController;
         private bool speechPresentationCleanupComplete = true;
-        private DesktopMascotSpeechMascotScaleDiagnostics
-            speechCameraIsolationDiagnostics;
+        private SpeechCameraIsolationController speechCameraIsolationController;
         private bool speechCameraIsolationCleanupComplete = true;
+        private DesktopMascotSpeechMascotScaleDiagnostics speechScaleDiagnostics;
+        private bool speechScaleCleanupComplete = true;
         private bool characterPersistenceCleanupComplete = true;
         private MascotClickConversationController mascotClickConversationController;
+        private ConversationSpeechPresentationAdapter
+            conversationSpeechPresentationAdapter;
 
         internal int NativeTransferWidth =>
             cameraPipeline?.NormalizedTransferTexture?.width ?? 0;
@@ -235,8 +238,9 @@ namespace DesktopMascot.Runtime
             characterAssetManager?.BeginShutdown();
             singleInstanceController?.BeginShutdown();
             playerVisibilityController?.BeginShutdown();
-            speechPresentationController?.BeginShutdown();
             mascotClickConversationController?.BeginShutdown();
+            conversationSpeechPresentationAdapter?.BeginShutdown();
+            speechPresentationController?.BeginShutdown();
             if (!shutdownStarted)
                 StartCoroutine(Shutdown(reason, true));
 #endif
@@ -305,17 +309,30 @@ namespace DesktopMascot.Runtime
             speechPresentationCleanupComplete = controller == null;
         }
 
-        internal void AttachSpeechCameraIsolationDiagnostics(
+        internal void AttachSpeechCameraIsolationController(
+            SpeechCameraIsolationController controller)
+        {
+            speechCameraIsolationController = controller;
+            speechCameraIsolationCleanupComplete = controller == null;
+        }
+
+        internal void AttachSpeechScaleDiagnostics(
             DesktopMascotSpeechMascotScaleDiagnostics diagnostics)
         {
-            speechCameraIsolationDiagnostics = diagnostics;
-            speechCameraIsolationCleanupComplete = diagnostics == null;
+            speechScaleDiagnostics = diagnostics;
+            speechScaleCleanupComplete = diagnostics == null;
         }
 
         internal void AttachMascotClickConversationController(
             MascotClickConversationController controller)
         {
             mascotClickConversationController = controller;
+        }
+
+        internal void AttachConversationSpeechPresentationAdapter(
+            ConversationSpeechPresentationAdapter adapter)
+        {
+            conversationSpeechPresentationAdapter = adapter;
         }
 
 #if UNITY_STANDALONE_WIN && !UNITY_EDITOR
@@ -683,8 +700,9 @@ namespace DesktopMascot.Runtime
             playerVisibilityController?.BeginShutdown();
             systemTrayController?.BeginShutdown();
             contextMenuController?.BeginShutdown();
-            speechPresentationController?.BeginShutdown();
             mascotClickConversationController?.BeginShutdown();
+            conversationSpeechPresentationAdapter?.BeginShutdown();
+            speechPresentationController?.BeginShutdown();
             Log($"Shutdown reason: {reason}");
             if (characterSelectionController != null)
             {
@@ -884,6 +902,7 @@ namespace DesktopMascot.Runtime
                 && characterSelectionCleanupComplete
                 && speechPresentationCleanupComplete
                 && speechCameraIsolationCleanupComplete
+                && speechScaleCleanupComplete
                 && characterPersistenceCleanupComplete
                 && !runtimeVrmShutdownWaitExceeded
                 && singleInstanceCleanupSucceeded
@@ -1020,6 +1039,13 @@ namespace DesktopMascot.Runtime
                 return;
             }
             managedCleanupCompleted = true;
+            if (mascotClickConversationController != null)
+            {
+                mascotClickConversationController.Cleanup();
+                mascotClickConversationController = null;
+            }
+            conversationSpeechPresentationAdapter?.Cleanup();
+            conversationSpeechPresentationAdapter = null;
             speechPresentationCleanupComplete =
                 speechPresentationController == null
                 || speechPresentationController.Cleanup();
@@ -1051,12 +1077,15 @@ namespace DesktopMascot.Runtime
                 playerPresentation = null;
             }
             speechCameraIsolationCleanupComplete =
-                speechCameraIsolationDiagnostics == null
-                || speechCameraIsolationDiagnostics.Restore();
+                speechCameraIsolationController == null
+                || speechCameraIsolationController.Restore();
             Log(
                 "Speech Camera isolation cleanup result: " +
                 speechCameraIsolationCleanupComplete);
-            speechCameraIsolationDiagnostics = null;
+            speechCameraIsolationController = null;
+            speechScaleCleanupComplete = speechScaleDiagnostics == null
+                || speechScaleDiagnostics.Restore();
+            speechScaleDiagnostics = null;
             if (characterSelectionController != null)
             {
                 characterSelectionCleanupComplete =
@@ -1095,11 +1124,6 @@ namespace DesktopMascot.Runtime
                 if (characterPersistenceCleanupComplete)
                     characterSelectionPersistence = null;
             }
-            if (mascotClickConversationController != null)
-            {
-                mascotClickConversationController.Cleanup();
-                mascotClickConversationController = null;
-            }
             Application.runInBackground = previousRunInBackground;
             runInBackgroundRestored =
                 Application.runInBackground == previousRunInBackground;
@@ -1121,8 +1145,9 @@ namespace DesktopMascot.Runtime
             singleInstanceController?.BeginShutdown();
             systemTrayController?.BeginShutdown();
             contextMenuController?.BeginShutdown();
-            speechPresentationController?.BeginShutdown();
             mascotClickConversationController?.BeginShutdown();
+            conversationSpeechPresentationAdapter?.BeginShutdown();
+            speechPresentationController?.BeginShutdown();
             try
             {
                 if (regionStarted)

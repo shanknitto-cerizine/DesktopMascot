@@ -4032,6 +4032,94 @@ the staged file set, complete diff, dependency/prohibited-reference/secret and
 generated-artifact checks, and `git diff --cached --check` passed. The audit
 set was immediately unstaged after review.
 
-Commit: Pending
+Implementation commit: `38fd49a` (`M-056 establish mascot-click conversation
+request evaluation source`)
 
-Push / Remote Protection: Pending
+Architecture Viewer follow-up: `b1dc806` (`docs: add M-056 architecture
+viewer`)
+
+Push / Remote Protection: Completed
+
+## M-057 — Single Mascot-Click Speech Response Production Integration
+
+Status: Completed
+
+Architecture baseline: M-046
+
+Speech-specific design baseline: M-047.5
+
+M-057 connects M-056 correlated local evaluation to the M-048 independent
+Speech presentation in normal runtime. It has one click trigger, the existing
+compiled-in response, Busy drop, and no queue, retry, backlog, provider, pack,
+persistence, animation, audio, Text SE, or native redesign. Speech Layer 30
+is excluded from the production Camera before Settings preview creation and
+its exact original culling mask is restored during cleanup.
+
+Detailed design:
+`NativePlugin/docs/SingleMascotClickSpeechResponseProductionIntegrationDesign.md`
+
+Automated Validation: Passed
+
+Manual Verification: Passed
+
+Visual Verification: Passed
+
+Final Repository / Staged Audit: Passed
+
+### Automated validation
+
+The Unity Development Player build, M-057 focused managed diagnostic,
+`runtime-smoke`, and `git diff --check` passed. Initial
+`message-window-diagnostic` validation exposed stale native DLLs whose export
+tables predated Speech presentation. The native header, implementation,
+`extern "C"` export boundary, CMake source inclusion, and canonical build/deploy
+configuration were already correct; no native source or build configuration
+change was required.
+
+The canonical RelWithDebInfo native build restored 705 exports in the Assets
+DLL, including 35 Speech exports and the required
+`DMN_IsSpeechPresentationReady` and
+`DMN_BeginSpeechPresentationShutdown`. All 601 exports from the prior Player
+DLL remained present. The canonical product-named Player deploy produced exact
+Assets/Player export and SHA-256 parity at
+`56D5976FE60E09A623740DFAB1DC97D4C63EE9FC63D9A631C2D7DD4BDDC76C11`.
+
+The recovered `message-window-diagnostic` passed the existing M-048 automated
+Speech contract: readiness and presentation completed, Speech failure stage
+was zero, native cleanup succeeded with zero live Speech resources and HRGNs,
+the Speech window was destroyed once, production Camera culling-mask cleanup
+succeeded, and all runtime cleanup invariants passed. The Player exited with
+code zero after the exact orderly `UnityWndClass` close, with no residual
+Player process. Passing log:
+`NativePlugin/out/development-player-20260815-183004-738-fb643a78.log`.
+
+### Manual and visual verification
+
+The user verified the production Player in normal runtime. The bundled
+Character appeared normally, and clicking it displayed one Speech card with
+speaker `Mascot` and body `こんにちは。`. Additional input while Speech was
+visible, closing the Speech card, mascot dragging, Settings open/close, and
+mascot/Speech behavior while Settings was visible all remained normal.
+
+The user then imported and activated an external VRM, confirmed that clicking
+the imported Character displayed the same expected speaker and response, and
+exited through the tray while that Character was active. Mascot, Speech,
+Settings, Player, and process shutdown completed normally with no residual
+process.
+
+The Speech HWND transparent-area click-through item was not separately judged
+by the user because its exact transparent window bounds were not reliably
+identifiable in normal runtime. Its acceptance remains based on the existing
+M-048 focused diagnostic plus the passing M-057 automated regression evidence;
+no speculative manual result is recorded.
+
+M-057 implementation and validation are complete. The final audit temporarily
+staged exactly the 16 intended source, Unity metadata, diagnostic, and
+documentation files. The staged file set, complete diff, dependency and
+prohibited-reference checks, secret and generated-artifact checks, Viewer
+static validation, and `git diff --cached --check` passed. The audit set was
+unstaged after review; commit and push remain separately unauthorized.
+
+Commit: Not authorized
+
+Push: Not authorized

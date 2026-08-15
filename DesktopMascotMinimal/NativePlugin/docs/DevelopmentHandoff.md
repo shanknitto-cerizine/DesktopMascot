@@ -26,25 +26,37 @@ merge/rebase/cherry-pick state read-only. Do not store volatile Git facts here.
 - Expected branch: `m045-complete-safety` (advisory; verify live Git).
 - Architecture baseline: **M-046**.
 - Speech-specific design baseline: **M-047.5**.
-- M-048 and M-049 through M-056 are additive and do not advance M-046.
+- M-048 and M-049 through M-057 are additive and do not advance M-046.
 - M-054 is a completed design gate for production Conversation request and
   default-persona identity policy; it added no implementation.
-- Latest completed milestone: **M-056 — Single Mascot-Click Conversation
-  Request Evaluation Source**.
+- Latest completed milestone: **M-057 — Single Mascot-Click Speech Response
+  Production Integration**.
 - Active product milestone: **None**.
-- Next candidate: **M-057 — Not Started**.
+- M-057 automated, manual, visual, and final repository/staged validation
+  passed.
+- Next candidate: **M-058 — Not Started; scope not authorized**.
 
-M-057 requires explicit scope authorization. Do not begin its design,
-planning, or implementation as workflow/documentation maintenance.
+M-057 scope is authorized. Its detailed contract is
+`SingleMascotClickSpeechResponseProductionIntegrationDesign.md`.
 
 ## Current objective and blockers
 
-M-056 is complete under architecture baseline M-046. Its implementation,
-automated validation, user-performed manual interaction verification, and final
-repository/staged audit are recorded in `Milestones.md`. Commit and push remain
-separate explicit authorizations.
+M-057 is complete under architecture baseline M-046 and Speech-specific design
+baseline M-047.5. Its implementation, automated validation, user-performed
+manual and visual verification, and final repository/staged audit are recorded
+in `Milestones.md`. Commit and push remain separate explicit authorizations.
 
-There is no active product blocker. The Unity Editor batch Licensing Client
+There is no active product blocker. M-057 native/managed Speech export parity
+was restored by the canonical native build and Player deploy without native
+source changes. The Assets and current product-named Player DLLs have matching
+SHA-256 and exports, and the previously blocked `message-window-diagnostic`
+passed with orderly shutdown. The user subsequently passed the required normal-
+runtime manual and visual verification, including bundled/imported Character
+click-to-Speech, Speech/drag/Settings interaction, and tray orderly shutdown.
+The final exact-file-set staged audit passed. M-058 remains not started and its
+scope is not authorized.
+
+The Unity Editor batch Licensing Client
 limitation is preserved as validation history in M-049 through M-053; it did
 not block the accepted pure-managed focused diagnostics. Resolved serializer
 or other transient validation incidents belong only in `Milestones.md`.

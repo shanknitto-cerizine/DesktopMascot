@@ -23,8 +23,8 @@ recovery prerequisite have completed automated and manual validation.
 
 - [`DesktopMascotArchitectureViewer.html`](DesktopMascotArchitectureViewer.html)
   is a standalone, developer-facing visual index of the production architecture
-  as connected through M-056. It is documentation only and is not a runtime
-  dependency or architecture authority.
+  as connected through the validated M-057 integration. It is documentation
+  only and is not a runtime dependency or architecture authority.
 - [`SettingsPresentationDesign.md`](SettingsPresentationDesign.md)
 - [`RuntimeRetiredCharacterDisposalDesign.md`](RuntimeRetiredCharacterDisposalDesign.md)
 - [`RuntimeBundledCharacterRestorationDesign.md`](RuntimeBundledCharacterRestorationDesign.md)
@@ -36,6 +36,7 @@ recovery prerequisite have completed automated and manual validation.
 - [`WindowPositionPersistenceDesign.md`](WindowPositionPersistenceDesign.md)
 - [`D3D12TextureTransferDesign.md`](D3D12TextureTransferDesign.md)
 - [`SpeechPresentationDesign.md`](SpeechPresentationDesign.md)
+- [`SingleMascotClickSpeechResponseProductionIntegrationDesign.md`](SingleMascotClickSpeechResponseProductionIntegrationDesign.md)
 - [`ConversationDomainDesign.md`](ConversationDomainDesign.md)
 - [`ConversationEvaluationResultDesign.md`](ConversationEvaluationResultDesign.md)
 - [`LocalConversationEvaluatorDesign.md`](LocalConversationEvaluatorDesign.md)

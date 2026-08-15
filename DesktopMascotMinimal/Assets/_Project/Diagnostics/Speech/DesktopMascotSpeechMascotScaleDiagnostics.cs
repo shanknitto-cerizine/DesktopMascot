@@ -15,9 +15,6 @@ namespace DesktopMascot.Diagnostics
         internal const int TargetVisibleAlphaHeight = 224;
         private Camera targetCamera;
         private float originalFieldOfView;
-        private int originalCullingMask;
-        private int appliedCullingMask;
-        private int endingCullingMask;
         private bool configured;
         private bool restoreAttempted;
         private bool restoreSucceeded;
@@ -27,15 +24,6 @@ namespace DesktopMascot.Diagnostics
         internal float OriginalFieldOfView => originalFieldOfView;
         internal float AppliedFieldOfView =>
             targetCamera != null ? targetCamera.fieldOfView : 0.0f;
-        internal int OriginalCullingMask => originalCullingMask;
-        internal int AppliedCullingMask => appliedCullingMask;
-        internal int EndingCullingMask => endingCullingMask;
-        internal bool SpeechLayerExcluded => configured
-            && (appliedCullingMask & (1 << SpeechPresentationView.SpeechLayer)) == 0;
-        internal bool ProductionCameraStillIsolated =>
-            targetCamera != null
-            && targetCamera.cullingMask == appliedCullingMask
-            && SpeechLayerExcluded;
         internal bool RestoreAttempted => restoreAttempted;
         internal bool RestoreSucceeded => restoreSucceeded;
 
@@ -49,10 +37,6 @@ namespace DesktopMascot.Diagnostics
 
             targetCamera = camera;
             originalFieldOfView = camera.fieldOfView;
-            originalCullingMask = camera.cullingMask;
-            appliedCullingMask = originalCullingMask
-                & ~(1 << SpeechPresentationView.SpeechLayer);
-            camera.cullingMask = appliedCullingMask;
             ProjectedHeightBefore = MeasureProjectedHeight(
                 camera,
                 characterManager.ActiveCharacter.Root);
@@ -72,7 +56,7 @@ namespace DesktopMascot.Diagnostics
             ProjectedHeightAfter = MeasureProjectedHeight(
                 camera,
                 characterManager.ActiveCharacter.Root);
-            configured = camera.cullingMask == appliedCullingMask;
+            configured = true;
             Debug.Log(
                 "[DesktopMascotSpeechDiagnostics] Diagnostic mascot framing " +
                 $"projected height before/after/target: " +
@@ -82,13 +66,6 @@ namespace DesktopMascot.Diagnostics
                 "[DesktopMascotSpeechDiagnostics] Diagnostic mascot framing " +
                 $"FOV before/after: {originalFieldOfView:F2}/" +
                 $"{camera.fieldOfView:F2}");
-            Debug.Log(
-                "[DesktopMascotSpeechDiagnostics] Production Camera " +
-                $"culling mask original/applied: " +
-                $"0x{originalCullingMask:X8}/0x{appliedCullingMask:X8}");
-            Debug.Log(
-                "[DesktopMascotSpeechDiagnostics] Production Camera " +
-                $"Speech Layer excluded: {SpeechLayerExcluded}");
             return configured;
         }
 
@@ -99,24 +76,13 @@ namespace DesktopMascot.Diagnostics
             restoreAttempted = true;
             if (targetCamera == null)
             {
-                endingCullingMask = 0;
                 restoreSucceeded = false;
                 return false;
             }
             targetCamera.fieldOfView = originalFieldOfView;
-            targetCamera.cullingMask = originalCullingMask;
-            endingCullingMask = targetCamera.cullingMask;
-            restoreSucceeded = endingCullingMask == originalCullingMask
-                && Mathf.Approximately(
+            restoreSucceeded = Mathf.Approximately(
                     targetCamera.fieldOfView,
                     originalFieldOfView);
-            Debug.Log(
-                "[DesktopMascotSpeechDiagnostics] Production Camera " +
-                $"culling mask original/ending: " +
-                $"0x{originalCullingMask:X8}/0x{endingCullingMask:X8}");
-            Debug.Log(
-                "[DesktopMascotSpeechDiagnostics] Production Camera " +
-                $"culling mask restored: {restoreSucceeded}");
             return restoreSucceeded;
         }
 
