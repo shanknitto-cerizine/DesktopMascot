@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Desktop Mascot Architecture Viewer — M-057</title>
+  <title>Desktop Mascot Architecture Viewer — M-058</title>
   <style>
     :root {
       color-scheme: dark;
@@ -403,7 +403,7 @@
     <header>
       <div>
         <h1>Desktop Mascot Architecture Viewer</h1>
-        <div class="baseline">Current baseline: <strong>M-057 — Completed / Commit Pending</strong></div>
+        <div class="baseline">Current baseline: <strong>M-057 validated; M-058 Release Candidate Foundation completed</strong></div>
         <div class="frontier">Current capability frontier: <strong>Mascot Click → Visible Local Speech Response</strong></div>
       </div>
       <div class="legend" aria-label="Architecture status legend">
@@ -526,7 +526,7 @@
         conversationCapability: capability("Conversation", "CURRENT", "Mascot Clickからlocal evaluation、ConversationEvaluationResult、visible local Speech responseまで到達する。", "pack/provider、history、cadence、追加triggerやcontent scopeは未確定。CURRENTは現在の能力frontierを示す。", "M-049〜M-057", "M-057 Click → Speech / Conversation / Speech"),
         presentationConnection: capability("Conversation → Presentation Path", "CONNECTED", "M-057 adapterがResponseProducedをSpeechMessageへ変換し、normal-runtime Speechへ渡す。Busyはdropし、queue/retryは持たない。", "追加presentation policyやcontent scopeは別milestone。", "M-057", "M-057 Click → Speech / Conversation / Speech"),
         speechCapability: capability("Speech / Presentation", "CONNECTED", "normal runtimeがSpeechPresentationControllerを生成し、独立Speech HWND / D3D12 / DirectCompositionで1件を表示する。", "animation、audio、Text SE、追加admission policyは別scope。", "M-047.5 / M-048 / M-057", "Speech / M-057 Click → Speech"),
-        integrationCapability: capability("Product Integration", "PARTIAL", "M-057でsingle mascot-click local responseのproduction wiringとBusy drop policyが成立した。", "pack/provider、cadence、release readiness、最終product acceptanceは未確定。", "M-057 / ProjectPrinciples deferred scope", "Conversation / Speech / Settings"),
+        integrationCapability: capability("Product Integration", "PARTIAL", "M-058でportable Windows x64 Release Candidate Foundationが成立し、M-057 runtime pathを変更せずRelease artifactとして検証した。", "final product acceptanceだけが未確定。", "M-057 / M-058", "Conversation / Speech / Settings / Release"),
         productReady: capability(
           "Product Ready Conditions",
           "TBD",
@@ -599,15 +599,16 @@
             edge("g-conversation", "g-presentation-path", "RESPONSE PRODUCED", "primary-path"),
             edge("g-presentation-path", "g-speech", "TRY SHOW", "primary-path"),
             edge("g-speech", "g-integration", "M-057 PATH", "primary-path"),
-            edge("g-integration", "g-ready", "GOAL TBD", "primary-path")
+            edge("g-integration", "g-ready", "RELEASE FOUNDATION", "primary-path")
           ],
           [
             "Current Capability Frontier: Mascot Click → Local Conversation Evaluation → ConversationEvaluationResult → Visible Local Speech Response",
             "Conversation result → presentation path: connected and validated in M-057",
-            "Product Ready Conditions: presentation connection does not complete packaging, release, or final product acceptance",
-            "M-057 automated / manual / visual validation: passed"
+            "M-058 adds portable Windows x64 Release packaging without changing the validated runtime path",
+            "M-057 and M-058 automated / manual / visual validation: passed",
+            "M-058 final repository / staged audit: passed"
           ],
-          [{ kind: "group", x: 20, y: 180, width: 1240, label: "VALIDATED CAPABILITIES", subtitle: "validated through M-057" }]
+          [{ kind: "group", x: 20, y: 180, width: 1240, label: "VALIDATED CAPABILITIES", subtitle: "runtime through M-057; portable Release Candidate through M-058" }]
         ),
 
         m056: view(

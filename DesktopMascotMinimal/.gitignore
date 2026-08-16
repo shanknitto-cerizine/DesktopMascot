@@ -54,6 +54,8 @@ crashlytics-build.properties
 /Assets/_Project/Models/*.vrm.meta
 /Assets/_Project/Models/**/*.vrm
 /Assets/_Project/Models/**/*.vrm.meta
+!/Assets/_Project/Models/VRM/TEST_MODEL.vrm
+!/Assets/_Project/Models/VRM/TEST_MODEL.vrm.meta
 
 # Optional local secrets/configuration
 .env

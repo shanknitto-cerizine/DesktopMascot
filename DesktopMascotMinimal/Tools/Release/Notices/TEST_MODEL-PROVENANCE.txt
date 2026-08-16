@@ -1,0 +1,10 @@
+TEST_MODEL.vrm provenance
+
+Author: the project user
+Creation tool: VRoid Studio 2.14.0
+Parts policy: VRoid Studio standard included parts only
+Distribution purpose: bundled character for the DesktopMascotMinimal portable
+Windows x64 release candidate.
+
+This file does not grant rights beyond those held by the model author and the
+applicable VRoid Studio terms.

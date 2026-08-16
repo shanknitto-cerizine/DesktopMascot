@@ -1,0 +1,17 @@
+Microsoft.AI.DirectML 1.13.1
+
+Component: DirectML Redistributable Library (DirectML.dll)
+Publisher: Microsoft Corporation
+Bundled by: Unity 6000.3.20f1 Windows Standalone Support as a D3D12
+Player companion dependency.
+
+Packaged file SHA-256:
+5AB77CC5DB8E1544D386FD28586598317DA8DCBEF098FB86D8D8A60E739E0E5D
+
+Authoritative license source:
+https://www.nuget.org/packages/Microsoft.AI.DirectML/1.13.1/License
+
+The authoritative Microsoft Software License Terms identify this component as
+Microsoft DirectX Machine Learning (DirectML). Subject to those terms, it
+permits copying and distribution in applications and games developed for
+Windows and Xbox. This notice does not replace the authoritative license.

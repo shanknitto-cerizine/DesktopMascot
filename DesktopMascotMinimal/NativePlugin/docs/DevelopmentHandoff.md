@@ -29,12 +29,12 @@ merge/rebase/cherry-pick state read-only. Do not store volatile Git facts here.
 - M-048 and M-049 through M-057 are additive and do not advance M-046.
 - M-054 is a completed design gate for production Conversation request and
   default-persona identity policy; it added no implementation.
-- Latest completed milestone: **M-057 — Single Mascot-Click Speech Response
-  Production Integration**.
+- Latest completed milestone: **M-058 — Portable Windows x64 Release Candidate
+  Foundation**.
 - Active product milestone: **None**.
 - M-057 automated, manual, visual, and final repository/staged validation
   passed.
-- Next candidate: **M-058 — Not Started; scope not authorized**.
+- M-058 automated, manual, visual, and final repository/staged audit passed.
 
 M-057 scope is authorized. Its detailed contract is
 `SingleMascotClickSpeechResponseProductionIntegrationDesign.md`.
@@ -53,8 +53,12 @@ SHA-256 and exports, and the previously blocked `message-window-diagnostic`
 passed with orderly shutdown. The user subsequently passed the required normal-
 runtime manual and visual verification, including bundled/imported Character
 click-to-Speech, Speech/drag/Settings interaction, and tray orderly shutdown.
-The final exact-file-set staged audit passed. M-058 remains not started and its
-scope is not authorized.
+The final exact-file-set staged audit passed. M-058 now has passed automated,
+manual, and visual Release Candidate evidence, including clean first launch,
+existing v1 persistence, Single Instance, Explorer tray recovery, and orderly
+shutdown. It changes no runtime product behavior. Its final exact-file-set
+repository/staged audit also passed, so M-058 is complete. Commit and push
+remain separately unauthorized.
 
 The Unity Editor batch Licensing Client
 limitation is preserved as validation history in M-049 through M-053; it did

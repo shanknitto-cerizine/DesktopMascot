@@ -1,0 +1,15 @@
+Third-party notices included with this release candidate
+
+- NotoSansCJKjp-Regular: SIL Open Font License 1.1 (NotoSansCJKjp-OFL.txt).
+- UniVRM / UniGLTF v0.131.0: MIT (UniVRM-UniGLTF-MIT.txt).
+- Microsoft.AI.DirectML 1.13.1: DirectML Redistributable Library bundled by
+  Unity 6000.3.20f1 Windows Standalone Support for the D3D12 Player.
+  Authoritative license:
+  https://www.nuget.org/packages/Microsoft.AI.DirectML/1.13.1/License
+  Packaged DirectML.dll SHA-256:
+  5AB77CC5DB8E1544D386FD28586598317DA8DCBEF098FB86D8D8A60E739E0E5D
+  See Microsoft.AI.DirectML-1.13.1-NOTICE.txt.
+- Unity package notices required by emitted runtime binaries are copied from
+  the package cache resolved by Packages/packages-lock.json at build time.
+
+The release build fails if a required notice source cannot be resolved.

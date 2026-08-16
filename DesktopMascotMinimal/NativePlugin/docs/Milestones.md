@@ -4123,3 +4123,93 @@ unstaged after review; commit and push remain separately unauthorized.
 Commit: Not authorized
 
 Push: Not authorized
+
+## M-058 — Portable Windows x64 Release Candidate Foundation
+
+Status: Completed
+
+Architecture baseline: M-046
+
+Speech-specific design baseline: M-047.5
+
+M-058 establishes a reproducible portable Windows x64 Release Candidate for
+the existing normal-runtime product path. It preserves the M-057 Conversation,
+Speech, Character, Settings, rendering, persistence, and orderly-shutdown
+contracts; it adds no runtime product capability.
+
+Detailed design:
+`NativePlugin/docs/PortableWindowsX64ReleaseCandidateFoundationDesign.md`
+
+Automated Validation: Passed
+
+Manual Verification: Passed
+
+Visual Verification: Passed
+
+Final Repository / Staged Audit: Passed
+
+### Automated validation
+
+The canonical Unity 6000.3.20f1 Windows x64 Release build used the sole
+enabled production Scene `Assets/_Project/Scenes/MascotMain.unity`,
+`StandaloneWindows64`, `BuildOptions.None`, and Direct3D12 only. The
+Development incremental build also passed.
+
+Artifact validation passed for the versioned portable folder and ZIP,
+including the manifest, ZIP SHA-256 sidecar, artifact allowlist/denylist,
+no Debug CRT, expected native Speech exports, and exact Assets/Release Player
+native DLL SHA-256 parity. Unity's D3D12 companion `DirectML.dll` is retained
+as Microsoft.AI.DirectML 1.13.1, has byte-identical Unity-installation/Release
+artifact parity, and is covered by its dedicated packaged Microsoft notice.
+
+The authoritative bundled build input remains
+`Assets/_Project/Models/VRM/TEST_MODEL.vrm` with GUID
+`b2c4fdc826a0d7e4aa1efd906ba4780d`; its SHA-256 is
+`140DEC9A688716150C49E3C5FEFFAFC42682B64BC26DC54E49843DF9C411C4DF`.
+The obsolete byte-identical Scripts duplicate was removed only after the
+hash and serialized-reference checks passed. `git diff --check` passed.
+
+### Manual and visual verification
+
+The user expanded `あなたといつも-0.1.0-windows-x64.zip` into a new folder
+separate from `Build` and verified normal Release launch, mascot presentation,
+and one tray icon. With pre-existing persistence, the prior external
+`model_test2` character restored; it and the bundled `TEST_MODEL` each
+displayed `Mascot / こんにちは。` after a mascot click. Returning to the bundled
+model from Settings worked normally.
+
+While Speech was visible, further clicks neither created cards nor produced a
+queued/backlog response. Speech card click-close and later re-display worked.
+Mascot drag did not become a click, click-to-Speech worked after drag, and
+Settings open/close preserved runtime behavior. The selected bundled model and
+mascot position restored after restart.
+
+The user verified Release Single Instance behavior: a second launch created no
+second mascot, tray icon, or process and opened Settings in the existing
+instance. After Windows Explorer restart, the tray recovered to one icon while
+mascot, drag, click-to-Speech, and Settings continued to work. Tray Exit
+removed the mascot and tray icon with no residual process or reappearing
+window.
+
+For clean first launch, the user temporarily renamed the production persistence
+directory, launched the Release artifact with no persistence, and verified the
+initial bundled `TEST_MODEL`, closed Settings, normal click-to-Speech, position
+save, orderly exit, and restart restoration. The original persistence was then
+restored and its prior Character selection, mascot position, click-to-Speech,
+and orderly exit were reconfirmed.
+
+The retained `%LOCALAPPDATA%\DesktopMascotMinimal_clean_M058` directory is
+temporary user verification evidence. It is not a repository artifact and must
+not be deleted by this milestone.
+
+Clean VM/another Windows account, long-duration soak, sleep/resume, and a full
+Windows-version matrix remain explicitly deferred to final product acceptance;
+they are not M-058 completion criteria.
+
+The final exact-file-set staged audit passed. M-058 implementation,
+automated validation, manual verification, visual verification, and final
+repository/staged audit are complete. Commit and push remain separately
+unauthorized.
+Commit: Not authorized
+
+Push: Not authorized

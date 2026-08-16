@@ -64,8 +64,6 @@ public static class DesktopMascotSetup
         PlayerSettings.defaultScreenHeight = 700;
         PlayerSettings.runInBackground = true;
         PlayerSettings.resizableWindow = false;
-        PlayerSettings.productName = ProductDisplayName;
-
         EditorSceneManager.SaveScene(scene, ScenePath);
         EditorBuildSettings.scenes = new[] { new EditorBuildSettingsScene(ScenePath, true) };
         Selection.activeGameObject = root;
@@ -93,15 +91,7 @@ public static class DesktopMascotSetup
     [MenuItem("Tools/Desktop Mascot/Build Windows x86_64")]
     public static void BuildWindows()
     {
-        var options = new BuildPlayerOptions
-        {
-            scenes = new[] { ScenePath },
-            locationPathName =
-                $"Build/DesktopMascot/{ProductDisplayName}.exe",
-            target = BuildTarget.StandaloneWindows64,
-            options = BuildOptions.None
-        };
-        BuildPipeline.BuildPlayer(options);
+        DesktopMascotReleaseBuild.BuildWindowsX64Release();
     }
 }
 #endif

@@ -465,6 +465,7 @@ namespace DesktopMascot.Runtime
 
         private static string ReadMode()
         {
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
             foreach (var argument in Environment.GetCommandLineArgs())
             {
                 if (argument.StartsWith(
@@ -478,6 +479,9 @@ namespace DesktopMascot.Runtime
             return NormalizeMode(
                 Environment.GetEnvironmentVariable(
                     ModeEnvironmentVariable));
+#else
+            return "runtime";
+#endif
         }
 
         private static string NormalizeMode(string value)
@@ -497,6 +501,7 @@ namespace DesktopMascot.Runtime
 
         private static string ReadRuntimeVrmImportPath()
         {
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
             foreach (var argument in Environment.GetCommandLineArgs())
             {
                 var normalizedArgument = argument?.Trim();
@@ -520,10 +525,14 @@ namespace DesktopMascot.Runtime
                 }
             }
             return null;
+#else
+            return null;
+#endif
         }
 
         private static bool IsDevelopmentLaunchRequested()
         {
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
             foreach (var argument in Environment.GetCommandLineArgs())
             {
                 if (string.Equals(
@@ -535,6 +544,9 @@ namespace DesktopMascot.Runtime
                 }
             }
             return false;
+#else
+            return false;
+#endif
         }
     }
 }
