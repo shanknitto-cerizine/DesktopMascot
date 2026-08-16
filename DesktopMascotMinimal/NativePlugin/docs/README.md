@@ -25,7 +25,8 @@ recovery prerequisite have completed automated and manual validation.
   is a standalone, developer-facing visual index of the production architecture
   as connected through the validated M-057 integration. It is documentation
   only and is not a runtime dependency or architecture authority.
-- PortableWindowsX64ReleaseCandidateFoundationDesign.md
+- [`PortableWindowsX64ReleaseCandidateFoundationDesign.md`](PortableWindowsX64ReleaseCandidateFoundationDesign.md)
+- [`FinalProductAcceptanceFoundationDesign.md`](FinalProductAcceptanceFoundationDesign.md)
 - [`SettingsPresentationDesign.md`](SettingsPresentationDesign.md)
 - [`RuntimeRetiredCharacterDisposalDesign.md`](RuntimeRetiredCharacterDisposalDesign.md)
 - [`RuntimeBundledCharacterRestorationDesign.md`](RuntimeBundledCharacterRestorationDesign.md)

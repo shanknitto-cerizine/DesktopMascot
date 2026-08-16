@@ -4118,11 +4118,11 @@ staged exactly the 16 intended source, Unity metadata, diagnostic, and
 documentation files. The staged file set, complete diff, dependency and
 prohibited-reference checks, secret and generated-artifact checks, Viewer
 static validation, and `git diff --cached --check` passed. The audit set was
-unstaged after review; commit and push remain separately unauthorized.
+unstaged after review.
 
-Commit: Not authorized
+Commit: `d607518dde1f7bde44eb1c5ccabd1a5c4b0ffd18`
 
-Push: Not authorized
+Push / Remote Protection: Completed
 
 ## M-058 — Portable Windows x64 Release Candidate Foundation
 
@@ -4208,8 +4208,49 @@ they are not M-058 completion criteria.
 
 The final exact-file-set staged audit passed. M-058 implementation,
 automated validation, manual verification, visual verification, and final
-repository/staged audit are complete. Commit and push remain separately
-unauthorized.
-Commit: Not authorized
+repository/staged audit are complete.
 
-Push: Not authorized
+Commit: `b38c021ec7cc2c6ef341f8259a6b17c8022856ef`
+
+Push / Remote Protection: Completed
+
+## M-059 — Final Product Acceptance Foundation
+
+Status: Completed
+
+Acceptance Foundation: Passed
+
+Final Product Acceptance Execution: Pending
+
+Product Ready: Not Yet Declared
+
+Architecture baseline: M-046
+
+Speech-specific design baseline: M-047.5
+
+M-059 establishes the formal acceptance contract for the frozen M-058
+`あなたといつも-0.1.0-windows-x64.zip` Release Candidate. It defines initial
+Product Ready as the fixed portable unsigned `0.1.0` product from
+`Ceritizine_poc`, on Windows 11 x64 with Direct3D 12, including the fixed
+mascot-click response `こんにちは。`.
+
+The contract separates milestone diagnostics, artifact validation, and final
+product acceptance. It defines clean portability and Sleep-capable lifecycle
+environments, case records, evidence/privacy rules, a four-awake-hour soak,
+two actual Sleep/Resume cycles, one forced-termination relaunch, Explorer
+recovery, restart/persistence, orderly shutdown, and failure stop rules.
+
+Detailed design:
+`NativePlugin/docs/FinalProductAcceptanceFoundationDesign.md`
+
+M-059 changes no runtime behavior, native code, Scene, ProjectSettings,
+persistence, or M-058 artifact. It does not execute final acceptance or
+declare Product Ready. The final acceptance execution gate remains pending.
+
+Automated Validation: Passed
+
+Manual Verification: Not Applicable to the foundation implementation
+
+Visual Verification: Not Applicable to the foundation implementation
+
+Final Repository / Staged Audit: Passed

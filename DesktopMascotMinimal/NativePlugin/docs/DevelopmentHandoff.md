@@ -26,39 +26,38 @@ merge/rebase/cherry-pick state read-only. Do not store volatile Git facts here.
 - Expected branch: `m045-complete-safety` (advisory; verify live Git).
 - Architecture baseline: **M-046**.
 - Speech-specific design baseline: **M-047.5**.
-- M-048 and M-049 through M-057 are additive and do not advance M-046.
+- M-048 and M-049 through M-059 are additive and do not advance M-046.
 - M-054 is a completed design gate for production Conversation request and
   default-persona identity policy; it added no implementation.
 - Latest completed milestone: **M-058 — Portable Windows x64 Release Candidate
-  Foundation**.
+  Foundation**, followed by **M-059 — Final Product Acceptance Foundation**.
 - Active product milestone: **None**.
 - M-057 automated, manual, visual, and final repository/staged validation
   passed.
 - M-058 automated, manual, visual, and final repository/staged audit passed.
+- M-059 acceptance-foundation automated validation and final
+  repository/staged audit passed; final product acceptance execution remains
+  pending and Product Ready is not declared.
 
-M-057 scope is authorized. Its detailed contract is
-`SingleMascotClickSpeechResponseProductionIntegrationDesign.md`.
+M-059 scope is complete. Its detailed contract is
+`FinalProductAcceptanceFoundationDesign.md`.
 
 ## Current objective and blockers
 
-M-057 is complete under architecture baseline M-046 and Speech-specific design
-baseline M-047.5. Its implementation, automated validation, user-performed
-manual and visual verification, and final repository/staged audit are recorded
-in `Milestones.md`. Commit and push remain separate explicit authorizations.
+M-057 and M-058 are complete, committed, pushed, and remote-protection
+complete under architecture baseline M-046 and Speech-specific design baseline
+M-047.5. M-058 passed automated, manual, visual, and final repository/staged
+Release Candidate validation without changing runtime product behavior.
 
-There is no active product blocker. M-057 native/managed Speech export parity
-was restored by the canonical native build and Player deploy without native
-source changes. The Assets and current product-named Player DLLs have matching
-SHA-256 and exports, and the previously blocked `message-window-diagnostic`
-passed with orderly shutdown. The user subsequently passed the required normal-
-runtime manual and visual verification, including bundled/imported Character
-click-to-Speech, Speech/drag/Settings interaction, and tray orderly shutdown.
-The final exact-file-set staged audit passed. M-058 now has passed automated,
-manual, and visual Release Candidate evidence, including clean first launch,
-existing v1 persistence, Single Instance, Explorer tray recovery, and orderly
-shutdown. It changes no runtime product behavior. Its final exact-file-set
-repository/staged audit also passed, so M-058 is complete. Commit and push
-remain separately unauthorized.
+M-059 is complete as a bounded documentation and acceptance foundation. It
+defines the formal Product Ready acceptance contract for
+the frozen M-058 portable Release Candidate: Windows 11 x64 support, portable
+unsigned ZIP distribution, the fixed mascot-click `こんにちは。` response,
+three-layer evidence separation, clean portability/lifecycle environments,
+bounded soak, Sleep/Resume, forced-termination relaunch, and stop rules. It
+did not change runtime behavior, rebuild the artifact, execute final
+acceptance, or declare Product Ready. Final product acceptance execution
+remains a later explicit gate.
 
 The Unity Editor batch Licensing Client
 limitation is preserved as validation history in M-049 through M-053; it did
@@ -91,6 +90,8 @@ feature without an explicitly scoped milestone.
   evaluator.
 - `ConversationRuntimeIdentityDesign.md`: M-054 production request identity
   and default Conversation persona binding policy.
+- `FinalProductAcceptanceFoundationDesign.md`: M-059 Product Ready
+  acceptance contract and final-acceptance execution boundary.
 - Other subsystem designs named by `AGENTS.md`: their detailed current
   ownership, lifecycle, implementation, and validation contracts.
 - This file: current intent, model guidance, thread lifecycle, and navigation.

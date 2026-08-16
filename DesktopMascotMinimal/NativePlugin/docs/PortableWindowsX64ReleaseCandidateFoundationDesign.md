@@ -95,4 +95,6 @@ temporary verification evidence and is not to be deleted by M-058.
 Clean VM/another Windows account, long-duration soak, sleep/resume, and a full
 Windows-version matrix are deferred final-product-acceptance work, not M-058
 completion criteria. The Final Repository / Staged Audit passed; M-058 is
-complete. Commit and push remain separately unauthorized.
+complete, committed as `b38c021ec7cc2c6ef341f8259a6b17c8022856ef`, pushed,
+and remote-protection complete. M-059 owns the later final-product-acceptance
+foundation; it does not alter this completed Release Candidate baseline.

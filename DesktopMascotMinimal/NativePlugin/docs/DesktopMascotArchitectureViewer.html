@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Desktop Mascot Architecture Viewer — M-058</title>
+  <title>Desktop Mascot Architecture Viewer — M-059</title>
   <style>
     :root {
       color-scheme: dark;
@@ -403,7 +403,7 @@
     <header>
       <div>
         <h1>Desktop Mascot Architecture Viewer</h1>
-        <div class="baseline">Current baseline: <strong>M-057 validated; M-058 Release Candidate Foundation completed</strong></div>
+        <div class="baseline">Current baseline: <strong>M-057 validated; M-058 Release Candidate completed; M-059 acceptance foundation passed</strong></div>
         <div class="frontier">Current capability frontier: <strong>Mascot Click → Visible Local Speech Response</strong></div>
       </div>
       <div class="legend" aria-label="Architecture status legend">
@@ -515,26 +515,27 @@
       };
 
       const roadmapDetails = {
-        productGoal: capability("Desktop Mascot Product Vision", "TBD", "characterを中心とした自然で静かなdesktop presenceを、local-firstかつnon-activatingな体験として目指す。", "これは最終完成判定ではない。completion判定はProduct Ready Conditionsで扱い、conversation content、presentation behavior、release/acceptance条件は未確定。", "ProjectPrinciples（M-049以降のdesign guidance）", "Overview / Speech / Shutdown"),
-        baseline: capability("Current Baseline", "COMPLETED", "M-057はMascot Clickからvisible local Speech responseまでproduction接続・検証済み。", "Product Ready、packaging、release acceptanceは別の未確定条件。", "M-057", "M-057 Click → Speech / Conversation / Speech"),
+        productGoal: capability("Desktop Mascot Product Vision", "TBD", "characterを中心とした自然で静かなdesktop presenceを、local-firstかつnon-activatingな体験として目指す。", "Product Readyの最終acceptance executionが残る。", "ProjectPrinciples（M-049以降のdesign guidance）", "Overview / Speech / Shutdown"),
+        baseline: capability("Current Baseline", "COMPLETED", "M-057はMascot Clickからvisible local Speech responseまでproduction接続・検証済みで、M-058 portable Release Candidateもcompleted。", "M-059はProduct Readyを宣言せず、final acceptance executionを後続gateとして残す。", "M-057 / M-058", "M-057 Click → Speech / Conversation / Speech"),
         coreCapability: capability("Core Runtime", "COMPLETED", "normal runtime orchestration、Single Instance、Tray、Player visibility、orderly shutdownのvalidated foundationがある。", "製品完成条件としての追加scopeは要件未確定。", "M-029 / M-035〜M-038 / M-046", "Startup / Runtime / Settings / Tray / Shutdown"),
         characterCapability: capability("Character", "COMPLETED", "bundled Character、runtime VRM import/selection/restore、atomic activation、render-safe disposalがある。", "Conversation Pack等との将来bindingは別scopeで未定。", "M-039〜M-044", "Character / Persistence"),
         renderingCapability: capability("Rendering", "COMPLETED", "D3D12、DirectComposition、premultiplied alpha、HRGN interactionを含むproduction rendering pathが検証済み。", "追加renderer/platform scopeは要件未確定。", "M-029 / M-046", "Rendering"),
         interactionCapability: capability("Interaction", "COMPLETED", "native click/drag、context menu、tray、position persistence、Single Instance activationが接続済み。", "追加interaction taxonomyのproduction sourceは未スケジュール。", "M-030 / M-031 / M-035〜M-038 / M-055", "Input / Settings / Tray"),
         settingsCapability: capability("Settings", "COMPLETED", "versioned settings、ViewModel editing、Player presentation、Character selection entryが接続済み。", "将来のautomatic conversation、sound、network controlはproduct scope確定後の別設計。", "M-033 / M-034 / M-041 / M-045", "Settings / Tray"),
         persistenceCapability: capability("Persistence", "COMPLETED", "settings.json、window-position.json、character-selection.jsonが独立ownerで運用される。", "将来機能のschema追加やmigrationは未定。", "M-031 / M-033 / M-042 / M-043", "Persistence"),
-        conversationCapability: capability("Conversation", "CURRENT", "Mascot Clickからlocal evaluation、ConversationEvaluationResult、visible local Speech responseまで到達する。", "pack/provider、history、cadence、追加triggerやcontent scopeは未確定。CURRENTは現在の能力frontierを示す。", "M-049〜M-057", "M-057 Click → Speech / Conversation / Speech"),
+        conversationCapability: capability("Conversation", "CURRENT", "Mascot Clickからlocal evaluation、ConversationEvaluationResult、fixed `こんにちは。` visible local Speech responseまで到達する。", "複数応答、selection policy、pack/provider、history、cadence、追加triggerはProduct Ready後のoptional capability。CURRENTは現在の能力frontierを示す。", "M-049〜M-057 / M-059", "M-057 Click → Speech / Conversation / Speech"),
         presentationConnection: capability("Conversation → Presentation Path", "CONNECTED", "M-057 adapterがResponseProducedをSpeechMessageへ変換し、normal-runtime Speechへ渡す。Busyはdropし、queue/retryは持たない。", "追加presentation policyやcontent scopeは別milestone。", "M-057", "M-057 Click → Speech / Conversation / Speech"),
         speechCapability: capability("Speech / Presentation", "CONNECTED", "normal runtimeがSpeechPresentationControllerを生成し、独立Speech HWND / D3D12 / DirectCompositionで1件を表示する。", "animation、audio、Text SE、追加admission policyは別scope。", "M-047.5 / M-048 / M-057", "Speech / M-057 Click → Speech"),
-        integrationCapability: capability("Product Integration", "PARTIAL", "M-058でportable Windows x64 Release Candidate Foundationが成立し、M-057 runtime pathを変更せずRelease artifactとして検証した。", "final product acceptanceだけが未確定。", "M-057 / M-058", "Conversation / Speech / Settings / Release"),
+        integrationCapability: capability("Product Integration", "PARTIAL", "M-058でportable Windows x64 Release Candidateが成立し、M-059がそのfrozen artifactのacceptance contractを定義する。", "Windows 11 x64でのfinal acceptance executionだけがpending。", "M-057 / M-058 / M-059", "Conversation / Speech / Settings / Release"),
+        acceptanceFoundation: capability("Final Product Acceptance Foundation", "COMPLETED", ["frozen 0.1.0 portable unsigned ZIP", "Windows 11 x64 / Direct3D 12", "Ceritizine_poc", "fixed mascot-click `こんにちは。` response", "three evidence layers", "clean portability and lifecycle acceptance matrix"], ["final acceptance execution", "four-awake-hour soak", "two actual Sleep/Resume cycles", "forced-termination relaunch", "Product Ready declaration"], "M-059", "Product Vision / Roadmap"),
         productReady: capability(
           "Product Ready Conditions",
-          "TBD",
-          ["Single Instance", "Settings", "Character selection/import", "Rendering / transparency", "Click / drag interaction", "3つの独立Persistence", "Orderly shutdown", "Local Conversation evaluation", "Visible local Speech response"],
-          ["final conversation content / trigger scope", "packaging / release readiness", "final product acceptance"],
-          "Goal definition pending",
+          "PLANNED",
+          ["Single Instance", "Settings", "Character selection/import", "Rendering / transparency", "Click / drag interaction", "3つの独立Persistence", "Orderly shutdown", "fixed local Conversation / visible Speech response", "0.1.0 portable unsigned ZIP", "Windows 11 x64 / Direct3D 12"],
+          ["frozen-artifact final acceptance execution"],
+          "M-059 acceptance contract",
           "全Architecture view",
-          ["final conversation content scope", "final presentation behavior / admission policy", "animation・expression・audio・Text SEを製品要件に含めるか", "packaging / release criteria", "product acceptance criteria"]
+          ["multiple responses / selection policy", "animation・expression・audio・Text SE", "Windows 10 support", "installer/updater/signing", "provider/AI/network behavior"]
         )
       };
 
@@ -572,7 +573,7 @@
         roadmap: view(
           "Product Vision / Roadmap",
           "Milestone countではなく、製品能力の状態と現在のcapability frontierを示します。数値進捗率は使用しません。",
-          1300, 650,
+          1300, 760,
           [
             node("g-goal", 555, 75, ["Desktop Mascot", "PRODUCT VISION"], "TBD", "vision", "productGoal"),
             node("g-core", 20, 220, ["Core Runtime"], "COMPLETED", "capability", "coreCapability"),
@@ -581,12 +582,13 @@
             node("g-interaction", 650, 220, ["Interaction"], "COMPLETED", "capability", "interactionCapability"),
             node("g-settings", 860, 220, ["Settings"], "COMPLETED", "capability", "settingsCapability"),
             node("g-persistence", 1070, 220, ["Persistence"], "COMPLETED", "capability", "persistenceCapability"),
-            node("g-baseline", 20, 445, ["M-057", "Validated"], "COMPLETED", "baseline", "baseline"),
+            node("g-baseline", 20, 445, ["M-057 / M-058", "Validated"], "COMPLETED", "baseline", "baseline"),
             node("g-conversation", 230, 445, ["Conversation", "Current Frontier"], "CURRENT", "capability", "conversationCapability"),
             node("g-presentation-path", 440, 445, ["Result → Presentation", "Connected"], "CONNECTED", "capability", "presentationConnection"),
             node("g-speech", 650, 445, ["Speech /", "Presentation"], "CONNECTED", "capability", "speechCapability"),
             node("g-integration", 860, 445, ["Product Integration"], "PARTIAL", "capability", "integrationCapability"),
-            node("g-ready", 1070, 445, ["★ PRODUCT READY", "Goal definition pending"], "TBD", "goal", "productReady")
+            node("g-acceptance", 1070, 445, ["M-059 Acceptance", "Foundation Passed"], "COMPLETED", "capability", "acceptanceFoundation"),
+            node("g-ready", 1070, 565, ["★ PRODUCT READY", "Final acceptance pending"], "PLANNED", "goal", "productReady")
           ],
           [
             edge("g-goal", "g-core", "", "foundation"),
@@ -599,16 +601,18 @@
             edge("g-conversation", "g-presentation-path", "RESPONSE PRODUCED", "primary-path"),
             edge("g-presentation-path", "g-speech", "TRY SHOW", "primary-path"),
             edge("g-speech", "g-integration", "M-057 PATH", "primary-path"),
-            edge("g-integration", "g-ready", "RELEASE FOUNDATION", "primary-path")
+            edge("g-integration", "g-acceptance", "M-058 ARTIFACT", "primary-path"),
+            edge("g-acceptance", "g-ready", "FINAL ACCEPTANCE", "primary-path")
           ],
           [
             "Current Capability Frontier: Mascot Click → Local Conversation Evaluation → ConversationEvaluationResult → Visible Local Speech Response",
             "Conversation result → presentation path: connected and validated in M-057",
             "M-058 adds portable Windows x64 Release packaging without changing the validated runtime path",
+            "M-059 frozen-artifact final product acceptance foundation: passed; execution remains pending",
             "M-057 and M-058 automated / manual / visual validation: passed",
-            "M-058 final repository / staged audit: passed"
+            "M-058 final repository / staged audit: passed and its published baseline remains unchanged"
           ],
-          [{ kind: "group", x: 20, y: 180, width: 1240, label: "VALIDATED CAPABILITIES", subtitle: "runtime through M-057; portable Release Candidate through M-058" }]
+          [{ kind: "group", x: 20, y: 180, width: 1240, label: "VALIDATED CAPABILITIES", subtitle: "runtime through M-057; portable Release Candidate through M-058; M-059 acceptance foundation passed; final execution pending" }]
         ),
 
         m056: view(
